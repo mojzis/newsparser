@@ -40,9 +40,7 @@ searches:
     include_terms:
       - "#mcp"
     exclude_terms:
-      - "#marvelcrisisprotocol"
       - "#minipainting"
-      - "#marvel"
     sort: "latest"
     enabled: true
 

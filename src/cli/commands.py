@@ -1,4 +1,5 @@
 import asyncio
+import re
 import sys
 from datetime import date
 from pathlib import Path
@@ -290,7 +291,8 @@ def notebook():
 @click.argument("url")
 @click.option("--show-content", is_flag=True, help="Show extracted markdown content")
 @click.option("--show-html", is_flag=True, help="Show raw HTML content")
-def process_article(url: str, show_content: bool, show_html: bool):
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed extraction debugging info")
+def process_article(url: str, show_content: bool, show_html: bool, verbose: bool):
     """Process a single article URL to test content extraction."""
     async def _process_article():
         console.print(f"[blue]Processing article: {url}[/blue]\n")
@@ -326,14 +328,65 @@ def process_article(url: str, show_content: bool, show_html: bool):
             # Extract content
             console.print("[yellow]Extracting content...[/yellow]")
             extractor = ContentExtractor()
-            extract_result = extractor.extract_content(fetch_result)
+            
+            if verbose:
+                console.print("[dim]Running in verbose mode - check logs for detailed extraction info[/dim]")
+                
+            extract_result = extractor.extract_content(fetch_result, debug=verbose)
             
             if isinstance(extract_result, ContentError):
+                error_panel_content = f"[red]Extraction Error ({extract_result.error_type}):[/red]\n{extract_result.error_message}"
+                
+                if verbose:
+                    # Add debugging suggestions
+                    error_panel_content += "\n\n[yellow]Debugging suggestions:[/yellow]"
+                    error_panel_content += "\n• Check the HTML structure with --show-html"
+                    error_panel_content += "\n• The website might use heavy JavaScript for content"
+                    error_panel_content += "\n• Content might be behind authentication"
+                    error_panel_content += "\n• Try a different article URL"
+                
                 console.print(Panel(
-                    f"[red]Extraction Error ({extract_result.error_type}):[/red]\n{extract_result.error_message}",
+                    error_panel_content,
                     title="❌ Content Extraction Failed",
                     border_style="red"
                 ))
+                
+                if verbose and show_html:
+                    # Show HTML structure analysis
+                    from bs4 import BeautifulSoup
+                    soup = BeautifulSoup(fetch_result.html, "html.parser")
+                    
+                    structure_info = Table(title="🔍 HTML Structure Analysis")
+                    structure_info.add_column("Element", style="cyan")
+                    structure_info.add_column("Count", style="white")
+                    
+                    elements = ["title", "h1", "h2", "h3", "p", "div", "article", "main", "section"]
+                    for element in elements:
+                        count = len(soup.find_all(element))
+                        structure_info.add_row(element, str(count))
+                    
+                    console.print("\n")
+                    console.print(structure_info)
+                    
+                    # Check for common content indicators
+                    content_indicators = [
+                        ("Content class", soup.find_all(attrs={"class": re.compile(r"content", re.I)})),
+                        ("Article class", soup.find_all(attrs={"class": re.compile(r"article", re.I)})),
+                        ("Post class", soup.find_all(attrs={"class": re.compile(r"post", re.I)})),
+                        ("Main content", soup.find_all(attrs={"class": re.compile(r"main", re.I)})),
+                    ]
+                    
+                    indicators_table = Table(title="📝 Content Indicators")
+                    indicators_table.add_column("Indicator", style="cyan")
+                    indicators_table.add_column("Found", style="white")
+                    
+                    for name, elements in content_indicators:
+                        found = f"{len(elements)} elements" if elements else "None"
+                        indicators_table.add_row(name, found)
+                    
+                    console.print("\n")
+                    console.print(indicators_table)
+                
                 return
             
             console.print("[green]✓ Content extracted successfully[/green]")
