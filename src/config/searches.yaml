@@ -28,6 +28,7 @@ searches:
   mcp_tag:
     name: "tag #mcp"
     description: "Posts about MCP tools and implementations"
+    query_syntax: "native"
     include_terms:
       - "#mcp"
     exclude_terms:
@@ -37,6 +38,7 @@ searches:
   mcp_tag2:
     name: "tag #mcp - #minipainting"
     description: "Posts about MCP tools and implementations"
+    query_syntax: "native"
     include_terms:
       - "#mcp"
     exclude_terms:

@@ -246,19 +246,92 @@ def validate_config(config_path: Optional[str]):
         console.print(f"🔄 {enabled_count} definitions are enabled")
         
         # Test query building for each definition
-        from src.bluesky.query_builder import LuceneQueryBuilder
+        from src.bluesky.query_builders import QueryBuilderFactory
         
         for key, search_def in search_config.searches.items():
             if search_def.enabled:
                 try:
-                    query = LuceneQueryBuilder.build_and_validate(search_def)
-                    console.print(f"✅ '{key}': Query builds successfully", style="green")
-                    console.print(f"   Query: {query}", style="dim")
+                    builder = QueryBuilderFactory.create(search_def.query_syntax)
+                    query = builder.build_query(search_def)
+                    is_valid, error_msg = builder.validate_query(query)
+                    
+                    if is_valid:
+                        console.print(f"✅ '{key}': Query builds successfully ({search_def.query_syntax} syntax)", style="green")
+                        console.print(f"   Query: {query}", style="dim")
+                    else:
+                        console.print(f"❌ '{key}': Query validation failed: {error_msg}", style="red")
                 except Exception as e:
                     console.print(f"❌ '{key}': Query build failed: {e}", style="red")
         
     except Exception as e:
         console.print(f"❌ Configuration validation failed: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--config", "config_path", help="Path to search configuration YAML file")
+@click.option("--query", help="Search definition key to compare")
+def compare_syntaxes(config_path: Optional[str], query: Optional[str]):
+    """Compare native and Lucene query syntaxes side by side."""
+    try:
+        from src.bluesky.query_builders import QueryBuilderFactory
+        
+        search_config = load_search_config(config_path)
+        
+        # Select which searches to compare
+        if query:
+            if query not in search_config.searches:
+                console.print(f"❌ Search '{query}' not found", style="red")
+                sys.exit(1)
+            searches = {query: search_config.searches[query]}
+        else:
+            searches = search_config.get_enabled_searches()
+        
+        # Build comparison table
+        table = Table(title="Query Syntax Comparison")
+        table.add_column("Search", style="cyan", no_wrap=True)
+        table.add_column("Native Query", style="green")
+        table.add_column("Lucene Query", style="blue")
+        table.add_column("Include Terms", style="magenta")
+        table.add_column("Exclude Terms", style="red")
+        
+        for key, search_def in searches.items():
+            try:
+                # Build native query
+                native_builder = QueryBuilderFactory.create("native")
+                native_query = native_builder.build_query(search_def)
+                
+                # Build Lucene query
+                lucene_builder = QueryBuilderFactory.create("lucene")
+                lucene_query = lucene_builder.build_query(search_def)
+                
+                # Format terms
+                include_str = ", ".join(search_def.include_terms[:3])
+                if len(search_def.include_terms) > 3:
+                    include_str += f" (+{len(search_def.include_terms) - 3})"
+                
+                exclude_str = ", ".join(search_def.exclude_terms[:3]) if search_def.exclude_terms else "None"
+                if len(search_def.exclude_terms) > 3:
+                    exclude_str += f" (+{len(search_def.exclude_terms) - 3})"
+                
+                table.add_row(
+                    key,
+                    native_query[:40] + "..." if len(native_query) > 40 else native_query,
+                    lucene_query[:40] + "..." if len(lucene_query) > 40 else lucene_query,
+                    include_str,
+                    exclude_str
+                )
+                
+            except Exception as e:
+                table.add_row(key, f"Error: {e}", "Error", "", "")
+        
+        console.print(table)
+        
+        # Show note about complex expressions
+        console.print("\n[yellow]Note: Complex boolean expressions in exclude terms are skipped in native syntax[/yellow]")
+        
+    except Exception as e:
+        console.print(f"❌ Comparison failed: {e}", style="red")
         sys.exit(1)
 
 

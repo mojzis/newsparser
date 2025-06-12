@@ -18,6 +18,7 @@ class SearchDefinition(BaseModel):
     exclude_terms: list[str] = Field(default_factory=list, description="Terms to exclude")
     sort: str = Field(default="latest", description="Sort order: latest, top")
     enabled: bool = Field(default=True, description="Whether this search is active")
+    query_syntax: str = Field(default="native", description="Query syntax type: native, lucene")
     
     @model_validator(mode="after")
     def validate_sort_option(self) -> "SearchDefinition":
@@ -25,6 +26,14 @@ class SearchDefinition(BaseModel):
         valid_sorts = ["latest", "top"]
         if self.sort not in valid_sorts:
             raise ValueError(f"Sort must be one of {valid_sorts}, got: {self.sort}")
+        return self
+    
+    @model_validator(mode="after")
+    def validate_query_syntax(self) -> "SearchDefinition":
+        """Validate query syntax is supported."""
+        valid_syntaxes = ["native", "lucene"]
+        if self.query_syntax not in valid_syntaxes:
+            raise ValueError(f"Query syntax must be one of {valid_syntaxes}, got: {self.query_syntax}")
         return self
     
     @field_validator('exclude_terms', mode='before')

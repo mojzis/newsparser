@@ -5,7 +5,7 @@ from typing import Any
 from atproto import AsyncClient, models
 from atproto.exceptions import AtProtocolError
 
-from src.bluesky.query_builder import LuceneQueryBuilder
+from src.bluesky.query_builders import QueryBuilderFactory
 from src.config.searches import SearchDefinition
 from src.config.settings import Settings
 from src.models.post import BlueskyPost, EngagementMetrics
@@ -208,10 +208,16 @@ class BlueskyClient:
             Tuple of (posts list, next_cursor)
         """
         try:
-            # Build Lucene query from search definition
-            query = LuceneQueryBuilder.build_and_validate(search_definition)
+            # Build query using appropriate builder
+            builder = QueryBuilderFactory.create(search_definition.query_syntax)
+            query = builder.build_query(search_definition)
             
-            logger.info(f"Searching with definition '{search_definition.name}': {query}")
+            # Validate query
+            is_valid, error_msg = builder.validate_query(query)
+            if not is_valid:
+                raise ValueError(f"Invalid query: {error_msg}")
+            
+            logger.info(f"Searching with definition '{search_definition.name}' using {search_definition.query_syntax} syntax: {query}")
             
             return await self.search_posts(
                 query=query,
