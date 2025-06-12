@@ -16,6 +16,8 @@ from src.config.settings import get_settings
 from src.content.extractor import ContentExtractor
 from src.content.fetcher import ArticleFetcher
 from src.content.models import ContentError
+from src.utils.language_detection import LanguageType
+from src.utils.filtering import filter_posts_by_language, get_language_statistics
 
 console = Console()
 
@@ -99,7 +101,8 @@ def collect(max_posts: int, target_date: Optional[str], search: str, config_path
 
 @cli.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def status(target_date: Optional[str]):
+@click.option("--show-language-stats", is_flag=True, help="Show language distribution statistics")
+def status(target_date: Optional[str], show_language_stats: bool):
     """Check if data exists for a specific date."""
     
     # Parse target date
@@ -121,9 +124,16 @@ def status(target_date: Optional[str]):
         if exists:
             console.print(f"✅ Data exists for {parsed_date}", style="green")
             
-            # Try to get post count
+            # Try to get post count and language stats
             posts = asyncio.run(collector.get_stored_posts(parsed_date))
             console.print(f"📊 Found {len(posts)} stored posts")
+            
+            if show_language_stats and posts:
+                console.print(f"\n📈 Language Distribution:")
+                stats = get_language_statistics(posts)
+                for lang, count in sorted(stats.items()):
+                    percentage = (count / len(posts)) * 100
+                    console.print(f"  {lang.upper()}: {count:,} posts ({percentage:.1f}%)")
         else:
             console.print(f"❌ No data found for {parsed_date}", style="red")
             
@@ -135,7 +145,11 @@ def status(target_date: Optional[str]):
 @cli.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
 @click.option("--limit", default=10, help="Number of posts to display")
-def list_posts(target_date: Optional[str], limit: int):
+@click.option("--include-languages", help="Include only these languages (comma-separated: latin,mixed,unknown)")
+@click.option("--exclude-languages", help="Exclude these languages (comma-separated: latin,mixed,unknown)")
+@click.option("--show-language-stats", is_flag=True, help="Show language distribution statistics")
+def list_posts(target_date: Optional[str], limit: int, include_languages: Optional[str], 
+               exclude_languages: Optional[str], show_language_stats: bool):
     """List stored posts for a specific date."""
     
     # Parse target date
@@ -148,6 +162,28 @@ def list_posts(target_date: Optional[str], limit: int):
     else:
         parsed_date = date.today()
     
+    # Parse language filtering options
+    include_langs = None
+    exclude_langs = None
+    
+    if include_languages and exclude_languages:
+        console.print("❌ Cannot specify both --include-languages and --exclude-languages", style="red")
+        sys.exit(1)
+    
+    if include_languages:
+        try:
+            include_langs = [LanguageType(lang.strip()) for lang in include_languages.split(',')]
+        except ValueError as e:
+            console.print(f"❌ Invalid language in include list: {e}", style="red")
+            sys.exit(1)
+    
+    if exclude_languages:
+        try:
+            exclude_langs = [LanguageType(lang.strip()) for lang in exclude_languages.split(',')]
+        except ValueError as e:
+            console.print(f"❌ Invalid language in exclude list: {e}", style="red")
+            sys.exit(1)
+    
     try:
         settings = get_settings()
         collector = BlueskyDataCollector(settings)
@@ -158,10 +194,46 @@ def list_posts(target_date: Optional[str], limit: int):
             console.print(f"❌ No posts found for {parsed_date}", style="red")
             return
         
+        # Show original language statistics if requested
+        if show_language_stats:
+            original_stats = get_language_statistics(posts)
+            console.print(f"\n📊 Language Statistics for {parsed_date}")
+            console.print(f"Total posts: {len(posts)}")
+            for lang, count in sorted(original_stats.items()):
+                percentage = (count / len(posts)) * 100
+                console.print(f"  {lang.upper()}: {count:,} ({percentage:.1f}%)")
+            console.print()
+        
+        # Apply language filtering
+        if include_langs or exclude_langs:
+            original_count = len(posts)
+            posts = filter_posts_by_language(posts, include_langs, exclude_langs)
+            filtered_count = len(posts)
+            
+            if show_language_stats:
+                console.print(f"🔍 After language filtering: {filtered_count}/{original_count} posts")
+                if filtered_count != original_count:
+                    filtered_stats = get_language_statistics(posts)
+                    for lang, count in sorted(filtered_stats.items()):
+                        percentage = (count / filtered_count) * 100 if filtered_count > 0 else 0
+                        console.print(f"  {lang.upper()}: {count:,} ({percentage:.1f}%)")
+                console.print()
+        
+        if not posts:
+            console.print(f"❌ No posts match the filtering criteria", style="red")
+            return
+        
         # Create table
-        table = Table(title=f"Posts for {parsed_date}")
+        table_title = f"Posts for {parsed_date}"
+        if include_langs or exclude_langs:
+            filter_desc = f"languages: {','.join([l.value for l in (include_langs or exclude_langs)])}"
+            action = "including" if include_langs else "excluding"
+            table_title += f" ({action} {filter_desc})"
+        
+        table = Table(title=table_title)
         table.add_column("Author", style="cyan", no_wrap=True)
         table.add_column("Content", style="white", max_width=50)
+        table.add_column("Language", style="yellow", justify="center")
         table.add_column("Engagement", style="green", justify="center")
         table.add_column("Links", style="blue")
         
@@ -171,9 +243,19 @@ def list_posts(target_date: Optional[str], limit: int):
             if len(post.links) > 2:
                 links += f" (+{len(post.links) - 2} more)"
             
+            # Format language with appropriate styling
+            lang_display = post.language.value.upper()
+            if post.language == LanguageType.UNKNOWN:
+                lang_display = f"[red]{lang_display}[/red]"
+            elif post.language == LanguageType.MIXED:
+                lang_display = f"[orange3]{lang_display}[/orange3]"
+            else:
+                lang_display = f"[green]{lang_display}[/green]"
+            
             table.add_row(
                 post.author,
                 post.content[:100] + "..." if len(post.content) > 100 else post.content,
+                lang_display,
                 engagement,
                 links or "None"
             )
@@ -509,6 +591,151 @@ def process_article(url: str, show_content: bool, show_html: bool, verbose: bool
         console.print("\n[yellow]Process interrupted by user[/yellow]")
     except Exception as e:
         console.print(f"[red]Unexpected error: {e}[/red]")
+
+
+@cli.command()
+@click.argument("text")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed character analysis")
+def detect_language(text: str, verbose: bool):
+    """Test language detection on provided text."""
+    from src.utils.language_detection import detect_language_from_text, analyze_text_characters
+    
+    console.print(f"[blue]Testing language detection on:[/blue]")
+    console.print(f'"{text}"')
+    console.print()
+    
+    # Detect language
+    detected = detect_language_from_text(text)
+    console.print(f"[green]Detected language:[/green] {detected.value.upper()}")
+    
+    if verbose:
+        console.print("\n[yellow]Detailed Analysis:[/yellow]")
+        analysis = analyze_text_characters(text)
+        
+        analysis_table = Table(title="Character Analysis")
+        analysis_table.add_column("Metric", style="cyan")
+        analysis_table.add_column("Value", style="white")
+        
+        analysis_table.add_row("Total Characters", str(analysis['total_chars']))
+        analysis_table.add_row("Latin Characters", str(analysis['latin_chars']))
+        analysis_table.add_row("Non-Latin Characters", str(analysis['non_latin_chars']))
+        analysis_table.add_row("Neutral Characters", str(analysis['neutral_chars']))
+        analysis_table.add_row("Whitespace Characters", str(analysis['whitespace_chars']))
+        analysis_table.add_row("Meaningful Characters", str(analysis['meaningful_chars']))
+        analysis_table.add_row("Non-Latin Percentage", f"{analysis['non_latin_percentage']:.1%}")
+        
+        console.print(analysis_table)
+        
+        # Show character samples
+        from src.utils.language_detection import get_character_sample
+        
+        console.print("\n[yellow]Character Samples:[/yellow]")
+        
+        latin_chars = get_character_sample(text, "latin", limit=10)
+        if latin_chars:
+            console.print(f"Latin: {' '.join(latin_chars)}")
+        
+        non_latin_chars = get_character_sample(text, "non_latin", limit=10)
+        if non_latin_chars:
+            console.print(f"Non-Latin: {' '.join(non_latin_chars)}")
+        
+        neutral_chars = get_character_sample(text, "neutral", limit=10)
+        if neutral_chars:
+            console.print(f"Neutral: {' '.join(neutral_chars)}")
+
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--show-samples", is_flag=True, help="Show sample posts for each language type")
+def language_report(target_date: Optional[str], show_samples: bool):
+    """Generate a comprehensive language detection report for stored posts."""
+    # Parse target date
+    if target_date:
+        try:
+            parsed_date = date.fromisoformat(target_date)
+        except ValueError:
+            console.print(f"❌ Invalid date format: {target_date}. Use YYYY-MM-DD", style="red")
+            sys.exit(1)
+    else:
+        parsed_date = date.today()
+    
+    try:
+        settings = get_settings()
+        collector = BlueskyDataCollector(settings)
+        
+        posts = asyncio.run(collector.get_stored_posts(parsed_date))
+        
+        if not posts:
+            console.print(f"❌ No posts found for {parsed_date}", style="red")
+            return
+        
+        console.print(f"🔍 Language Detection Report for {parsed_date}")
+        console.print(f"Total posts analyzed: {len(posts)}")
+        console.print()
+        
+        # Get language statistics
+        stats = get_language_statistics(posts)
+        
+        # Create detailed statistics table
+        stats_table = Table(title="Language Distribution")
+        stats_table.add_column("Language", style="cyan")
+        stats_table.add_column("Count", style="white", justify="right")
+        stats_table.add_column("Percentage", style="green", justify="right")
+        
+        for lang in ["latin", "mixed", "unknown"]:
+            count = stats.get(lang, 0)
+            percentage = (count / len(posts)) * 100 if posts else 0
+            
+            # Color code the language names
+            if lang == "latin":
+                lang_display = f"[green]{lang.upper()}[/green]"
+            elif lang == "mixed":
+                lang_display = f"[orange3]{lang.upper()}[/orange3]"
+            else:
+                lang_display = f"[red]{lang.upper()}[/red]"
+            
+            stats_table.add_row(
+                lang_display,
+                f"{count:,}",
+                f"{percentage:.1f}%"
+            )
+        
+        console.print(stats_table)
+        
+        if show_samples:
+            console.print("\n[yellow]Sample Posts by Language:[/yellow]")
+            
+            for lang_type in [LanguageType.LATIN, LanguageType.MIXED, LanguageType.UNKNOWN]:
+                lang_posts = [p for p in posts if p.language == lang_type]
+                if lang_posts:
+                    console.print(f"\n[bold]{lang_type.value.upper()} Posts:[/bold]")
+                    for i, post in enumerate(lang_posts[:3]):  # Show first 3 samples
+                        sample_content = post.content[:80] + "..." if len(post.content) > 80 else post.content
+                        console.print(f"  {i+1}. {sample_content}")
+                        console.print(f"     Author: {post.author}")
+                        if post.tags:
+                            console.print(f"     Tags: {', '.join(post.tags[:3])}")
+                        console.print()
+        
+        # Summary insights
+        console.print("\n[bold]Summary Insights:[/bold]")
+        
+        latin_pct = (stats.get("latin", 0) / len(posts)) * 100 if posts else 0
+        mixed_pct = (stats.get("mixed", 0) / len(posts)) * 100 if posts else 0
+        unknown_pct = (stats.get("unknown", 0) / len(posts)) * 100 if posts else 0
+        
+        if latin_pct > 80:
+            console.print("• Content is predominantly Latin-script based")
+        if mixed_pct > 20:
+            console.print("• Significant multilingual content detected")
+        if unknown_pct > 10:
+            console.print("• Consider filtering non-Latin content for processing")
+        
+        console.print(f"• Language detection coverage: 100% ({len(posts)} posts analyzed)")
+        
+    except Exception as e:
+        console.print(f"❌ Language report failed: {e}", style="red")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

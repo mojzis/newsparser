@@ -100,32 +100,33 @@ def _(collector, data_exists, mo, selected_date):
 @app.cell
 def _(mo, pd, posts):
     # Convert posts to DataFrame for analysis
-    if posts:
-        posts_data = []
-        for post in posts:
-            posts_data.append({
-                'id': post.id,
-                'author': post.author,
-                'content': post.content,
-                'created_at': post.created_at,
-                'likes': post.engagement_metrics.likes,
-                'reposts': post.engagement_metrics.reposts,
-                'replies': post.engagement_metrics.replies,
-                'total_engagement': post.engagement_metrics.likes + post.engagement_metrics.reposts + post.engagement_metrics.replies,
-                'has_links': len(post.links) > 0,
-                'link_count': len(post.links),
-                'content_length': len(post.content),
-                'tags': ', '.join(post.tags) if post.tags else '',
-                'tag_count': len(post.tags),
-                'has_tags': len(post.tags) > 0,
-            })
+    posts_data = []
+    for post in posts:
+        posts_data.append({
+            'id': post.id,
+            'author': post.author,
+            'content': post.content,
+            'created_at': post.created_at,
+            'likes': post.engagement_metrics.likes,
+            'reposts': post.engagement_metrics.reposts,
+            'replies': post.engagement_metrics.replies,
+            'total_engagement': post.engagement_metrics.likes + post.engagement_metrics.reposts + post.engagement_metrics.replies,
+            'has_links': len(post.links) > 0,
+            'link_count': len(post.links),
+            'content_length': len(post.content),
+            "tags": post.tags
+        })
 
-        df = pd.DataFrame(posts_data)
-        mo.md(f"📈 **DataFrame created** with {len(df)} rows and {len(df.columns)} columns")
-    else:
-        df = pd.DataFrame()
-        mo.md("No data to convert to DataFrame.")
+    df = pd.DataFrame(posts_data)
+    mo.md(f"📈 **DataFrame created** with {len(df)} rows and {len(df.columns)} columns")
+
     return (df,)
+
+
+@app.cell
+def _(df, mo):
+    mo.ui.table(df,page_size=20)
+    return
 
 
 @app.cell
@@ -183,39 +184,6 @@ def _(df, mo):
         author_table
     else:
         mo.md("No author data to display.")
-    return
-
-
-@app.cell
-def _(df, mo):
-    # Popular tags analysis
-    if not df.empty and df['tag_count'].sum() > 0:
-        # Flatten all tags and count occurrences
-        all_tags = []
-        for tags_str in df['tags']:
-            if tags_str:  # If tags string is not empty
-                all_tags.extend(tags_str.split(', '))
-        
-        if all_tags:
-            from collections import Counter
-            tag_counts = Counter(all_tags)
-            top_tags = tag_counts.most_common(10)
-            
-            tag_table_data = {
-                "Tag": [f"#{tag}" for tag, count in top_tags],
-                "Usage Count": [count for tag, count in top_tags],
-                "Percentage": [f"{(count/len(df))*100:.1f}%" for tag, count in top_tags]
-            }
-            
-            tag_table = mo.ui.table(
-                data=tag_table_data,
-                label="🏷️ Most Popular Tags"
-            )
-            tag_table
-        else:
-            mo.md("No tags found in the dataset.")
-    else:
-        mo.md("No tag data to display.")
     return
 
 
@@ -279,10 +247,7 @@ def _(df, mo):
             "Shortest Post": f"{df['content_length'].min()} characters",
             "Longest Post": f"{df['content_length'].max()} characters",
             "Posts with Links": f"{df['has_links'].sum()} ({df['has_links'].mean()*100:.1f}%)",
-            "Total Links": df['link_count'].sum(),
-            "Posts with Tags": f"{df['has_tags'].sum()} ({df['has_tags'].mean()*100:.1f}%)",
-            "Total Tags": df['tag_count'].sum(),
-            "Average Tags per Post": f"{df['tag_count'].mean():.1f}"
+            "Total Links": df['link_count'].sum()
         }
 
         content_table_data = {
@@ -340,7 +305,7 @@ def _(author_filter, df, min_engagement, mo):
 
         if len(filtered_df) > 0:
             # Display filtered results
-            display_columns = ['author', 'content', 'total_engagement', 'likes', 'reposts', 'replies', 'has_links', 'tags', 'tag_count']
+            display_columns = ['author', 'content', 'total_engagement', 'likes', 'reposts', 'replies', 'has_links']
 
             # Truncate content for display
             display_df = filtered_df[display_columns].copy()

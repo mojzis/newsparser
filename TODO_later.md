@@ -13,3 +13,5 @@ try the sites whether they have rss ?
 evaluate the most interesting posts
 
 generate some stats about numbers of posts ...
+
+more sources ? hacker news ? anything else ?

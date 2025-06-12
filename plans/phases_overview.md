@@ -58,6 +58,15 @@ Bluesky API → Content Parser → Anthropic API → R2 Storage → Report Gener
 - Support multiple search scenarios and sorting options
 - Provide query validation and configuration management tools
 
+### Phase 2.9: Language Detection
+**Focus**: Character-based language detection for multilingual content filtering
+- Implement Unicode character range analysis for language detection
+- Add language field to BlueskyPost model with backward compatibility
+- Create filtering capabilities to exclude non-Latin posts (>30% threshold)
+- Enhance CLI and notebook tools with language statistics and filtering
+- Provide configurable thresholds and language classification options
+- Ensure seamless integration with existing data collection workflows
+
 ### Phase 3: Content Processing Pipeline
 **Focus**: Article extraction and AI evaluation
 - Implement article fetching from extracted links
