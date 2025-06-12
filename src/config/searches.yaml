@@ -1,0 +1,60 @@
+searches:
+  mcp_mentions:
+    name: "MCP Protocol Mentions"
+    description: "Posts about Model Context Protocol"
+    include_terms:
+      - "mcp"
+      - "model context protocol"
+      - "anthropic mcp"
+    exclude_terms:
+      - "minecraft"
+      - "#mcp AND (medical OR healthcare OR clinic)"
+    sort: "latest"
+    enabled: true
+    
+  mcp_tools:
+    name: "MCP Tools and Implementations"
+    description: "Posts about MCP tools and implementations"
+    include_terms:
+      - "mcp tool"
+      - "mcp server"
+      - "mcp client"
+      - "mcp implementation"
+    exclude_terms:
+      - "minecraft"
+    sort: "latest"
+    enabled: true
+
+  mcp_tag:
+    name: "MCP Tools and Implementations"
+    description: "Posts about MCP tools and implementations"
+    include_terms:
+      - "#mcp"
+    exclude_terms:
+    sort: "latest"
+    enabled: true
+
+  mcp_tag2:
+    name: "MCP Tools and Implementations"
+    description: "Posts about MCP tools and implementations"
+    include_terms:
+      - "#mcp"
+    exclude_terms:
+      - "#marvelcrisisprotocol"
+      - "#minipainting"
+      - "#marvel"
+    sort: "latest"
+    enabled: true
+
+
+  mcp_integrations:
+    name: "MCP Integrations"
+    description: "Posts about MCP integrations and usage"
+    include_terms:
+      - "(mcp AND (integration OR claude OR anthropic))"
+      - "model context protocol integration"
+    exclude_terms:
+      - "minecraft"
+      - "(medical OR healthcare) AND #mcp"
+    sort: "latest"
+    enabled: false  # Disabled by default, can be enabled as needed

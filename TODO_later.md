@@ -1,0 +1,15 @@
+typer issues - try again with a new version ... (we got stuck on it for quite some time ...)
+
+search config from file should be default, the config from code just fallback
+
+a page to search through the data with duck db js
+
+duck lake ?
+
+files aside for post authors, article authors
+
+try the sites whether they have rss ?
+
+evaluate the most interesting posts
+
+generate some stats about numbers of posts ...
