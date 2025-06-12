@@ -133,11 +133,11 @@ class TestBlueskyDataCollectorCollectPosts:
 class TestBlueskyDataCollectorStorePosts:
     @pytest.mark.asyncio
     async def test_store_posts_success(self, collector, sample_posts):
-        """Test successful post storage."""
+        """Test successful post storage as Parquet."""
         target_date = date(2024, 1, 15)
 
         with patch.object(
-            collector.r2_client, "upload_bytes", return_value=True
+            collector.r2_client, "upload_file", return_value=True
         ) as mock_upload:
             result = await collector.store_posts(sample_posts, target_date)
 
@@ -146,8 +146,9 @@ class TestBlueskyDataCollectorStorePosts:
 
             # Check the call arguments
             call_args = mock_upload.call_args
-            assert call_args[0][1] == "data/2024/01/15/posts.json"  # file path
-            assert call_args[1]["content_type"] == "application/json"
+            # First arg is the temp file path, second is the target path
+            assert call_args[0][1] == "data/2024/01/15/posts.parquet"  # file path
+            assert call_args[1]["content_type"] == "application/octet-stream"
 
     @pytest.mark.asyncio
     async def test_store_posts_empty_list(self, collector):
@@ -159,7 +160,7 @@ class TestBlueskyDataCollectorStorePosts:
     @pytest.mark.asyncio
     async def test_store_posts_upload_failure(self, collector, sample_posts):
         """Test storage failure during upload."""
-        with patch.object(collector.r2_client, "upload_bytes", return_value=False):
+        with patch.object(collector.r2_client, "upload_file", return_value=False):
             result = await collector.store_posts(sample_posts, date(2024, 1, 15))
 
             assert result is False
@@ -227,7 +228,7 @@ class TestBlueskyDataCollectorCollectAndStore:
 class TestBlueskyDataCollectorRetrievePosts:
     @pytest.mark.asyncio
     async def test_get_stored_posts_success(self, collector, sample_posts):
-        """Test successful retrieval of stored posts."""
+        """Test successful retrieval of stored posts from JSON (backward compatibility)."""
         target_date = date(2024, 1, 15)
 
         # Create JSON data as it would be stored
@@ -236,20 +237,24 @@ class TestBlueskyDataCollectorRetrievePosts:
         stored_data = [post.model_dump() for post in sample_posts]
         json_data = json.dumps(stored_data, default=str).encode("utf-8")
 
-        with patch.object(
-            collector.r2_client, "download_bytes", return_value=json_data
-        ):
-            result = await collector.get_stored_posts(target_date)
+        # Mock file_exists to say parquet doesn't exist but JSON does
+        with patch.object(collector.r2_client, "file_exists") as mock_exists:
+            mock_exists.side_effect = lambda path: path.endswith(".json")
+            
+            with patch.object(
+                collector.r2_client, "download_bytes", return_value=json_data
+            ):
+                result = await collector.get_stored_posts(target_date)
 
-            assert len(result) == 2
-            assert all(isinstance(post, BlueskyPost) for post in result)
-            assert result[0].id == "post1"
-            assert result[1].id == "post2"
+                assert len(result) == 2
+                assert all(isinstance(post, BlueskyPost) for post in result)
+                assert result[0].id == "post1"
+                assert result[1].id == "post2"
 
     @pytest.mark.asyncio
     async def test_get_stored_posts_not_found(self, collector):
         """Test retrieval when no data exists."""
-        with patch.object(collector.r2_client, "download_bytes", return_value=None):
+        with patch.object(collector.r2_client, "file_exists", return_value=False):
             result = await collector.get_stored_posts(date(2024, 1, 15))
 
             assert result == []
@@ -257,12 +262,16 @@ class TestBlueskyDataCollectorRetrievePosts:
     @pytest.mark.asyncio
     async def test_get_stored_posts_invalid_json(self, collector):
         """Test retrieval with invalid JSON data."""
-        with patch.object(
-            collector.r2_client, "download_bytes", return_value=b"invalid json"
-        ):
-            result = await collector.get_stored_posts(date(2024, 1, 15))
+        # Mock file_exists to say only JSON exists
+        with patch.object(collector.r2_client, "file_exists") as mock_exists:
+            mock_exists.side_effect = lambda path: path.endswith(".json")
+            
+            with patch.object(
+                collector.r2_client, "download_bytes", return_value=b"invalid json"
+            ):
+                result = await collector.get_stored_posts(date(2024, 1, 15))
 
-            assert result == []
+                assert result == []
 
     @pytest.mark.asyncio
     async def test_get_stored_posts_invalid_post_data(self, collector):
@@ -273,12 +282,16 @@ class TestBlueskyDataCollectorRetrievePosts:
         invalid_data = [{"id": "test", "invalid": "data"}]  # Missing required fields
         json_data = json.dumps(invalid_data).encode("utf-8")
 
-        with patch.object(
-            collector.r2_client, "download_bytes", return_value=json_data
-        ):
-            result = await collector.get_stored_posts(date(2024, 1, 15))
+        # Mock file_exists to say only JSON exists
+        with patch.object(collector.r2_client, "file_exists") as mock_exists:
+            mock_exists.side_effect = lambda path: path.endswith(".json")
+            
+            with patch.object(
+                collector.r2_client, "download_bytes", return_value=json_data
+            ):
+                result = await collector.get_stored_posts(date(2024, 1, 15))
 
-            assert result == []  # Invalid posts should be skipped
+                assert result == []  # Invalid posts should be skipped
 
     @pytest.mark.asyncio
     async def test_get_stored_posts_exception(self, collector):
@@ -309,10 +322,16 @@ class TestBlueskyDataCollectorCheckData:
             assert result is False
 
     def test_check_stored_data_correct_path(self, collector):
-        """Test that correct path is used for checking."""
+        """Test that correct paths are checked for both formats."""
+        # Set up to return False for first call (parquet), True for second (json)
         with patch.object(
-            collector.r2_client, "file_exists", return_value=True
+            collector.r2_client, "file_exists", side_effect=[False, True]
         ) as mock_exists:
-            collector.check_stored_data(date(2024, 1, 15))
+            result = collector.check_stored_data(date(2024, 1, 15))
 
-            mock_exists.assert_called_once_with("data/2024/01/15/posts.json")
+            # Should check both parquet and json paths when parquet doesn't exist
+            assert mock_exists.call_count == 2
+            calls = [call[0][0] for call in mock_exists.call_args_list]
+            assert "data/2024/01/15/posts.parquet" in calls
+            assert "data/2024/01/15/posts.json" in calls
+            assert result is True

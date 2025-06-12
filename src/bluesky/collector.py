@@ -1,4 +1,9 @@
 from datetime import date, datetime
+import json
+import tempfile
+from pathlib import Path
+
+import pandas as pd
 
 from src.bluesky.client import BlueskyClient
 from src.config.searches import SearchDefinition
@@ -121,28 +126,48 @@ class BlueskyDataCollector:
             return True
 
         try:
-            # Convert posts to JSON for storage
+            # Convert posts to dictionaries
             posts_data = [post.model_dump() for post in posts]
 
             # Generate file path
             file_path = FileManager.get_posts_path(target_date)
 
-            # For now, store as JSON (Phase 4 will convert to Parquet)
-            json_path = file_path.replace(".parquet", ".json")
+            # Convert to DataFrame
+            df = pd.DataFrame(posts_data)
+            
+            # Handle nested fields by converting to JSON strings for Parquet compatibility
+            if 'links' in df.columns:
+                # Convert HttpUrl objects to strings first
+                df['links'] = df['links'].apply(lambda x: json.dumps([str(url) for url in x] if x else []))
+            if 'tags' in df.columns:
+                df['tags'] = df['tags'].apply(lambda x: json.dumps(x) if x else '[]')
+            if 'engagement_metrics' in df.columns:
+                df['engagement_metrics'] = df['engagement_metrics'].apply(lambda x: json.dumps(x) if x else '{}')
+            
+            # Ensure datetime columns are properly typed
+            if 'created_at' in df.columns:
+                df['created_at'] = pd.to_datetime(df['created_at'])
 
-            # Store in R2
-            import json
+            # Save to temporary parquet file
+            with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
+                df.to_parquet(tmp.name, index=False)
+                tmp_path = Path(tmp.name)
+                
+                # Upload to R2
+                success = self.r2_client.upload_file(
+                    tmp_path,
+                    file_path,
+                    content_type="application/octet-stream"
+                )
+                
+                # Clean up temp file
+                tmp_path.unlink()
 
-            json_data = json.dumps(posts_data, indent=2, default=str)
-            success = self.r2_client.upload_bytes(
-                json_data.encode("utf-8"), json_path, content_type="application/json"
-            )
-
-            if success:
-                logger.info(f"Successfully stored {len(posts)} posts to {json_path}")
-                return True
-            logger.error(f"Failed to store posts to {json_path}")
-            return False
+                if success:
+                    logger.info(f"Successfully stored {len(posts)} posts to {file_path}")
+                    return True
+                logger.error(f"Failed to store posts to {file_path}")
+                return False
 
         except Exception as e:
             logger.exception(f"Error storing posts: {e}")
@@ -266,6 +291,7 @@ class BlueskyDataCollector:
     async def get_stored_posts(self, target_date: date) -> list[BlueskyPost]:
         """
         Retrieve previously stored posts for a date.
+        Tries Parquet first, falls back to JSON for backward compatibility.
 
         Args:
             target_date: Date to retrieve posts for
@@ -274,38 +300,83 @@ class BlueskyDataCollector:
             List of BlueskyPost instances
         """
         try:
-            # Generate file path (JSON for now)
-            file_path = FileManager.get_posts_path(target_date)
+            # Generate file paths
+            file_path = FileManager.get_posts_path(target_date)  # .parquet path
             json_path = file_path.replace(".parquet", ".json")
 
-            # Download from R2
-            data = self.r2_client.download_bytes(json_path)
-            if not data:
+            # Try Parquet first
+            if self.r2_client.file_exists(file_path):
+                logger.info(f"Reading posts from Parquet: {file_path}")
+                
+                # Download to temp file
+                with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
+                    if self.r2_client.download_file(file_path, tmp.name):
+                        # Read parquet
+                        df = pd.read_parquet(tmp.name)
+                        
+                        # Clean up temp file
+                        Path(tmp.name).unlink()
+                        
+                        # Convert JSON strings back to lists/dicts
+                        if 'links' in df.columns:
+                            df['links'] = df['links'].apply(lambda x: json.loads(x) if x else [])
+                        if 'tags' in df.columns:
+                            df['tags'] = df['tags'].apply(lambda x: json.loads(x) if x else [])
+                        if 'engagement_metrics' in df.columns:
+                            df['engagement_metrics'] = df['engagement_metrics'].apply(lambda x: json.loads(x) if x else {})
+                        
+                        # Convert to BlueskyPost models
+                        posts = []
+                        for _, row in df.iterrows():
+                            try:
+                                post_data = row.to_dict()
+                                # Handle datetime
+                                if 'created_at' in post_data and pd.notna(post_data['created_at']):
+                                    post_data['created_at'] = post_data['created_at'].to_pydatetime()
+                                
+                                post = BlueskyPost.model_validate(post_data)
+                                posts.append(post)
+                            except Exception as e:
+                                logger.warning(f"Failed to parse stored post: {e}")
+                                continue
+                        
+                        logger.info(f"Retrieved {len(posts)} posts from Parquet for {target_date}")
+                        return posts
+            
+            # Fall back to JSON for backward compatibility
+            elif self.r2_client.file_exists(json_path):
+                logger.info(f"Reading posts from JSON (legacy): {json_path}")
+                
+                # Download from R2
+                data = self.r2_client.download_bytes(json_path)
+                if not data:
+                    logger.warning(f"No stored posts found for {target_date}")
+                    return []
+
+                # Parse JSON and convert back to models
+                posts_data = json.loads(data.decode("utf-8"))
+
+                posts = []
+                for post_data in posts_data:
+                    try:
+                        # Handle datetime conversion
+                        if isinstance(post_data.get("created_at"), str):
+                            post_data["created_at"] = datetime.fromisoformat(
+                                post_data["created_at"].replace("Z", "+00:00")
+                            )
+
+                        post = BlueskyPost.model_validate(post_data)
+                        posts.append(post)
+                    except Exception as e:
+                        logger.warning(f"Failed to parse stored post: {e}")
+                        continue
+
+                logger.info(f"Retrieved {len(posts)} posts from JSON for {target_date}")
+                return posts
+            
+            else:
                 logger.warning(f"No stored posts found for {target_date}")
                 return []
-
-            # Parse JSON and convert back to models
-            import json
-
-            posts_data = json.loads(data.decode("utf-8"))
-
-            posts = []
-            for post_data in posts_data:
-                try:
-                    # Handle datetime conversion
-                    if isinstance(post_data.get("created_at"), str):
-                        post_data["created_at"] = datetime.fromisoformat(
-                            post_data["created_at"].replace("Z", "+00:00")
-                        )
-
-                    post = BlueskyPost.model_validate(post_data)
-                    posts.append(post)
-                except Exception as e:
-                    logger.warning(f"Failed to parse stored post: {e}")
-                    continue
-
-            logger.info(f"Retrieved {len(posts)} stored posts for {target_date}")
-            return posts
 
         except Exception as e:
             logger.exception(f"Error retrieving stored posts: {e}")
@@ -314,6 +385,7 @@ class BlueskyDataCollector:
     def check_stored_data(self, target_date: date) -> bool:
         """
         Check if data exists for a specific date.
+        Checks for both Parquet and JSON formats.
 
         Args:
             target_date: Date to check
@@ -321,10 +393,11 @@ class BlueskyDataCollector:
         Returns:
             True if data exists, False otherwise
         """
-        file_path = FileManager.get_posts_path(target_date)
+        file_path = FileManager.get_posts_path(target_date)  # .parquet path
         json_path = file_path.replace(".parquet", ".json")
 
-        return self.r2_client.file_exists(json_path)
+        # Check for either format
+        return self.r2_client.file_exists(file_path) or self.r2_client.file_exists(json_path)
 
     def get_stored_posts_sync(self, target_date: date) -> list[BlueskyPost]:
         """

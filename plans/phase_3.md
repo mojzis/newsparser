@@ -202,34 +202,34 @@ data/YYYY/MM/DD/
 **Command**: `nsp process-article <url> [--show-content] [--verbose]`
 
 ### Task 2: Anthropic Integration
-- [ ] Add anthropic dependency and client setup
-- [ ] Implement evaluation prompts with CSV response format
-- [ ] Create CSV response parsing and validation
-- [ ] Create rate limiting and retry logic
-- [ ] Test API integration with mock responses
+- [x] Add anthropic dependency and client setup
+- [x] Implement evaluation prompts with CSV response format
+- [x] Create CSV response parsing and validation
+- [x] Create rate limiting and retry logic
+- [x] Test API integration with mock responses
 
 ### Task 3: Data Models & Validation
-- [ ] Define ArticleEvaluation Pydantic model
-- [ ] Create ProcessingResult model
-- [ ] Implement data validation and serialization
-- [ ] Add model tests with property-based testing
+- [x] Define ArticleEvaluation Pydantic model
+- [x] Create ProcessingResult model
+- [x] Implement data validation and serialization
+- [x] Add model tests with property-based testing
 
 ### Task 4: Pipeline Orchestration
-- [ ] Create ContentProcessor main class
-- [ ] Implement end-to-end processing workflow
-- [ ] Add batch processing capabilities
-- [ ] Create integration tests
+- [x] Create ContentProcessor main class (as EvaluationProcessor)
+- [x] Implement end-to-end processing workflow
+- [x] Add batch processing capabilities
+- [x] Create integration tests
 
 ### Task 5: Storage & Persistence
-- [ ] Extend R2Client for article data storage
-- [ ] Implement daily file organization
-- [ ] Add data retrieval and querying
-- [ ] Create storage tests
+- [x] Extend R2Client for article data storage
+- [x] Implement daily file organization
+- [x] Add data retrieval and querying
+- [x] Create storage tests
 
 ### Task 6: CLI Integration
-- [ ] Add process command to CLI
-- [ ] Implement processing status and monitoring
-- [ ] Add data exploration for articles
+- [x] Add process command to CLI (evaluate command)
+- [x] Implement processing status and monitoring
+- [x] Add data exploration for articles (list-evaluations command)
 - [ ] Update notebook with article analysis
 
 ### Task 7: Error Handling & Monitoring
