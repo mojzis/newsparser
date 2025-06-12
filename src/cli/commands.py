@@ -6,11 +6,15 @@ from typing import Optional
 
 import click
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 
 from src.bluesky.collector import BlueskyDataCollector
 from src.config.searches import load_search_config
 from src.config.settings import get_settings
+from src.content.extractor import ContentExtractor
+from src.content.fetcher import ArticleFetcher
+from src.content.models import ContentError
 
 console = Console()
 
@@ -280,6 +284,105 @@ def notebook():
     except FileNotFoundError:
         console.print("❌ marimo not found. Install with: poetry install", style="red")
         sys.exit(1)
+
+
+@cli.command()
+@click.argument("url")
+@click.option("--show-content", is_flag=True, help="Show extracted markdown content")
+@click.option("--show-html", is_flag=True, help="Show raw HTML content")
+def process_article(url: str, show_content: bool, show_html: bool):
+    """Process a single article URL to test content extraction."""
+    async def _process_article():
+        console.print(f"[blue]Processing article: {url}[/blue]\n")
+        
+        async with ArticleFetcher() as fetcher:
+            # Fetch the article
+            console.print("[yellow]Fetching article...[/yellow]")
+            fetch_result = await fetcher.fetch_article(url)
+            
+            if isinstance(fetch_result, ContentError):
+                console.print(Panel(
+                    f"[red]Fetch Error ({fetch_result.error_type}):[/red]\n{fetch_result.error_message}",
+                    title="❌ Article Fetch Failed",
+                    border_style="red"
+                ))
+                return
+            
+            console.print("[green]✓ Article fetched successfully[/green]")
+            
+            # Show fetch info
+            fetch_info = Table(title="📥 Fetch Information")
+            fetch_info.add_column("Property", style="cyan")
+            fetch_info.add_column("Value", style="white")
+            
+            fetch_info.add_row("Status Code", str(fetch_result.status_code))
+            fetch_info.add_row("Content Length", f"{len(fetch_result.html):,} characters")
+            fetch_info.add_row("Content Type", fetch_result.headers.get("content-type", "unknown"))
+            fetch_info.add_row("Fetch Time", fetch_result.fetch_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+            
+            console.print(fetch_info)
+            console.print()
+            
+            # Extract content
+            console.print("[yellow]Extracting content...[/yellow]")
+            extractor = ContentExtractor()
+            extract_result = extractor.extract_content(fetch_result)
+            
+            if isinstance(extract_result, ContentError):
+                console.print(Panel(
+                    f"[red]Extraction Error ({extract_result.error_type}):[/red]\n{extract_result.error_message}",
+                    title="❌ Content Extraction Failed",
+                    border_style="red"
+                ))
+                return
+            
+            console.print("[green]✓ Content extracted successfully[/green]")
+            
+            # Show extraction info
+            extract_info = Table(title="📄 Extracted Content Information")
+            extract_info.add_column("Property", style="cyan")
+            extract_info.add_column("Value", style="white")
+            
+            extract_info.add_row("Title", extract_result.title or "[dim]Not found[/dim]")
+            extract_info.add_row("Author", extract_result.author or "[dim]Not found[/dim]")
+            extract_info.add_row("Medium", extract_result.medium or "[dim]Not found[/dim]")
+            extract_info.add_row("Domain", extract_result.domain)
+            extract_info.add_row("Language", extract_result.language or "[dim]Not detected[/dim]")
+            extract_info.add_row("Word Count", f"{extract_result.word_count:,}")
+            extract_info.add_row("Content Length", f"{len(extract_result.content_markdown):,} characters")
+            extract_info.add_row("Extraction Time", extract_result.extraction_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
+            
+            console.print(extract_info)
+            console.print()
+            
+            # Show HTML if requested
+            if show_html:
+                html_preview = fetch_result.html[:500] + "..." if len(fetch_result.html) > 500 else fetch_result.html
+                console.print(Panel(
+                    html_preview,
+                    title="🔍 Raw HTML (first 500 chars)",
+                    border_style="dim"
+                ))
+                console.print()
+            
+            # Show markdown content if requested
+            if show_content:
+                content_preview = extract_result.content_markdown[:1000] + "..." if len(extract_result.content_markdown) > 1000 else extract_result.content_markdown
+                console.print(Panel(
+                    content_preview,
+                    title="📝 Extracted Markdown (first 1000 chars)",
+                    border_style="green"
+                ))
+            else:
+                console.print("[dim]Use --show-content to see extracted markdown[/dim]")
+                console.print("[dim]Use --show-html to see raw HTML[/dim]")
+    
+    try:
+        asyncio.run(_process_article())
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Process interrupted by user[/yellow]")
+    except Exception as e:
+        console.print(f"[red]Unexpected error: {e}[/red]")
 
 
 if __name__ == "__main__":

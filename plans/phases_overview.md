@@ -78,7 +78,7 @@ Bluesky API → Content Parser → Anthropic API → R2 Storage → Report Gener
 
 ### Phase 5: Report Generation
 **Focus**: HTML report creation
-- Design Jinja2 templates for daily reports
+- Design Jinja2 templates for the homepage and daily reports
 - Implement report data aggregation
 - Create visualizations and statistics
 - Generate summary insights
