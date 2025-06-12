@@ -41,9 +41,12 @@ class ContentExtractor:
         self.html2text.unicode_snob = True
         self.html2text.escape_snob = True
     
-    def _clean_html(self, html: str) -> str:
+    def _clean_html(self, html: str, debug: bool = False) -> str:
         """Clean HTML by removing unwanted elements."""
         soup = BeautifulSoup(html, "html.parser")
+        
+        if debug:
+            logger.info(f"Pre-clean HTML structure: body={len(soup.find_all('body'))}, div={len(soup.find_all('div'))}, p={len(soup.find_all('p'))}")
         
         # Remove script and style elements
         for script in soup(["script", "style", "noscript"]):
@@ -63,6 +66,9 @@ class ContentExtractor:
         # Remove elements by tag that are typically not content
         for tag in soup(["nav", "aside", "footer", "header"]):
             tag.decompose()
+        
+        if debug:
+            logger.info(f"Post-clean HTML structure: body={len(soup.find_all('body'))}, div={len(soup.find_all('div'))}, p={len(soup.find_all('p'))}")
         
         return str(soup)
     
@@ -216,8 +222,8 @@ class ContentExtractor:
                 logger.info(f"Readability extracted title: '{title}'")
                 logger.info(f"Readability content length: {len(content_html) if content_html else 0}")
                 if content_html:
-                    # Show first 200 chars of extracted HTML
-                    preview = content_html[:200] + "..." if len(content_html) > 200 else content_html
+                    # Show first 500 chars of extracted HTML
+                    preview = content_html[:500] + "..." if len(content_html) > 500 else content_html
                     logger.info(f"Readability HTML preview: {repr(preview)}")
             
             if not content_html or len(content_html.strip()) < 50:
@@ -230,11 +236,33 @@ class ContentExtractor:
                     error_message=error_details,
                 )
             
-            # Clean the HTML
-            cleaned_html = self._clean_html(content_html)
+            # Don't clean readability output - it's already cleaned
+            # Just fix the nested body tags issue
+            if debug:
+                logger.info(f"Pre-conversion HTML length: {len(content_html)}")
+                # Check for nested body tags which can confuse html2text
+                if content_html.count('<body') > 1:
+                    logger.warning("Multiple body tags detected - fixing structure")
             
             # Convert to Markdown
-            markdown_content = self.html2text.handle(cleaned_html).strip()
+            try:
+                # Fix the nested body structure that readability creates
+                # Replace all body tags with divs to avoid html2text issues
+                fixed_html = content_html
+                fixed_html = re.sub(r'<html[^>]*>', '', fixed_html)
+                fixed_html = re.sub(r'</html>', '', fixed_html)
+                fixed_html = re.sub(r'<body[^>]*>', '<div>', fixed_html)
+                fixed_html = re.sub(r'</body>', '</div>', fixed_html)
+                
+                if debug:
+                    logger.info(f"Fixed HTML preview: {fixed_html[:200]}...")
+                
+                markdown_content = self.html2text.handle(fixed_html).strip()
+            except Exception as e:
+                logger.error(f"HTML2Text conversion failed: {e}")
+                # Fallback: extract text directly from BeautifulSoup
+                soup = BeautifulSoup(content_html, "html.parser")
+                markdown_content = soup.get_text(separator="\n\n").strip()
             
             if debug:
                 logger.info(f"HTML2Text conversion result length: {len(markdown_content)}")
