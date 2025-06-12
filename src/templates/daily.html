@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}MCP Monitor - {{ date_formatted }}{% endblock %}
+{% block content %}
+<div class="header">
+    <a href="/">MCP Monitor</a> - {{ date_formatted }}
+</div>
+
+{% if articles %}
+    {% for article in articles %}
+    <div class="article">
+        <div class="article-title">
+            <a href="{{ article.url }}">{{ article.title }}</a>
+        </div>
+        <div class="perex">{{ article.perex }}</div>
+        <div class="meta">
+            via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
+            at {{ article.timestamp }}
+            • {{ article.domain }}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="no-articles">
+        No MCP-related articles found for this day.
+    </div>
+{% endif %}
+
+<div class="nav-link">
+    <a href="/">← Back to latest</a>
+</div>
+{% endblock %}

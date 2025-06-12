@@ -120,3 +120,6 @@ data/
 reports/
 *.parquet
 *.json.gz
+
+# Generated output
+output/

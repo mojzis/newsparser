@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="header">MCP Monitor</div>
+<div class="tagline">
+    Daily digest of Model Context Protocol discussions from Bluesky
+</div>
+
+{% if today_articles %}
+<h2>Today's Articles ({{ today }})</h2>
+
+{% for article in today_articles %}
+<div class="article">
+    <div class="article-title">
+        <a href="{{ article.url }}">{{ article.title }}</a>
+    </div>
+    <div class="perex">{{ article.perex }}</div>
+    <div class="meta">
+        via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
+        at {{ article.timestamp }}
+        • {{ article.domain }}
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<h2>Today ({{ today }})</h2>
+<div class="no-articles">
+    No MCP-related articles found today. Check back tomorrow!
+</div>
+{% endif %}
+
+{% if archive_dates %}
+<div class="archive">
+    <h3>Previous Days</h3>
+    {% for date in archive_dates %}
+    <div class="archive-link">
+        <a href="{{ date.path }}">{{ date.formatted }}</a> 
+        <span style="color: #999;">({{ date.article_count }} article{{ 's' if date.article_count != 1 else '' }})</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

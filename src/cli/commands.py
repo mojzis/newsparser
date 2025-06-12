@@ -964,6 +964,105 @@ def evaluate(target_date: Optional[str], force: bool, include_languages: Optiona
 
 
 @cli.command()
+@click.argument("template", type=click.Choice(["daily", "homepage"]))
+def preview_template(template: str):
+    """Preview HTML report templates with sample data."""
+    from src.reports.generator import ReportGenerator
+    from src.models.report import ReportArticle, ReportDay, HomepageData, ArchiveLink
+    
+    console.print(f"🎨 Previewing {template} template with sample data...")
+    
+    # Create sample articles
+    sample_articles = [
+        ReportArticle(
+            url="https://example.com/mcp-tools-overview",
+            title="Comprehensive Guide to MCP Tools",
+            perex="Turns out MCP tools are like Swiss Army knives for AI - except they actually know which tool to use without accidentally opening the corkscrew when you need scissors.",
+            bluesky_url="https://bsky.app/profile/techwriter.bsky.social/post/abc123",
+            author="techwriter.bsky.social",
+            timestamp="2:30 PM",
+            relevance_score=0.95,
+            domain="example.com"
+        ),
+        ReportArticle(
+            url="https://blog.dev/claude-mcp-integration",
+            title="Building Claude Desktop MCP Integration",
+            perex="Someone finally taught Claude Desktop to talk to other apps, and it's going about as smoothly as teaching a cat to use Zoom - lots of potential, occasional chaos.",
+            bluesky_url="https://bsky.app/profile/developer.bsky.social/post/def456",
+            author="developer.bsky.social",
+            timestamp="11:45 AM",
+            relevance_score=0.88,
+            domain="blog.dev"
+        ),
+        ReportArticle(
+            url="https://medium.com/@ai/mcp-future",
+            title="The Future of Model Context Protocol",
+            perex="MCP is evolving faster than JavaScript frameworks, which is saying something. At least this one might stick around longer than your average npm package.",
+            bluesky_url="https://bsky.app/profile/aienthusiast.bsky.social/post/ghi789",
+            author="aienthusiast.bsky.social",
+            timestamp="9:15 AM",
+            relevance_score=0.82,
+            domain="medium.com"
+        )
+    ]
+    
+    # Create generator
+    generator = ReportGenerator()
+    
+    try:
+        if template == "daily":
+            # Create sample report day
+            report_day = ReportDay.create(
+                report_date=date.today(),
+                articles=sample_articles
+            )
+            
+            # Generate preview
+            html_content = generator.preview_template("daily", {
+                "date_formatted": report_day.date_formatted,
+                "articles": report_day.articles
+            })
+            
+        else:  # homepage
+            # Create sample archive links
+            archive_links = [
+                ArchiveLink.create(date.today().replace(day=date.today().day - 1), 15),
+                ArchiveLink.create(date.today().replace(day=date.today().day - 2), 8),
+                ArchiveLink.create(date.today().replace(day=date.today().day - 3), 12),
+            ]
+            
+            # Create homepage data
+            homepage_data = HomepageData.create(
+                today_articles=sample_articles,
+                archive_dates=archive_links
+            )
+            
+            # Generate preview
+            html_content = generator.preview_template("homepage", {
+                "today": homepage_data.today,
+                "today_articles": homepage_data.today_articles,
+                "archive_dates": homepage_data.archive_dates
+            })
+        
+        # Save preview to temp file and open in browser
+        import tempfile
+        import webbrowser
+        
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False) as f:
+            f.write(html_content)
+            preview_path = f.name
+        
+        console.print(f"✅ Preview generated: {preview_path}", style="green")
+        console.print("Opening in browser...")
+        
+        webbrowser.open(f"file://{preview_path}")
+        
+    except Exception as e:
+        console.print(f"❌ Preview generation failed: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
 @click.option("--limit", default=20, help="Number of evaluations to display")
 @click.option("--mcp-only", is_flag=True, help="Show only MCP-related articles")
