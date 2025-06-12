@@ -39,7 +39,7 @@ class ReportArticle(BaseModel):
         timestamp = created_at.strftime("%-I:%M %p")
         
         # Use perex if available, otherwise fall back to summary
-        perex = evaluation.get("perex") or evaluation.get("summary", "")
+        perex = evaluation.get("perex", "")
         
         return cls(
             url=evaluation["url"],

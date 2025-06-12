@@ -15,6 +15,7 @@ class TestArticleEvaluation:
             url="https://example.com/article",
             title="MCP Tools Overview",
             content_summary="An overview of Model Context Protocol tools",
+            perex="A witty summary of MCP tools",
             relevance_score=0.85,
             key_topics=["MCP", "AI tools", "integration"],
         )
@@ -22,6 +23,7 @@ class TestArticleEvaluation:
         assert str(eval.url) == "https://example.com/article"
         assert eval.title == "MCP Tools Overview"
         assert eval.content_summary == "An overview of Model Context Protocol tools"
+        assert eval.perex == "A witty summary of MCP tools"
         assert eval.relevance_score == 0.85
         assert eval.key_topics == ["MCP", "AI tools", "integration"]
         assert isinstance(eval.evaluation_timestamp, datetime)
@@ -32,6 +34,7 @@ class TestArticleEvaluation:
             url="https://example.com",
             title=None,
             content_summary="Summary without title",
+            perex="Brief overview of content without title",
             relevance_score=0.5,
             key_topics=["MCP"],
         )
@@ -45,6 +48,7 @@ class TestArticleEvaluation:
                 url="https://example.com",
                 title="Title",
                 content_summary="",
+                perex="Test perex for empty summary",
                 relevance_score=0.5,
                 key_topics=["MCP"],
             )
@@ -57,6 +61,7 @@ class TestArticleEvaluation:
                 url="https://example.com",
                 title="Title",
                 content_summary="   \n\t  ",
+                perex="Test perex for whitespace summary",
                 relevance_score=0.5,
                 key_topics=["MCP"],
             )
@@ -70,6 +75,7 @@ class TestArticleEvaluation:
                 url="https://example.com",
                 title="Title",
                 content_summary=long_summary,
+                perex="Test perex for maximum length validation",
                 relevance_score=0.5,
                 key_topics=["MCP"],
             )
@@ -81,6 +87,7 @@ class TestArticleEvaluation:
         eval_min = ArticleEvaluation(
             url="https://example.com",
             content_summary="Summary",
+            perex="Minimum relevance score test",
             relevance_score=0.0,
             key_topics=["MCP"],
         )
@@ -90,6 +97,7 @@ class TestArticleEvaluation:
         eval_max = ArticleEvaluation(
             url="https://example.com",
             content_summary="Summary",
+            perex="Maximum relevance score test",
             relevance_score=1.0,
             key_topics=["MCP"],
         )
@@ -100,6 +108,7 @@ class TestArticleEvaluation:
             ArticleEvaluation(
                 url="https://example.com",
                 content_summary="Summary",
+                perex="Below minimum score test",
                 relevance_score=-0.1,
                 key_topics=["MCP"],
             )
@@ -110,6 +119,7 @@ class TestArticleEvaluation:
             ArticleEvaluation(
                 url="https://example.com",
                 content_summary="Summary",
+                perex="Above maximum score test",
                 relevance_score=1.1,
                 key_topics=["MCP"],
             )
@@ -121,6 +131,7 @@ class TestArticleEvaluation:
             ArticleEvaluation(
                 url="https://example.com",
                 content_summary="Summary",
+                perex="Empty topics list test",
                 relevance_score=0.5,
                 key_topics=[],
             )
@@ -131,22 +142,24 @@ class TestArticleEvaluation:
         eval = ArticleEvaluation(
             url="https://example.com",
             content_summary="Summary",
+            perex="Whitespace cleaning test",
             relevance_score=0.5,
             key_topics=["  MCP  ", "\tAI tools\n", "integration"],
         )
 
         assert eval.key_topics == ["MCP", "AI tools", "integration"]
 
-    def test_empty_string_topics_rejected(self):
-        """Test that empty string topics are rejected."""
-        with pytest.raises(ValidationError) as exc_info:
-            ArticleEvaluation(
-                url="https://example.com",
-                content_summary="Summary",
-                relevance_score=0.5,
-                key_topics=["MCP", "", "AI"],
-            )
-        assert "At least one non-empty topic is required" in str(exc_info.value)
+    def test_empty_string_topics_cleaned(self):
+        """Test that empty string topics are cleaned."""
+        eval = ArticleEvaluation(
+            url="https://example.com",
+            content_summary="Summary",
+            perex="Empty string topics test",
+            relevance_score=0.5,
+            key_topics=["MCP", "", "AI"],
+        )
+        # Empty strings should be filtered out
+        assert eval.key_topics == ["MCP", "AI"]
 
     def test_whitespace_only_topics_rejected(self):
         """Test that whitespace-only topics are rejected."""
@@ -154,6 +167,7 @@ class TestArticleEvaluation:
             ArticleEvaluation(
                 url="https://example.com",
                 content_summary="Summary",
+                perex="Whitespace-only topics test",
                 relevance_score=0.5,
                 key_topics=["   ", "\t\n"],
             )
@@ -165,6 +179,7 @@ class TestArticleEvaluation:
         eval = ArticleEvaluation(
             url="https://example.com",
             content_summary="Summary",
+            perex="Default timestamp test",
             relevance_score=0.5,
             key_topics=["MCP"],
         )
@@ -178,6 +193,7 @@ class TestArticleEvaluation:
         eval = ArticleEvaluation(
             url="https://example.com",
             content_summary="Summary",
+            perex="Custom timestamp test",
             relevance_score=0.5,
             key_topics=["MCP"],
             evaluation_timestamp=custom_time,
@@ -191,6 +207,7 @@ class TestArticleEvaluation:
             url="https://example.com/article",
             title="Title",
             content_summary="Summary",
+            perex="JSON serialization test perex",
             relevance_score=0.75,
             key_topics=["MCP", "AI"],
         )
@@ -207,6 +224,7 @@ class TestArticleEvaluation:
             "url": "https://example.com",
             "title": "MCP Article",
             "content_summary": "Article about MCP",
+            "perex": "Dictionary creation test perex",
             "relevance_score": 0.9,
             "key_topics": ["MCP", "tools"],
             "evaluation_timestamp": "2024-01-15T10:30:00",
@@ -229,6 +247,7 @@ class TestArticleEvaluation:
         eval = ArticleEvaluation(
             url="https://example.com",
             content_summary=summary,
+            perex="Property-based test perex",
             relevance_score=score,
             key_topics=topics,
         )

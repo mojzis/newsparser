@@ -13,6 +13,7 @@ class ArticleEvaluation(BaseModel):
     is_mcp_related: bool = Field(..., description="Whether article is MCP-related")
     relevance_score: float = Field(..., ge=0.0, le=1.0, description="Relevance score (0-1)")
     summary: str = Field(..., min_length=10, max_length=500, description="Brief summary")
+    perex: str = Field(..., min_length=10, max_length=200, description="Witty, engaging summary for display")
     key_topics: list[str] = Field(default_factory=list, description="Key topics discussed")
     
     # Article metadata

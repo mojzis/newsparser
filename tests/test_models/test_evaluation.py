@@ -19,6 +19,7 @@ class TestArticleEvaluation:
             is_mcp_related=True,
             relevance_score=0.85,
             summary="Article about MCP tools and integration",
+            perex="A comprehensive guide to understanding Model Context Protocol (MCP) and its integration with AI tools.",
             key_topics=["MCP", "AI tools", "integration"],
             title="Understanding MCP",
             author="John Doe",
@@ -47,6 +48,7 @@ class TestArticleEvaluation:
             is_mcp_related=False,
             relevance_score=0.0,
             summary="Not related to MCP",
+            perex="This article discusses general technology topics but does not mention MCP or related protocols.",
             domain="example.com",
             evaluated_at=now,
             word_count=100
@@ -68,6 +70,7 @@ class TestArticleEvaluation:
             is_mcp_related=False,
             relevance_score=0.0,
             summary="Error: Failed to fetch",  # Minimum 10 chars
+            perex="Unable to retrieve article content due to access errors.",
             domain="example.com",
             evaluated_at=now,
             word_count=0,
@@ -89,6 +92,7 @@ class TestArticleEvaluation:
                 is_mcp_related=True,
                 relevance_score=1.5,  # > 1.0
                 summary="Test",
+                perex="Test perex for validation test case.",
                 domain="example.com",
                 evaluated_at=now,
                 word_count=100
@@ -101,6 +105,7 @@ class TestArticleEvaluation:
                 is_mcp_related=True,
                 relevance_score=-0.5,  # < 0.0
                 summary="Test",
+                perex="Test perex for negative score validation.",
                 domain="example.com",
                 evaluated_at=now,
                 word_count=100
@@ -113,6 +118,7 @@ class TestArticleEvaluation:
                 is_mcp_related=True,
                 relevance_score=0.5,
                 summary="Short",  # < 10 chars
+                perex="Test perex for short summary validation.",
                 domain="example.com",
                 evaluated_at=now,
                 word_count=100
@@ -125,6 +131,7 @@ class TestArticleEvaluation:
                 is_mcp_related=True,
                 relevance_score=0.5,
                 summary="Test summary",
+                perex="Test perex for invalid URL validation.",
                 domain="example.com",
                 evaluated_at=now,
                 word_count=100
@@ -138,6 +145,7 @@ class TestArticleEvaluation:
             is_mcp_related=True,
             relevance_score=0.75,
             summary="Test article about MCP",
+            perex="A test article exploring MCP concepts and practical applications for testing purposes.",
             key_topics=["MCP", "testing"],
             domain="example.com",
             evaluated_at=now,

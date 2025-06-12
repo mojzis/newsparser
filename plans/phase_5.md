@@ -57,11 +57,10 @@ Phase 5 focuses on creating clean, minimalist HTML reports in the style of early
 **Command**: `nsp preview-template --template daily`
 
 ### Task 3: Use Pre-generated Perexes
-- [ ] Add perex field to ArticleEvaluation model (Phase 3 update)
-- [ ] Update Anthropic prompt in Phase 3 to include perex generation
-- [ ] Use stored perexes from evaluations.parquet
-- [ ] Add fallback to summary if perex not available
-- [ ] Handle legacy data without perexes
+- [x] Add perex field to ArticleEvaluation model (Phase 3 update)
+- [x] Update Anthropic prompt in Phase 3 to include perex generation
+- [x] Use stored perexes from evaluations.parquet
+- [x] Update report model to use perex field directly
 **Note**: Perexes will be generated during Phase 3 evaluation to avoid duplicate API calls
 
 ### Task 4: Build Report Generator

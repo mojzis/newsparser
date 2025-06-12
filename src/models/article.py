@@ -9,6 +9,9 @@ class ArticleEvaluation(BaseModel):
     content_summary: str = Field(
         ..., max_length=500, description="Brief summary of the article content"
     )
+    perex: str = Field(
+        ..., max_length=200, description="Witty, engaging summary for display"
+    )
     relevance_score: float = Field(
         ..., ge=0.0, le=1.0, description="MCP relevance score from 0.0 to 1.0"
     )
@@ -24,6 +27,13 @@ class ArticleEvaluation(BaseModel):
     def summary_not_empty(cls, v: str) -> str:
         if not v.strip():
             raise ValueError("Content summary cannot be empty or whitespace only")
+        return v
+
+    @field_validator("perex")
+    @classmethod
+    def perex_not_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Perex cannot be empty or whitespace only")
         return v
 
     @field_validator("key_topics")

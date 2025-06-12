@@ -78,6 +78,7 @@ class AnthropicEvaluator:
                 is_mcp_related=result["is_mcp_related"],
                 relevance_score=result["relevance_score"],
                 summary=result["summary"],
+                perex=result["perex"],
                 key_topics=result["key_topics"],
                 title=content.title,
                 author=content.author,
@@ -97,7 +98,8 @@ class AnthropicEvaluator:
                 url=str(url),
                 is_mcp_related=False,
                 relevance_score=0.0,
-                summary="",
+                summary="Evaluation failed",
+                perex="Evaluation failed",
                 key_topics=[],
                 domain=content.domain,
                 evaluated_at=content.extraction_timestamp,
@@ -121,7 +123,8 @@ Evaluate and respond with JSON containing:
 1. is_mcp_related (boolean): Is this article about MCP, AI tool integration, or related topics?
 2. relevance_score (0.0-1.0): How relevant is this to MCP? 0=unrelated, 1=directly about MCP
 3. summary (string, max 200 chars): Brief summary of the article
-4. key_topics (array of strings): Main topics discussed
+4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative
+5. key_topics (array of strings): Main topics discussed
 
 Respond only with valid JSON, no other text."""
     
@@ -139,6 +142,7 @@ Respond only with valid JSON, no other text."""
                 "is_mcp_related": bool(data.get("is_mcp_related", False)),
                 "relevance_score": float(data.get("relevance_score", 0.0)),
                 "summary": str(data.get("summary", ""))[:500],
+                "perex": str(data.get("perex", ""))[:200],
                 "key_topics": list(data.get("key_topics", []))
             }
             
@@ -151,5 +155,6 @@ Respond only with valid JSON, no other text."""
                 "is_mcp_related": False,
                 "relevance_score": 0.0,
                 "summary": "Failed to parse response",
+                "perex": "Failed to parse response",
                 "key_topics": []
             }
