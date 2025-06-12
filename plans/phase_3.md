@@ -195,10 +195,11 @@ data/YYYY/MM/DD/
 - [x] Create unit tests for core components
 
 ### Task 1.1: CLI Command for Content Processing
-- [ ] Add CLI command to test article fetching and extraction
-- [ ] Support single URL processing with output display
-- [ ] Show fetched content, extracted markdown, and metadata
-- [ ] Handle errors gracefully with user-friendly messages
+- [x] Add CLI command to test article fetching and extraction
+- [x] Support single URL processing with output display  
+- [x] Show fetched content, extracted markdown, and metadata
+- [x] Handle errors gracefully with user-friendly messages
+**Command**: `nsp process-article <url> [--show-content] [--verbose]`
 
 ### Task 2: Anthropic Integration
 - [ ] Add anthropic dependency and client setup
