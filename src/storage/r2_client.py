@@ -1,11 +1,15 @@
 from pathlib import Path
+import tempfile
+from typing import Optional
 
 import boto3
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
+import pandas as pd
 
 from src.config.settings import Settings
 from src.utils.logging import get_logger
+from src.utils.url_registry import URLRegistry
 
 logger = get_logger(__name__)
 
@@ -211,3 +215,73 @@ class R2Client:
         except (ClientError, BotoCoreError) as e:
             logger.exception(f"Failed to delete {key}: {e}")
             return False
+    
+    def download_url_registry(self) -> Optional[URLRegistry]:
+        """
+        Download URL registry from R2.
+        
+        Returns:
+            URLRegistry object if exists, None if not found
+        """
+        registry_key = "urls/url_registry.parquet"
+        
+        try:
+            if not self.file_exists(registry_key):
+                logger.info("URL registry not found in R2, will create new one")
+                return None
+            
+            # Download to temp file
+            with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
+                if self.download_file(registry_key, tmp.name):
+                    registry = URLRegistry.from_parquet(tmp.name)
+                    logger.info(f"Downloaded URL registry with {len(registry.df)} entries")
+                    return registry
+                else:
+                    return None
+        
+        except Exception as e:
+            logger.exception(f"Failed to download URL registry: {e}")
+            return None
+        
+        finally:
+            # Clean up temp file
+            if 'tmp' in locals():
+                Path(tmp.name).unlink(missing_ok=True)
+    
+    def upload_url_registry(self, registry: URLRegistry) -> bool:
+        """
+        Upload URL registry to R2.
+        
+        Args:
+            registry: URLRegistry object to upload
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        registry_key = "urls/url_registry.parquet"
+        
+        try:
+            # Save to temp file
+            with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
+                registry.to_parquet(tmp.name)
+                
+                # Upload to R2
+                success = self.upload_file(
+                    tmp.name, 
+                    registry_key,
+                    content_type="application/octet-stream"
+                )
+                
+                if success:
+                    logger.info(f"Uploaded URL registry with {len(registry.df)} entries")
+                
+                return success
+        
+        except Exception as e:
+            logger.exception(f"Failed to upload URL registry: {e}")
+            return False
+        
+        finally:
+            # Clean up temp file
+            if 'tmp' in locals():
+                Path(tmp.name).unlink(missing_ok=True)

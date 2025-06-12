@@ -7,6 +7,7 @@ from src.models.post import BlueskyPost
 from src.storage.file_manager import FileManager
 from src.storage.r2_client import R2Client
 from src.utils.logging import get_logger
+from src.utils.url_registry import URLRegistry
 
 logger = get_logger(__name__)
 
@@ -148,7 +149,8 @@ class BlueskyDataCollector:
             return False
 
     async def collect_and_store_by_definition(
-        self, search_definition: SearchDefinition, target_date: date | None = None, max_posts: int = 100
+        self, search_definition: SearchDefinition, target_date: date | None = None, 
+        max_posts: int = 100, track_urls: bool = False
     ) -> tuple[int, bool]:
         """
         Collect and store posts using a search definition.
@@ -157,6 +159,7 @@ class BlueskyDataCollector:
             search_definition: SearchDefinition to use for collection
             target_date: Date to collect posts for
             max_posts: Maximum number of posts to collect
+            track_urls: Whether to track URLs in registry
 
         Returns:
             Tuple of (number_of_posts_collected, storage_success)
@@ -173,6 +176,10 @@ class BlueskyDataCollector:
             logger.warning("No posts collected")
             return 0, True  # No posts to store is considered success
 
+        # Track URLs if enabled
+        if track_urls:
+            await self._track_urls_from_posts(posts)
+
         # Store posts
         storage_success = await self.store_posts(posts, target_date)
 
@@ -182,6 +189,42 @@ class BlueskyDataCollector:
         )
 
         return len(posts), storage_success
+    
+    async def _track_urls_from_posts(self, posts: list[BlueskyPost]) -> None:
+        """
+        Extract and track URLs from posts in the registry.
+        
+        Args:
+            posts: List of posts to extract URLs from
+        """
+        try:
+            # Download existing registry or create new one
+            registry = self.r2_client.download_url_registry()
+            if registry is None:
+                registry = URLRegistry()
+                logger.info("Created new URL registry")
+            
+            # Track URLs from each post
+            new_urls = 0
+            total_urls = 0
+            
+            for post in posts:
+                for url in post.links:
+                    total_urls += 1
+                    is_new = registry.add_url(url, post.id, post.author)
+                    if is_new:
+                        new_urls += 1
+            
+            logger.info(f"Tracked {total_urls} URLs, {new_urls} new")
+            
+            # Upload updated registry
+            if total_urls > 0:
+                success = self.r2_client.upload_url_registry(registry)
+                if not success:
+                    logger.error("Failed to upload updated URL registry")
+                    
+        except Exception as e:
+            logger.exception(f"Error tracking URLs: {e}")
 
     async def collect_and_store(
         self, target_date: date | None = None, max_posts: int = 100

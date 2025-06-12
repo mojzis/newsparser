@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
+import pandas as pd
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -16,6 +17,7 @@ from src.config.settings import get_settings
 from src.content.extractor import ContentExtractor
 from src.content.fetcher import ArticleFetcher
 from src.content.models import ContentError
+from src.storage.r2_client import R2Client
 from src.utils.language_detection import LanguageType
 from src.utils.filtering import filter_posts_by_language, get_language_statistics
 
@@ -33,7 +35,8 @@ def cli():
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-def collect(max_posts: int, target_date: Optional[str], search: str, config_path: Optional[str]):
+@click.option("--track-urls", is_flag=True, help="Track URLs in registry")
+def collect(max_posts: int, target_date: Optional[str], search: str, config_path: Optional[str], track_urls: bool):
     """Collect posts from Bluesky using configurable search definitions."""
     
     # Parse target date
@@ -78,7 +81,8 @@ def collect(max_posts: int, target_date: Optional[str], search: str, config_path
             collector.collect_and_store_by_definition(
                 search_definition=search_definition,
                 target_date=parsed_date, 
-                max_posts=max_posts
+                max_posts=max_posts,
+                track_urls=track_urls
             )
         )
         
@@ -735,6 +739,129 @@ def language_report(target_date: Optional[str], show_samples: bool):
         
     except Exception as e:
         console.print(f"❌ Language report failed: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+def url_stats():
+    """Show URL registry statistics."""
+    try:
+        settings = get_settings()
+        r2_client = R2Client(settings)
+        
+        # Download registry
+        registry = r2_client.download_url_registry()
+        
+        if registry is None:
+            console.print("No URL registry found. Run collect with --track-urls to create one.", style="yellow")
+            return
+        
+        stats = registry.get_stats()
+        
+        # Show statistics
+        console.print(Panel(
+            f"[green]Total URLs:[/green] {stats['total_urls']:,}\n"
+            f"[blue]Total Occurrences:[/blue] {stats['total_occurrences']:,}\n"
+            f"[cyan]Unique Domains:[/cyan] {stats['unique_domains']:,}",
+            title="📊 URL Registry Statistics",
+            border_style="green"
+        ))
+        
+    except Exception as e:
+        console.print(f"❌ Failed to get URL statistics: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--limit", default=20, help="Number of URLs to display")
+@click.option("--domain", help="Filter by domain")
+def url_list(limit: int, domain: Optional[str]):
+    """List URLs in the registry."""
+    try:
+        settings = get_settings()
+        r2_client = R2Client(settings)
+        
+        # Download registry
+        registry = r2_client.download_url_registry()
+        
+        if registry is None:
+            console.print("No URL registry found. Run collect with --track-urls to create one.", style="yellow")
+            return
+        
+        if registry.df.empty:
+            console.print("URL registry is empty.", style="yellow")
+            return
+        
+        # Filter by domain if specified
+        df = registry.df
+        if domain:
+            df = df[df['url'].str.contains(domain, case=False)]
+            if df.empty:
+                console.print(f"No URLs found for domain: {domain}", style="yellow")
+                return
+        
+        # Sort by times_seen descending
+        df = df.sort_values('times_seen', ascending=False)
+        
+        # Create table
+        table = Table(title="URL Registry")
+        table.add_column("URL", style="cyan", no_wrap=False, max_width=60)
+        table.add_column("Times Seen", style="green", justify="right")
+        table.add_column("First Seen", style="yellow")
+        table.add_column("First Author", style="blue", max_width=20)
+        
+        for _, row in df.head(limit).iterrows():
+            table.add_row(
+                str(row['url']),
+                str(row['times_seen']),
+                row['first_seen'].strftime("%Y-%m-%d %H:%M") if pd.notna(row['first_seen']) else "Unknown",
+                row['first_post_author'][:20] + "..." if len(row['first_post_author']) > 20 else row['first_post_author']
+            )
+        
+        console.print(table)
+        
+        if len(df) > limit:
+            console.print(f"\n... and {len(df) - limit} more URLs", style="dim")
+        
+    except Exception as e:
+        console.print(f"❌ Failed to list URLs: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+def url_sync():
+    """Download or upload URL registry manually."""
+    try:
+        settings = get_settings()
+        r2_client = R2Client(settings)
+        
+        # Check if registry exists
+        registry = r2_client.download_url_registry()
+        
+        if registry is None:
+            console.print("No URL registry found in R2.", style="yellow")
+            
+            # Ask if user wants to create one
+            if click.confirm("Create a new empty registry?"):
+                from src.utils.url_registry import URLRegistry
+                new_registry = URLRegistry()
+                
+                if r2_client.upload_url_registry(new_registry):
+                    console.print("✅ Created and uploaded new URL registry", style="green")
+                else:
+                    console.print("❌ Failed to upload new registry", style="red")
+                    sys.exit(1)
+        else:
+            console.print(f"✅ Downloaded URL registry with {len(registry.df)} entries", style="green")
+            
+            # Show stats
+            stats = registry.get_stats()
+            console.print(f"   Total URLs: {stats['total_urls']:,}")
+            console.print(f"   Total occurrences: {stats['total_occurrences']:,}")
+            console.print(f"   Unique domains: {stats['unique_domains']:,}")
+            
+    except Exception as e:
+        console.print(f"❌ URL sync failed: {e}", style="red")
         sys.exit(1)
 
 
