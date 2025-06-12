@@ -11,6 +11,18 @@ When working on this project, please maintain a neutral, professional tone:
 - Use simple confirmations like "done" or "completed" rather than celebratory language
 - Provide technical details when relevant, but keep explanations brief
 
+## MVP Development Principles
+
+**IMPORTANT: This project follows MVP/startup methodology. Keep everything super simple:**
+- Focus only on the task at hand
+- Always do minimal implementation
+- No extra features or "nice-to-haves"
+- Things will change soon - don't over-engineer
+- Prioritize working code over perfect code
+- Avoid premature optimization
+- Skip edge cases unless explicitly required
+- No additional abstractions beyond what's needed
+
 ## Phase Planning Requirement
 
 Before proceeding with any new phase or significant feature implementation:

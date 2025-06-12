@@ -15,3 +15,7 @@ evaluate the most interesting posts
 generate some stats about numbers of posts ...
 
 more sources ? hacker news ? anything else ?
+
+it has a tendency to overdo stuff - add instructions that things should be kept supersimple, we are in MVP, startup mode, things will for sure be changed soon
+
+commit messages are too huge :)
