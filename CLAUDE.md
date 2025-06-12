@@ -20,6 +20,16 @@ Before proceeding with any new phase or significant feature implementation:
 4. Get user approval for the plan before beginning implementation
 5. Document implementation progress and decisions in the phase-specific file
 
+### Task Implementation Guidelines
+
+IMPORTANT: Each task within a phase should produce a testable CLI command:
+- Tasks (e.g., 1.1, 1.2, 2.1) should each add a functional command
+- Don't wait until phase completion to add commands
+- Commands should demonstrate the specific functionality of that task
+- Include the command syntax in the task plan (e.g., "Command: `nsp process-article <url>`")
+- Test the command before marking the task complete
+- Document example usage in commit messages
+
 ## Project Overview
 
 This is the Bluesky MCP Monitor project - a daily service that parses Bluesky for "mcp" mentions, evaluates content using Anthropic API, stores data in Parquet files on Cloudflare R2, and generates HTML reports with automated Bluesky posting.
