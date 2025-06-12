@@ -71,6 +71,7 @@ class TestBlueskyPost:
         assert len(post.links) == 1
         assert str(post.links[0]) == "https://example.com/"
         assert post.engagement_metrics.likes == 10
+        assert post.tags == []  # No hashtags in this content
 
     def test_empty_content_rejected(self):
         """Test that empty content is rejected."""
@@ -200,3 +201,103 @@ class TestBlueskyPost:
         assert post.author == author
         assert post.content == content
         assert post.engagement_metrics.likes == likes
+
+
+class TestHashtagExtraction:
+    def test_extract_single_hashtag(self):
+        """Test extracting a single hashtag."""
+        now = datetime.utcnow()
+        metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
+        post = BlueskyPost(
+            id="123",
+            author="user",
+            content="Excited about #MCP development!",
+            created_at=now,
+            links=[],
+            engagement_metrics=metrics,
+        )
+        
+        assert post.tags == ["mcp"]
+
+    def test_extract_multiple_hashtags(self):
+        """Test extracting multiple hashtags."""
+        now = datetime.utcnow()
+        metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
+        post = BlueskyPost(
+            id="123",
+            author="user",
+            content="Working with #MCP and #AI #tools today!",
+            created_at=now,
+            links=[],
+            engagement_metrics=metrics,
+        )
+        
+        assert post.tags == ["mcp", "ai", "tools"]
+
+    def test_extract_hashtags_case_insensitive(self):
+        """Test hashtag extraction is case insensitive."""
+        now = datetime.utcnow()
+        metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
+        post = BlueskyPost(
+            id="123",
+            author="user",
+            content="Testing #MCP #mcp #Mcp consistency",
+            created_at=now,
+            links=[],
+            engagement_metrics=metrics,
+        )
+        
+        # Should only have one "mcp" since duplicates are removed
+        assert post.tags == ["mcp"]
+
+    def test_no_hashtags(self):
+        """Test content with no hashtags."""
+        now = datetime.utcnow()
+        metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
+        post = BlueskyPost(
+            id="123",
+            author="user",
+            content="Regular post with no hashtags",
+            created_at=now,
+            links=[],
+            engagement_metrics=metrics,
+        )
+        
+        assert post.tags == []
+
+    def test_hashtags_with_numbers_and_underscores(self):
+        """Test hashtags containing numbers and underscores."""
+        now = datetime.utcnow()
+        metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
+        post = BlueskyPost(
+            id="123",
+            author="user",
+            content="Using #mcp2024 and #ai_tools for development",
+            created_at=now,
+            links=[],
+            engagement_metrics=metrics,
+        )
+        
+        assert set(post.tags) == {"mcp2024", "ai_tools"}
+
+    def test_explicit_tags_override_extraction(self):
+        """Test that explicitly provided tags override extraction."""
+        now = datetime.utcnow()
+        metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
+        post = BlueskyPost(
+            id="123",
+            author="user",
+            content="This has #hashtags in content",
+            created_at=now,
+            links=[],
+            tags=["custom", "tags"],  # Explicitly provided
+            engagement_metrics=metrics,
+        )
+        
+        assert post.tags == ["custom", "tags"]
+
+    def test_static_hashtag_extraction_method(self):
+        """Test the static utility method for hashtag extraction."""
+        text = "Testing #MCP with #AI and #tools2024"
+        hashtags = BlueskyPost.extract_hashtags_from_text(text)
+        assert set(hashtags) == {"mcp", "ai", "tools2024"}

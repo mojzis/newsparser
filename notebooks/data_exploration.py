@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.19"
+__generated_with = "0.13.15"
 app = marimo.App(width="medium")
 
 
@@ -14,13 +14,13 @@ def _():
 def _(mo):
     mo.md(
         r"""
-        # Bluesky MCP Monitor - Data Exploration
+    # Bluesky MCP Monitor - Data Exploration
 
-        This notebook allows you to explore the collected Bluesky posts data stored in Cloudflare R2.
+    This notebook allows you to explore the collected Bluesky posts data stored in Cloudflare R2.
 
-        ## Setup
-        Make sure you have your R2 credentials configured in your environment variables.
-        """
+    ## Setup
+    Make sure you have your R2 credentials configured in your environment variables.
+    """
     )
     return
 
@@ -41,18 +41,7 @@ def _():
     from src.models.post import BlueskyPost
 
 
-    return (
-        BlueskyDataCollector,
-        BlueskyPost,
-        List,
-        asyncio,
-        date,
-        datetime,
-        get_settings,
-        json,
-        pd,
-        timedelta,
-    )
+    return BlueskyDataCollector, date, datetime, get_settings, pd
 
 
 @app.cell
@@ -92,10 +81,10 @@ def _(collector, mo, target_date_input):
 
 
 @app.cell
-def _(asyncio, collector, data_exists, mo, selected_date):
+def _(collector, data_exists, mo, selected_date):
     # Load posts for selected date
     if data_exists:
-        posts = asyncio.run(collector.get_stored_posts(selected_date))
+        posts = collector.get_stored_posts_sync(selected_date)
 
         if posts:
             mo.md(f"📊 **Loaded {len(posts)} posts** for {selected_date}")
@@ -126,6 +115,9 @@ def _(mo, pd, posts):
                 'has_links': len(post.links) > 0,
                 'link_count': len(post.links),
                 'content_length': len(post.content),
+                'tags': ', '.join(post.tags) if post.tags else '',
+                'tag_count': len(post.tags),
+                'has_tags': len(post.tags) > 0,
             })
 
         df = pd.DataFrame(posts_data)
@@ -133,7 +125,7 @@ def _(mo, pd, posts):
     else:
         df = pd.DataFrame()
         mo.md("No data to convert to DataFrame.")
-    return df, post, posts_data
+    return (df,)
 
 
 @app.cell
@@ -170,7 +162,7 @@ def _(df, mo):
         stats_table
     else:
         mo.md("No statistics to display.")
-    return (stats_table,)
+    return
 
 
 @app.cell
@@ -191,7 +183,40 @@ def _(df, mo):
         author_table
     else:
         mo.md("No author data to display.")
-    return author_table, author_table_data, top_authors
+    return
+
+
+@app.cell
+def _(df, mo):
+    # Popular tags analysis
+    if not df.empty and df['tag_count'].sum() > 0:
+        # Flatten all tags and count occurrences
+        all_tags = []
+        for tags_str in df['tags']:
+            if tags_str:  # If tags string is not empty
+                all_tags.extend(tags_str.split(', '))
+        
+        if all_tags:
+            from collections import Counter
+            tag_counts = Counter(all_tags)
+            top_tags = tag_counts.most_common(10)
+            
+            tag_table_data = {
+                "Tag": [f"#{tag}" for tag, count in top_tags],
+                "Usage Count": [count for tag, count in top_tags],
+                "Percentage": [f"{(count/len(df))*100:.1f}%" for tag, count in top_tags]
+            }
+            
+            tag_table = mo.ui.table(
+                data=tag_table_data,
+                label="🏷️ Most Popular Tags"
+            )
+            tag_table
+        else:
+            mo.md("No tags found in the dataset.")
+    else:
+        mo.md("No tag data to display.")
+    return
 
 
 @app.cell
@@ -215,7 +240,7 @@ def _(df, mo):
         engagement_table
     else:
         mo.md("No engagement data to display.")
-    return engagement_stats, engagement_table, engagement_table_data
+    return
 
 
 @app.cell
@@ -240,7 +265,7 @@ def _(df, mo):
         top_posts_table
     else:
         mo.md("No post engagement data to display.")
-    return top_posts, top_posts_data, top_posts_table
+    return
 
 
 @app.cell
@@ -254,7 +279,10 @@ def _(df, mo):
             "Shortest Post": f"{df['content_length'].min()} characters",
             "Longest Post": f"{df['content_length'].max()} characters",
             "Posts with Links": f"{df['has_links'].sum()} ({df['has_links'].mean()*100:.1f}%)",
-            "Total Links": df['link_count'].sum()
+            "Total Links": df['link_count'].sum(),
+            "Posts with Tags": f"{df['has_tags'].sum()} ({df['has_tags'].mean()*100:.1f}%)",
+            "Total Tags": df['tag_count'].sum(),
+            "Average Tags per Post": f"{df['tag_count'].mean():.1f}"
         }
 
         content_table_data = {
@@ -269,7 +297,7 @@ def _(df, mo):
         content_table
     else:
         mo.md("No content analysis to display.")
-    return content_stats, content_table, content_table_data
+    return
 
 
 @app.cell
@@ -312,7 +340,7 @@ def _(author_filter, df, min_engagement, mo):
 
         if len(filtered_df) > 0:
             # Display filtered results
-            display_columns = ['author', 'content', 'total_engagement', 'likes', 'reposts', 'replies', 'has_links']
+            display_columns = ['author', 'content', 'total_engagement', 'likes', 'reposts', 'replies', 'has_links', 'tags', 'tag_count']
 
             # Truncate content for display
             display_df = filtered_df[display_columns].copy()
@@ -333,13 +361,7 @@ def _(author_filter, df, min_engagement, mo):
             mo.md("❌ No posts match the current filters.")
     else:
         mo.md("No data to filter.")
-    return (
-        display_columns,
-        display_df,
-        filtered_df,
-        filtered_table,
-        filtered_table_data,
-    )
+    return (filtered_df,)
 
 
 @app.cell
@@ -362,6 +384,12 @@ def _(df, mo):
     else:
         mo.md("No data to export.")
     return export_filtered, export_format
+
+
+@app.cell
+def _(filtered_df):
+    filtered_df
+    return
 
 
 @app.cell
@@ -399,7 +427,7 @@ def _(
         export_button
     else:
         mo.md("No data available for export.")
-    return export_button, export_df, filename, timestamp
+    return
 
 
 @app.cell
@@ -412,16 +440,16 @@ def _(mo):
 
     ```bash
     # Collect posts for today
-    poetry run newsparser collect
+    poetry run nsp collect
 
     # Collect posts for a specific date
-    poetry run newsparser collect --date 2024-01-15
+    poetry run nsp collect --date 2024-01-15
 
     # Check data status
-    poetry run newsparser status --date 2024-01-15
+    poetry run nsp status --date 2024-01-15
 
     # List posts
-    poetry run newsparser list-posts --date 2024-01-15 --limit 10
+    poetry run nsp list-posts --date 2024-01-15 --limit 10
     ```
 
     Or collect data directly from this notebook (if credentials are configured):
@@ -443,34 +471,19 @@ def _(date, mo, settings):
 
 
 @app.cell
-def _(asyncio, collect_date, collector, max_posts_input, mo, settings):
+def _(collect_date, max_posts_input, mo, settings):
     # Collection button
     if settings.has_bluesky_credentials:
         collect_button = mo.ui.button(label="🔄 Collect Data")
 
         if collect_button.value:
-            mo.md("🔄 **Collecting data...** This may take a moment.")
-
-            try:
-                posts_count, success = asyncio.run(
-                    collector.collect_and_store(
-                        target_date=collect_date.value,
-                        max_posts=max_posts_input.value
-                    )
-                )
-
-                if success:
-                    mo.md(f"✅ **Successfully collected** {posts_count} posts for {collect_date.value}")
-                else:
-                    mo.md(f"⚠️ **Collected** {posts_count} posts but storage failed")
-
-            except Exception as e:
-                mo.md(f"❌ **Collection failed:** {str(e)}")
+            mo.md("🔄 **Data collection disabled in notebook** - use CLI instead:")
+            mo.md(f"```bash\npoetry run nsp collect --date {collect_date.value} --max-posts {max_posts_input.value}\n```")
 
         collect_button
     else:
         mo.md("Configure credentials to enable data collection.")
-    return collect_button, posts_count, success
+    return
 
 
 if __name__ == "__main__":

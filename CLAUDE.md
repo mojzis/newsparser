@@ -30,6 +30,15 @@ IMPORTANT: Each task within a phase should produce a testable CLI command:
 - Test the command before marking the task complete
 - Document example usage in commit messages
 
+### Notebook Development Guidelines
+
+When working with Jupyter/marimo notebooks:
+- **Never use `asyncio.run()`** - notebooks already run in an event loop
+- Provide synchronous wrapper methods for async functionality (e.g., `get_stored_posts_sync()`)
+- Use nest_asyncio if async calls are absolutely necessary
+- Prefer CLI commands for complex async operations
+- Document which features should use CLI vs notebook interface
+
 ## Project Overview
 
 This is the Bluesky MCP Monitor project - a daily service that parses Bluesky for "mcp" mentions, evaluates content using Anthropic API, stores data in Parquet files on Cloudflare R2, and generates HTML reports with automated Bluesky posting.

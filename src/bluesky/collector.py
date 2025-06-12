@@ -282,3 +282,37 @@ class BlueskyDataCollector:
         json_path = file_path.replace(".parquet", ".json")
 
         return self.r2_client.file_exists(json_path)
+
+    def get_stored_posts_sync(self, target_date: date) -> list[BlueskyPost]:
+        """
+        Synchronous version of get_stored_posts for use in notebooks/synchronous contexts.
+        
+        Args:
+            target_date: Date to retrieve posts for
+
+        Returns:
+            List of BlueskyPost instances
+        """
+        import asyncio
+        
+        try:
+            # Check if we're in an event loop
+            try:
+                loop = asyncio.get_running_loop()
+                # We're in an event loop, use nest_asyncio if available
+                try:
+                    import nest_asyncio
+                    nest_asyncio.apply()
+                    return asyncio.run(self.get_stored_posts(target_date))
+                except ImportError:
+                    # nest_asyncio not available, use event loop directly
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(asyncio.run, self.get_stored_posts(target_date))
+                        return future.result()
+            except RuntimeError:
+                # No event loop running, we can use asyncio.run directly
+                return asyncio.run(self.get_stored_posts(target_date))
+        except Exception as e:
+            logger.exception(f"Error in sync get_stored_posts: {e}")
+            return []
