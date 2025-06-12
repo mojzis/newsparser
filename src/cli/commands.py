@@ -17,6 +17,7 @@ from src.config.settings import get_settings
 from src.content.extractor import ContentExtractor
 from src.content.fetcher import ArticleFetcher
 from src.content.models import ContentError
+from src.evaluation.processor import EvaluationProcessor
 from src.storage.r2_client import R2Client
 from src.utils.language_detection import LanguageType
 from src.utils.filtering import filter_posts_by_language, get_language_statistics
@@ -762,7 +763,10 @@ def url_stats():
         console.print(Panel(
             f"[green]Total URLs:[/green] {stats['total_urls']:,}\n"
             f"[blue]Total Occurrences:[/blue] {stats['total_occurrences']:,}\n"
-            f"[cyan]Unique Domains:[/cyan] {stats['unique_domains']:,}",
+            f"[cyan]Unique Domains:[/cyan] {stats['unique_domains']:,}\n"
+            f"[yellow]Evaluated URLs:[/yellow] {stats['evaluated_urls']:,}\n"
+            f"[magenta]MCP-Related:[/magenta] {stats['mcp_related_urls']:,}\n"
+            f"[orange3]Avg Relevance:[/orange3] {stats['avg_relevance_score']:.2f}",
             title="📊 URL Registry Statistics",
             border_style="green"
         ))
@@ -862,6 +866,187 @@ def url_sync():
             
     except Exception as e:
         console.print(f"❌ URL sync failed: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--force", is_flag=True, help="Force re-evaluation of already processed URLs")
+@click.option("--include-languages", help="Include only these languages (comma-separated: latin,mixed,unknown)")
+@click.option("--show-stats", is_flag=True, help="Show evaluation statistics")
+def evaluate(target_date: Optional[str], force: bool, include_languages: Optional[str], show_stats: bool):
+    """Evaluate articles from collected posts using Anthropic API."""
+    
+    # Parse target date
+    if target_date:
+        try:
+            parsed_date = date.fromisoformat(target_date)
+        except ValueError:
+            console.print(f"❌ Invalid date format: {target_date}. Use YYYY-MM-DD", style="red")
+            sys.exit(1)
+    else:
+        parsed_date = date.today()
+    
+    try:
+        settings = get_settings()
+        
+        if not settings.has_anthropic_credentials:
+            console.print("❌ Anthropic API key not configured", style="red")
+            console.print("Set ANTHROPIC_API_KEY environment variable")
+            sys.exit(1)
+        
+        # Parse language filtering
+        include_langs = None
+        if include_languages:
+            try:
+                include_langs = [LanguageType(lang.strip()) for lang in include_languages.split(',')]
+            except ValueError as e:
+                console.print(f"❌ Invalid language: {e}", style="red")
+                sys.exit(1)
+        
+        console.print(f"🔍 Evaluating articles from posts on {parsed_date}...")
+        
+        # Get posts for the date
+        collector = BlueskyDataCollector(settings)
+        posts = asyncio.run(collector.get_stored_posts(parsed_date))
+        
+        if not posts:
+            console.print(f"❌ No posts found for {parsed_date}", style="red")
+            sys.exit(1)
+        
+        console.print(f"📊 Found {len(posts)} posts")
+        
+        # Filter by language if requested
+        if include_langs:
+            posts = filter_posts_by_language(posts, include_languages=include_langs)
+            console.print(f"   After language filter: {len(posts)} posts")
+        
+        # Count URLs
+        total_urls = sum(len(post.links) for post in posts)
+        if total_urls == 0:
+            console.print("❌ No URLs found in posts", style="red")
+            sys.exit(1)
+        
+        console.print(f"   Found {total_urls} URLs to process")
+        
+        # Process evaluations
+        processor = EvaluationProcessor(settings)
+        
+        new_evals, total_registry = asyncio.run(
+            processor.evaluate_posts(posts, parsed_date, force=force)
+        )
+        
+        console.print(f"\n✅ Evaluation complete!")
+        console.print(f"   New evaluations: {new_evals}")
+        console.print(f"   Total URLs in registry: {total_registry}")
+        
+        if show_stats:
+            # Download registry to show stats
+            r2_client = R2Client(settings)
+            registry = r2_client.download_url_registry()
+            
+            if registry:
+                stats = registry.get_stats()
+                
+                stats_panel = Panel(
+                    f"[green]Total URLs:[/green] {stats['total_urls']:,}\n"
+                    f"[blue]Evaluated URLs:[/blue] {stats['evaluated_urls']:,}\n"
+                    f"[cyan]MCP-Related:[/cyan] {stats['mcp_related_urls']:,}\n"
+                    f"[yellow]Avg Relevance:[/yellow] {stats['avg_relevance_score']:.2f}",
+                    title="📊 URL Registry Statistics",
+                    border_style="green"
+                )
+                console.print(stats_panel)
+        
+    except Exception as e:
+        console.print(f"❌ Evaluation failed: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--limit", default=20, help="Number of evaluations to display")
+@click.option("--mcp-only", is_flag=True, help="Show only MCP-related articles")
+@click.option("--min-score", type=float, help="Minimum relevance score to display")
+def list_evaluations(target_date: Optional[str], limit: int, mcp_only: bool, min_score: Optional[float]):
+    """List article evaluations for a specific date."""
+    
+    # Parse target date
+    if target_date:
+        try:
+            parsed_date = date.fromisoformat(target_date)
+        except ValueError:
+            console.print(f"❌ Invalid date format: {target_date}. Use YYYY-MM-DD", style="red")
+            sys.exit(1)
+    else:
+        parsed_date = date.today()
+    
+    try:
+        settings = get_settings()
+        processor = EvaluationProcessor(settings)
+        
+        evaluations = processor.get_stored_evaluations(parsed_date)
+        
+        if not evaluations:
+            console.print(f"❌ No evaluations found for {parsed_date}", style="red")
+            return
+        
+        # Filter evaluations
+        if mcp_only:
+            evaluations = [e for e in evaluations if e.is_mcp_related]
+        
+        if min_score is not None:
+            evaluations = [e for e in evaluations if e.relevance_score >= min_score]
+        
+        if not evaluations:
+            console.print("No evaluations match the filter criteria", style="yellow")
+            return
+        
+        # Sort by relevance score
+        evaluations.sort(key=lambda x: x.relevance_score, reverse=True)
+        
+        # Create table
+        table = Table(title=f"Article Evaluations for {parsed_date}")
+        table.add_column("URL", style="cyan", no_wrap=False, max_width=50)
+        table.add_column("Title", style="white", max_width=40)
+        table.add_column("MCP", style="green", justify="center")
+        table.add_column("Score", style="yellow", justify="right")
+        table.add_column("Summary", style="blue", max_width=50)
+        
+        for eval in evaluations[:limit]:
+            # Format URL
+            url_display = str(eval.url)
+            if len(url_display) > 50:
+                url_display = url_display[:47] + "..."
+            
+            # Format title
+            title = eval.title or "No title"
+            if len(title) > 40:
+                title = title[:37] + "..."
+            
+            # Format MCP status
+            mcp_status = "✅" if eval.is_mcp_related else "❌"
+            
+            # Format summary
+            summary = eval.summary
+            if len(summary) > 50:
+                summary = summary[:47] + "..."
+            
+            table.add_row(
+                url_display,
+                title,
+                mcp_status,
+                f"{eval.relevance_score:.2f}",
+                summary
+            )
+        
+        console.print(table)
+        
+        if len(evaluations) > limit:
+            console.print(f"\n... and {len(evaluations) - limit} more evaluations")
+        
+    except Exception as e:
+        console.print(f"❌ Failed to list evaluations: {e}", style="red")
         sys.exit(1)
 
 

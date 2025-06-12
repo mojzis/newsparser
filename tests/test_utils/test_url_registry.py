@@ -17,9 +17,11 @@ class TestURLRegistry:
         """Test creating an empty registry."""
         registry = URLRegistry()
         assert registry.df.empty
-        assert len(registry.df.columns) == 7
+        assert len(registry.df.columns) == 11  # Now includes evaluation fields
         assert 'url' in registry.df.columns
         assert 'first_seen' in registry.df.columns
+        assert 'evaluated' in registry.df.columns
+        assert 'is_mcp_related' in registry.df.columns
     
     def test_add_new_url(self):
         """Test adding a new URL to registry."""
@@ -88,11 +90,18 @@ class TestURLRegistry:
         # Add duplicate
         registry.add_url("https://example.com/1", "p4", "@u4")
         
+        # Mark some as evaluated
+        registry.mark_evaluated("https://example.com/1", True, 0.9)
+        registry.mark_evaluated("https://example.com/2", False, 0.2)
+        
         stats = registry.get_stats()
         
         assert stats['total_urls'] == 3
         assert stats['total_occurrences'] == 4  # 3 unique + 1 duplicate
         assert stats['unique_domains'] == 2  # example.com and other.com
+        assert stats['evaluated_urls'] == 2
+        assert stats['mcp_related_urls'] == 1
+        assert 0.5 <= stats['avg_relevance_score'] <= 0.6  # (0.9 + 0.2) / 2
     
     def test_parquet_save_load(self):
         """Test saving and loading from Parquet."""
@@ -133,3 +142,39 @@ class TestURLRegistry:
         assert len(registry.df) == 2
         assert registry.contains_url("https://example.com/string")
         assert registry.contains_url(http_url)
+    
+    def test_evaluation_tracking(self):
+        """Test URL evaluation tracking."""
+        registry = URLRegistry()
+        
+        # Add URL
+        registry.add_url("https://example.com/article", "p1", "@u1")
+        
+        # Check initial state
+        assert registry.is_evaluated("https://example.com/article") is False
+        
+        # Mark as evaluated
+        registry.mark_evaluated("https://example.com/article", True, 0.85)
+        
+        # Check evaluated state
+        assert registry.is_evaluated("https://example.com/article") is True
+        
+        # Check data was updated
+        row = registry.df[registry.df['url'] == 'https://example.com/article'].iloc[0]
+        assert row['evaluated'] is True
+        assert row['is_mcp_related'] is True
+        assert row['relevance_score'] == 0.85
+        assert row['evaluated_at'] is not None
+    
+    def test_evaluation_tracking_unknown_url(self):
+        """Test evaluation tracking for unknown URL."""
+        registry = URLRegistry()
+        
+        # Check non-existent URL
+        assert registry.is_evaluated("https://unknown.com") is False
+        
+        # Try to mark non-existent URL as evaluated (should not crash)
+        registry.mark_evaluated("https://unknown.com", True, 0.5)
+        
+        # Still not in registry
+        assert registry.contains_url("https://unknown.com") is False

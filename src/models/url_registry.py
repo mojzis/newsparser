@@ -17,6 +17,12 @@ class URLEntry(BaseModel):
     times_seen: int = Field(default=1, ge=1, description="Number of times URL was seen")
     last_updated: datetime = Field(..., description="Last time this entry was updated")
     
+    # Evaluation tracking
+    evaluated: bool = Field(default=False, description="Whether URL has been evaluated")
+    evaluated_at: Optional[datetime] = Field(None, description="When URL was evaluated")
+    is_mcp_related: Optional[bool] = Field(None, description="Whether article is MCP-related")
+    relevance_score: Optional[float] = Field(None, ge=0.0, le=1.0, description="MCP relevance score")
+    
     model_config = {
         "json_encoders": {
             datetime: lambda v: v.isoformat(),
