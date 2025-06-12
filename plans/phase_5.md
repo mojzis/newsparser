@@ -63,6 +63,13 @@ Phase 5 focuses on creating clean, minimalist HTML reports in the style of early
 - [x] Update report model to use perex field directly
 **Note**: Perexes will be generated during Phase 3 evaluation to avoid duplicate API calls
 
+### Task 3.5: Prepare Article Data Command
+- [ ] Create command to fetch posts and store them in parquet format
+- [ ] Integrate with existing collection pipeline
+- [ ] Ensure data is ready for report generation
+- [ ] Test with real data
+**Command**: `nsp prepare-data --date YYYY-MM-DD`
+
 ### Task 4: Build Report Generator
 - [ ] Load posts and evaluations for a day
 - [ ] Filter for relevant articles only

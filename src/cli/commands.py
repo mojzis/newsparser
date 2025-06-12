@@ -1064,6 +1064,138 @@ def preview_template(template: str):
 
 @cli.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--search", default="mcp_tag", help="Search definition to use")
+@click.option("--max-posts", default=500, help="Maximum posts to collect")
+def prepare_data(target_date: Optional[str], search: str, max_posts: int):
+    """Prepare article data by collecting posts and evaluating them."""
+    
+    # Parse target date
+    if target_date:
+        try:
+            parsed_date = date.fromisoformat(target_date)
+        except ValueError:
+            console.print(f"❌ Invalid date format: {target_date}. Use YYYY-MM-DD", style="red")
+            sys.exit(1)
+    else:
+        parsed_date = date.today()
+    
+    console.print(f"🚀 Preparing article data for {parsed_date}...")
+    console.print(f"   Search: {search}")
+    console.print(f"   Max posts: {max_posts}")
+    console.print()
+    
+    try:
+        settings = get_settings()
+        
+        # Check credentials
+        if not settings.has_bluesky_credentials:
+            console.print("❌ Bluesky credentials not configured", style="red")
+            console.print("Set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables")
+            sys.exit(1)
+        
+        if not settings.has_anthropic_credentials:
+            console.print("❌ Anthropic API key not configured", style="red")
+            console.print("Set ANTHROPIC_API_KEY environment variable")
+            sys.exit(1)
+        
+        # Step 1: Collect posts
+        console.print("📥 Step 1: Collecting posts from Bluesky...")
+        
+        # Load search configuration
+        search_config = load_search_config()
+        search_definition = search_config.get_search(search)
+        
+        if not search_definition:
+            console.print(f"❌ Search definition '{search}' not found", style="red")
+            available_searches = list(search_config.searches.keys())
+            console.print(f"Available searches: {', '.join(available_searches)}")
+            sys.exit(1)
+        
+        if not search_definition.enabled:
+            console.print(f"❌ Search definition '{search}' is disabled", style="red")
+            sys.exit(1)
+        
+        collector = BlueskyDataCollector(settings)
+        
+        # Check if data already exists
+        existing_posts = asyncio.run(collector.get_stored_posts(parsed_date))
+        if existing_posts:
+            console.print(f"   Found {len(existing_posts)} existing posts")
+            console.print("   Skipping collection (data already exists)")
+        else:
+            # Run collection
+            posts_count, success = asyncio.run(
+                collector.collect_and_store_by_definition(
+                    search_definition=search_definition,
+                    target_date=parsed_date,
+                    max_posts=max_posts,
+                    track_urls=True
+                )
+            )
+            
+            if not success:
+                console.print("❌ Post collection failed", style="red")
+                sys.exit(1)
+            
+            console.print(f"   ✅ Collected {posts_count} posts", style="green")
+        
+        # Step 2: Evaluate articles
+        console.print("\n🧠 Step 2: Evaluating articles...")
+        
+        # Get posts for evaluation
+        posts = asyncio.run(collector.get_stored_posts(parsed_date))
+        if not posts:
+            console.print("❌ No posts found for evaluation", style="red")
+            sys.exit(1)
+        
+        # Filter for Latin-script content only
+        from src.utils.filtering import filter_posts_by_language
+        from src.utils.language_detection import LanguageType
+        
+        filtered_posts = filter_posts_by_language(posts, include_languages=[LanguageType.LATIN])
+        console.print(f"   Processing {len(filtered_posts)}/{len(posts)} Latin-script posts")
+        
+        # Count URLs
+        total_urls = sum(len(post.links) for post in filtered_posts)
+        if total_urls == 0:
+            console.print("❌ No URLs found in posts", style="red")
+            sys.exit(1)
+        
+        console.print(f"   Found {total_urls} URLs to evaluate")
+        
+        # Process evaluations
+        processor = EvaluationProcessor(settings)
+        
+        new_evals, total_registry = asyncio.run(
+            processor.evaluate_posts(filtered_posts, parsed_date, force=False)
+        )
+        
+        console.print(f"   ✅ Evaluated {new_evals} new articles", style="green")
+        console.print(f"   Total URLs in registry: {total_registry}")
+        
+        # Step 3: Show summary
+        console.print("\n📊 Data preparation complete!")
+        
+        # Get evaluation stats
+        evaluations = processor.get_stored_evaluations(parsed_date)
+        if evaluations:
+            mcp_related = [e for e in evaluations if e.is_mcp_related]
+            avg_score = sum(e.relevance_score for e in mcp_related) / len(mcp_related) if mcp_related else 0
+            
+            console.print(f"   Total evaluations: {len(evaluations)}")
+            console.print(f"   MCP-related articles: {len(mcp_related)}")
+            console.print(f"   Average relevance score: {avg_score:.2f}")
+        
+        console.print(f"\n✅ Data ready for report generation on {parsed_date}", style="green")
+        console.print("   Next: Run 'nsp generate-report' to create HTML reports")
+        
+    except Exception as e:
+        console.print(f"❌ Data preparation failed: {e}", style="red")
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
 @click.option("--limit", default=20, help="Number of evaluations to display")
 @click.option("--mcp-only", is_flag=True, help="Show only MCP-related articles")
 @click.option("--min-score", type=float, help="Minimum relevance score to display")

@@ -84,7 +84,6 @@ class AnthropicEvaluator:
                 author=content.author,
                 medium=content.medium,
                 domain=content.domain,
-                published_date=content.published_date,
                 evaluated_at=content.extraction_timestamp,
                 word_count=word_count,
                 truncated=truncated

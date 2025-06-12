@@ -143,15 +143,27 @@ def load_search_config(config_path: str | Path | None = None) -> SearchConfig:
     Load search configuration from file or return default.
     
     Args:
-        config_path: Path to YAML configuration file. If None, uses default config.
+        config_path: Path to YAML configuration file. If None, tries default locations first.
         
     Returns:
         SearchConfig instance
     """
+    # If no path specified, try default locations
     if config_path is None:
-        logger.info("Using default search configuration")
+        # First try the default YAML file in config directory
+        default_yaml_path = Path(__file__).parent / "searches.yaml"
+        if default_yaml_path.exists():
+            try:
+                logger.info(f"Loading search configuration from default file: {default_yaml_path}")
+                return SearchConfig.load_from_file(default_yaml_path)
+            except Exception as e:
+                logger.warning(f"Failed to load default search config from {default_yaml_path}: {e}")
+        
+        # Fall back to hardcoded defaults
+        logger.info("Using hardcoded default search configuration as fallback")
         return SearchConfig.get_default_config()
     
+    # Use specified path
     try:
         return SearchConfig.load_from_file(config_path)
     except Exception as e:
