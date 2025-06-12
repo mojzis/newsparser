@@ -48,6 +48,29 @@ poetry install --with dev
 poetry shell
 ```
 
+### Dependency Management
+
+IMPORTANT: Always use Poetry to add new dependencies:
+```bash
+# Add a runtime dependency
+poetry add package-name
+
+# Add a development dependency
+poetry add --group dev package-name
+
+# Add with version constraints
+poetry add "package-name>=1.0,<2.0"
+
+# Update dependencies
+poetry update
+```
+
+Never manually edit pyproject.toml to add dependencies. Using `poetry add` ensures:
+- Latest compatible versions are installed
+- Lock file is properly updated
+- Dependency resolution is handled correctly
+- Version constraints are properly set
+
 ### Testing
 ```bash
 # Run all tests
