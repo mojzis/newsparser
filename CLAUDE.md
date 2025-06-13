@@ -215,6 +215,7 @@ The project follows a phased implementation approach (see `plans/phases_overview
 - **Configuration**: Environment-based settings using pydantic-settings
 - **Stage-Based Processing**: Individual markdown files for fault-tolerant processing
 - **URL Expansion**: Automatically resolves shortened URLs (bit.ly, tinyurl, youtu.be, etc.) to final destinations
+- **Intelligent Retry Logic**: Permanent HTTP errors (403, 404, 410) are not retried, saving time and resources
 - **Data Formats**: 
   - Legacy: Daily Parquet files organized as `data/YYYY/MM/DD/posts.parquet`
   - New: Individual markdown files in `stages/{stage_name}/YYYY-MM-DD/*.md`

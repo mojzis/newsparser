@@ -135,6 +135,20 @@ class ArticleFetcher:
                 
                 # Handle non-2xx status codes
                 if response.status_code >= 400:
+                    # Don't retry permanent errors
+                    permanent_errors = {401, 403, 404, 410, 451}  # Unauthorized, Forbidden, Not Found, Gone, Unavailable For Legal Reasons
+                    
+                    if response.status_code in permanent_errors:
+                        logger.warning(
+                            f"HTTP {response.status_code} for {url_str} - permanent error, not retrying"
+                        )
+                        return ContentError(
+                            url=url,
+                            error_type="permanent_http_error",
+                            error_message=f"HTTP {response.status_code}: {response.reason_phrase} (permanent)",
+                        )
+                    
+                    # Retry transient errors (5xx, 429, 408, etc.)
                     if attempt < self.max_retries:
                         delay = self.retry_delay * (2 ** attempt)
                         logger.warning(
