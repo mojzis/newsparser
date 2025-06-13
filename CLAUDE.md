@@ -153,6 +153,18 @@ poetry run ruff check . --fix
 poetry run ty check src/
 ```
 
+### Search Tools
+```bash
+# Fast code search with ag (The Silver Searcher) - preferred for complex searches
+ag "pattern" --python  # Search in Python files only
+ag "pattern" src/       # Search in specific directory
+ag -l "pattern"         # List matching files only
+
+# Alternative: ripgrep (rg) - also very fast
+rg "pattern" --type py  # Search in Python files
+rg "pattern" src/       # Search in specific directory
+```
+
 ## Architecture
 
 The project follows a phased implementation approach (see `plans/phases_overview.md`):

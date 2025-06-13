@@ -1281,5 +1281,229 @@ def list_evaluations(target_date: Optional[str], limit: int, mcp_only: bool, min
         sys.exit(1)
 
 
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--output-dir", help="Output directory for reports (defaults to output/)")
+def generate_report(target_date: Optional[str], output_dir: Optional[str]):
+    """Generate HTML report for a specific date."""
+    from src.reports.generator import ReportGenerator
+    from src.models.report import ReportArticle, ReportDay, HomepageData, ArchiveLink
+    from src.storage.file_manager import FileManager
+    import tempfile
+    
+    # Parse target date
+    if target_date:
+        try:
+            parsed_date = date.fromisoformat(target_date)
+        except ValueError:
+            console.print(f"❌ Invalid date format: {target_date}. Use YYYY-MM-DD", style="red")
+            sys.exit(1)
+    else:
+        parsed_date = date.today()
+    
+    try:
+        console.print(f"📊 Generating report for {parsed_date}...")
+        
+        settings = get_settings()
+        r2_client = R2Client(settings)
+        
+        # Download posts and evaluations parquet files
+        posts_path = FileManager.get_posts_path(parsed_date)
+        evaluations_path = FileManager.get_evaluations_path(parsed_date)
+        
+        # Create temp directory for downloads
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Download posts
+            local_posts_path = Path(temp_dir) / "posts.parquet"
+            posts_downloaded = r2_client.download_file(posts_path, str(local_posts_path))
+            if not posts_downloaded:
+                console.print(f"❌ No posts data found for {parsed_date}", style="red")
+                console.print("Run 'nsp prepare-data' first to collect and evaluate articles")
+                sys.exit(1)
+            
+            # Download evaluations or use URL registry
+            local_evaluations_path = Path(temp_dir) / "evaluations.parquet"
+            evaluations_downloaded = r2_client.download_file(evaluations_path, str(local_evaluations_path))
+            
+            # Read posts first
+            posts_df = pd.read_parquet(local_posts_path)
+            
+            if evaluations_downloaded:
+                # Read evaluations from parquet
+                evaluations_df = pd.read_parquet(local_evaluations_path)
+            else:
+                # Fallback: Try to get evaluations from URL registry
+                console.print("⚠️ No evaluations parquet found, checking URL registry...", style="yellow")
+                
+                registry_path = Path(temp_dir) / "url_registry.parquet"
+                registry_downloaded = r2_client.download_file("urls/url_registry.parquet", str(registry_path))
+                
+                if not registry_downloaded:
+                    console.print(f"❌ No evaluations data found for {parsed_date}", style="red")
+                    console.print("Run 'nsp prepare-data' first to collect and evaluate articles")
+                    sys.exit(1)
+                
+                # Read registry and filter for evaluated URLs
+                registry_df = pd.read_parquet(registry_path)
+                evaluations_df = registry_df[registry_df['evaluated'] == True].copy()
+                
+                if evaluations_df.empty:
+                    console.print(f"❌ No evaluated articles found in registry", style="red")
+                    sys.exit(1)
+                
+                console.print(f"   Found {len(evaluations_df)} evaluations in registry", style="green")
+            
+            # Filter for MCP-related articles with good relevance scores
+            mcp_evaluations = evaluations_df[
+                (evaluations_df['is_mcp_related'] == True) & 
+                (evaluations_df['relevance_score'] >= 0.3)
+            ]
+            
+            if mcp_evaluations.empty:
+                console.print(f"❌ No MCP-related articles found for {parsed_date}", style="red")
+                sys.exit(1)
+            
+            # Create ReportArticle objects
+            articles = []
+            for _, eval_row in mcp_evaluations.iterrows():
+                # Find matching post
+                url_str = str(eval_row['url'])
+                matching_posts = posts_df[posts_df['links'].apply(lambda x: url_str in str(x) if x else False)]
+                
+                if not matching_posts.empty:
+                    post_row = matching_posts.iloc[0]
+                    
+                    # Format timestamp
+                    try:
+                        if 'created_at' in post_row and pd.notna(post_row['created_at']):
+                            timestamp = pd.to_datetime(post_row['created_at']).strftime("%-I:%M %p")
+                        else:
+                            timestamp = "Unknown time"
+                    except:
+                        timestamp = "Unknown time"
+                    
+                    article = ReportArticle(
+                        url=url_str,
+                        title=eval_row.get('title', 'Untitled Article'),
+                        perex=eval_row.get('perex', eval_row.get('summary', 'No summary available')),
+                        bluesky_url=f"https://bsky.app/profile/{post_row['author']}/post/{post_row['id']}",
+                        author=post_row['author'],
+                        timestamp=timestamp,
+                        relevance_score=float(eval_row['relevance_score']),
+                        domain=eval_row.get('domain', 'unknown.com')
+                    )
+                    articles.append(article)
+            
+            if not articles:
+                console.print(f"❌ No articles could be matched between posts and evaluations", style="red")
+                sys.exit(1)
+            
+            # Sort by relevance score
+            articles.sort(key=lambda x: x.relevance_score, reverse=True)
+            
+            console.print(f"   Found {len(articles)} articles to include")
+            
+            # Create report day
+            report_day = ReportDay.create(report_date=parsed_date, articles=articles)
+            
+            # Set up generator
+            generator_kwargs = {}
+            if output_dir:
+                generator_kwargs['output_dir'] = Path(output_dir)
+            generator = ReportGenerator(**generator_kwargs)
+            
+            # Generate daily report
+            daily_path = generator.generate_daily_report(report_day)
+            console.print(f"   ✅ Daily report: {daily_path}", style="green")
+            
+            # Generate homepage
+            # Get archive dates by checking for recent evaluations
+            archive_links = []
+            for days_back in range(1, 8):  # Check last 7 days
+                check_date = date.fromordinal(parsed_date.toordinal() - days_back)
+                check_path = FileManager.get_evaluations_path(check_date)
+                
+                # Check if evaluations exist for this date
+                temp_eval_path = Path(temp_dir) / f"eval_{days_back}.parquet"
+                if r2_client.download_file(check_path, str(temp_eval_path)):
+                    try:
+                        check_df = pd.read_parquet(temp_eval_path)
+                        mcp_count = len(check_df[check_df['is_mcp_related'] == True])
+                        if mcp_count > 0:
+                            archive_links.append(ArchiveLink.create(report_date=check_date, article_count=mcp_count))
+                    except:
+                        pass
+            
+            if archive_links or parsed_date == date.today():
+                homepage_data = HomepageData.create(
+                    today_articles=articles,
+                    archive_dates=archive_links
+                )
+                homepage_path = generator.generate_homepage(homepage_data)
+                console.print(f"   ✅ Homepage: {homepage_path}", style="green")
+            
+            console.print(f"\n🎉 Report generation complete!", style="green")
+            console.print(f"   View daily report: file://{daily_path.absolute()}")
+            if archive_links or parsed_date == date.today():
+                console.print(f"   View homepage: file://{homepage_path.absolute()}")
+        
+    except Exception as e:
+        console.print(f"❌ Report generation failed: {e}", style="red")
+        import traceback
+        console.print(traceback.format_exc())
+        sys.exit(1)
+
+
+@cli.command()
+@click.option("--days-back", default=7, help="Number of days to generate reports for")
+@click.option("--output-dir", help="Output directory for reports (defaults to output/)")
+def generate_archive(days_back: int, output_dir: Optional[str]):
+    """Generate reports for multiple recent days."""
+    
+    try:
+        console.print(f"📚 Generating archive reports for last {days_back} days...")
+        
+        today = date.today()
+        generated_reports = []
+        
+        # Generate reports for each day
+        for days_ago in range(days_back):
+            target_date = date.fromordinal(today.toordinal() - days_ago)
+            
+            console.print(f"   Processing {target_date}...")
+            
+            # Use generate_report logic for each day
+            try:
+                # Build command arguments
+                args = ["generate-report", "--date", target_date.isoformat()]
+                if output_dir:
+                    args.extend(["--output-dir", output_dir])
+                
+                # Call generate_report directly
+                ctx = click.Context(generate_report)
+                generate_report.invoke(ctx, target_date=target_date.isoformat(), output_dir=output_dir)
+                
+                # Track successful generation
+                generated_reports.append(target_date)
+                
+            except SystemExit:
+                console.print(f"   ⚠️  No data found for {target_date}", style="yellow")
+                continue
+            except Exception as e:
+                console.print(f"   ⚠️  Failed for {target_date}: {e}", style="yellow")
+                continue
+        
+        console.print(f"\n🎉 Archive generation complete!", style="green")
+        console.print(f"   Generated reports for {len(generated_reports)} days")
+        
+        # Show summary
+        for report_date in generated_reports:
+            console.print(f"   ✅ {report_date}")
+        
+    except Exception as e:
+        console.print(f"❌ Archive generation failed: {e}", style="red")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     cli()

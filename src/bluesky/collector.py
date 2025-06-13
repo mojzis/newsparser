@@ -146,7 +146,7 @@ class BlueskyDataCollector:
             
             # Ensure datetime columns are properly typed
             if 'created_at' in df.columns:
-                df['created_at'] = pd.to_datetime(df['created_at'])
+                df['created_at'] = pd.to_datetime(df['created_at'], utc=True)
 
             # Save to temporary parquet file
             with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:

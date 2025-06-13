@@ -56,6 +56,26 @@ class TestReportArticle:
         assert article.title == "Untitled"
         assert article.timestamp == "9:30 AM"
     
+    def test_create_from_at_protocol_uri(self):
+        """Test creating ReportArticle with AT protocol URI."""
+        evaluation = {
+            "url": "https://example.com/article",
+            "title": "Test Article",
+            "perex": "A witty summary",
+            "relevance_score": 0.85,
+            "domain": "example.com"
+        }
+        
+        article = ReportArticle.from_post_and_evaluation(
+            post_id="at://did:plc:cnkcdjrvp5b27gqmdsbpbn5o/app.bsky.feed.post/3lrivlab6qc2x",
+            author="james.montemagno.com",
+            created_at=datetime(2024, 12, 6, 15, 45),
+            evaluation=evaluation
+        )
+        
+        # Should extract just the post ID from the AT protocol URI
+        assert str(article.bluesky_url) == "https://bsky.app/profile/james.montemagno.com/post/3lrivlab6qc2x"
+    
     def test_validation(self):
         """Test ReportArticle validation."""
         # Valid article

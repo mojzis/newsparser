@@ -32,14 +32,21 @@ class ReportArticle(BaseModel):
         evaluation: dict
     ) -> "ReportArticle":
         """Create ReportArticle from post data and evaluation."""
+        # Extract post ID from AT protocol URI if necessary
+        if post_id.startswith("at://"):
+            # Extract the last part after the final slash
+            actual_post_id = post_id.split("/")[-1]
+        else:
+            actual_post_id = post_id
+        
         # Format Bluesky URL
-        bluesky_url = f"https://bsky.app/profile/{author}/post/{post_id}"
+        bluesky_url = f"https://bsky.app/profile/{author}/post/{actual_post_id}"
         
         # Format timestamp (e.g., "3:45 PM")
         timestamp = created_at.strftime("%-I:%M %p")
         
         # Use perex if available, otherwise fall back to summary
-        perex = evaluation.get("perex", "")
+        perex = evaluation.get("perex") or evaluation.get("summary", "")
         
         return cls(
             url=evaluation["url"],

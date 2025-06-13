@@ -4,6 +4,7 @@ from datetime import date, datetime
 from typing import Optional
 import tempfile
 from pathlib import Path
+import json
 
 import pandas as pd
 
@@ -145,11 +146,19 @@ class EvaluationProcessor:
             eval_dicts = [eval.model_dump() for eval in evaluations]
             df = pd.DataFrame(eval_dicts)
             
+            # Convert HttpUrl objects to strings
+            if 'url' in df.columns:
+                df['url'] = df['url'].astype(str)
+            
             # Convert datetime columns
             datetime_cols = ['published_date', 'evaluated_at']
             for col in datetime_cols:
                 if col in df.columns:
                     df[col] = pd.to_datetime(df[col])
+            
+            # Convert list columns to JSON strings
+            if 'key_topics' in df.columns:
+                df['key_topics'] = df['key_topics'].apply(lambda x: json.dumps(x) if x else '[]')
             
             # Save to temporary parquet file
             with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
@@ -203,6 +212,10 @@ class EvaluationProcessor:
                         for field in ['published_date', 'evaluated_at']:
                             if field in eval_dict and pd.notna(eval_dict[field]):
                                 eval_dict[field] = eval_dict[field].to_pydatetime()
+                        
+                        # Convert JSON strings back to lists
+                        if 'key_topics' in eval_dict and isinstance(eval_dict['key_topics'], str):
+                            eval_dict['key_topics'] = json.loads(eval_dict['key_topics'])
                         
                         evaluation = ArticleEvaluation.model_validate(eval_dict)
                         evaluations.append(evaluation)
