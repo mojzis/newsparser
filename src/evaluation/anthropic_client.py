@@ -121,7 +121,7 @@ Content:
 Evaluate and respond with JSON containing:
 1. is_mcp_related (boolean): Is this article about MCP, AI tool integration, or related topics?
 2. relevance_score (0.0-1.0): How relevant is this to MCP? 0=unrelated, 1=directly about MCP
-3. summary (string, max 200 chars): Brief summary of the article
+3. summary (string, max 200 chars): Write as the author would - direct, engaging content without meta-language like "This article" or "The piece describes"
 4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative
 5. key_topics (array of strings): Main topics discussed
 
