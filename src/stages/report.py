@@ -216,15 +216,14 @@ class ReportStage(ProcessingStage):
                 # Check if there are evaluated articles for this date
                 evaluated_articles = self.collect_mcp_articles(check_date)
                 if evaluated_articles:
-                    archive_links.append(ArchiveLink(
-                        date=check_date,
-                        url=f"reports/{check_date.strftime('%Y/%m/%d')}/report.html",
+                    archive_links.append(ArchiveLink.create(
+                        report_date=check_date,
                         article_count=len(evaluated_articles)
                     ))
             
             # Create homepage data
             homepage_data = HomepageData(
-                today=target_date,
+                today=target_date.strftime("%B %-d, %Y"),
                 today_articles=articles,
                 archive_dates=archive_links
             )
