@@ -51,11 +51,12 @@ def evaluate(target_date):
 
 @cli.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def report(target_date):
+@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
+def report(target_date, regenerate):
     """Generate report using stage-based architecture."""
     from src.cli.stage_commands import report as stage_report
     ctx = click.Context(stage_report)
-    ctx.invoke(stage_report, target_date=target_date)
+    ctx.invoke(stage_report, target_date=target_date, regenerate=regenerate)
 
 
 @cli.command()
@@ -64,11 +65,12 @@ def report(target_date):
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-def run_all(target_date, max_posts, search, config_path, expand_urls):
+@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
+def run_all(target_date, max_posts, search, config_path, expand_urls, regenerate):
     """Run all stages in sequence for the specified date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, regenerate=regenerate)
 
 
 @cli.command()

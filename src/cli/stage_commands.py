@@ -149,7 +149,8 @@ def evaluate(target_date: Optional[str]):
 
 @stages.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def report(target_date: Optional[str]):
+@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
+def report(target_date: Optional[str], regenerate: bool):
     """Generate daily report from evaluated content."""
     
     parsed_date = parse_date(target_date)
@@ -157,7 +158,7 @@ def report(target_date: Optional[str]):
     
     try:
         report_stage = ReportStage()
-        result = asyncio.run(report_stage.run_report(parsed_date))
+        result = asyncio.run(report_stage.run_report(parsed_date, regenerate=regenerate))
         
         if result.get("status") == "already_exists":
             console.print(f"ℹ️  Report already exists for {parsed_date}", style="yellow")
@@ -166,6 +167,7 @@ def report(target_date: Optional[str]):
         console.print(f"✅ Report completed:", style="green")
         console.print(f"  • Articles found: {result['articles_found']}")
         console.print(f"  • Report generated: {result['report_generated']}")
+        console.print(f"  • Homepage generated: {result.get('homepage_generated', False)}")
         console.print(f"  • Metadata saved: {result['metadata_saved']}")
         
         if result['articles_found'] > 0:
@@ -182,7 +184,8 @@ def report(target_date: Optional[str]):
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool):
+@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, regenerate: bool):
     """Run all stages in sequence for the specified date."""
     
     parsed_date = parse_date(target_date)
@@ -206,7 +209,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")
     ctx = click.Context(report)
-    ctx.invoke(report, target_date=target_date)
+    ctx.invoke(report, target_date=target_date, regenerate=regenerate)
     
     console.print(f"\n✅ All stages completed for {parsed_date}!", style="green")
 

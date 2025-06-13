@@ -7,7 +7,8 @@ import logging
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from src.models.report import ReportArticle, ReportDay
+from src.models.report import ReportArticle, ReportDay, HomepageData, ArchiveLink
+from src.reports.generator import ReportGenerator
 from src.stages.base import ProcessingStage
 from src.stages.markdown import MarkdownFile
 
@@ -136,9 +137,13 @@ class ReportStage(ProcessingStage):
         stage_dir = self.ensure_stage_dir(target_date)
         return stage_dir / "report_meta.md"
     
-    async def run_report(self, target_date: Optional[date] = None) -> dict:
+    async def run_report(self, target_date: Optional[date] = None, regenerate: bool = True) -> dict:
         """
         Run the report stage for the specified date.
+        
+        Args:
+            target_date: Date to generate report for (defaults to today)
+            regenerate: Whether to regenerate existing reports (default True)
         
         Returns:
             Summary of report generation results
@@ -151,9 +156,9 @@ class ReportStage(ProcessingStage):
         # Ensure output directory exists
         self.ensure_stage_dir(target_date)
         
-        # Check if report already exists
-        if not self.should_process_item(Path(), target_date):
-            logger.info(f"Report already exists for {target_date}")
+        # Check if report already exists and whether to regenerate
+        if not regenerate and not self.should_process_item(Path(), target_date):
+            logger.info(f"Report already exists for {target_date} and regenerate=False")
             return {
                 "stage": self.stage_name,
                 "date": target_date,
@@ -191,23 +196,48 @@ class ReportStage(ProcessingStage):
         # Create ReportDay
         report_day = ReportDay.create(target_date, articles)
         
-        # Generate HTML report
+        # Generate HTML report using ReportGenerator for consistency
+        generator = ReportGenerator()
+        html_content = None
+        homepage_content = None
+        
         try:
-            template = self.env.get_template("daily.html")
-            html_content = template.render(
-                date_formatted=report_day.date_formatted,
-                articles=report_day.articles
+            # Generate daily report
+            daily_path = generator.generate_daily_report(report_day)
+            html_content = True
+            logger.info(f"Generated HTML report: {daily_path}")
+            
+            # Generate homepage with archive links
+            # Get archive dates by checking for recent evaluations
+            archive_links = []
+            for days_back in range(1, 8):  # Check last 7 days
+                check_date = date.fromordinal(target_date.toordinal() - days_back)
+                
+                # Check if there are evaluated articles for this date
+                evaluated_articles = self.collect_mcp_articles(check_date)
+                if evaluated_articles:
+                    archive_links.append(ArchiveLink(
+                        date=check_date,
+                        url=f"reports/{check_date.strftime('%Y/%m/%d')}/report.html",
+                        article_count=len(evaluated_articles)
+                    ))
+            
+            # Create homepage data
+            homepage_data = HomepageData(
+                today=target_date,
+                today_articles=articles,
+                archive_dates=archive_links
             )
             
-            # Save HTML report
-            report_path = self.get_report_output_path(target_date)
-            report_path.write_text(html_content)
-            
-            logger.info(f"Generated HTML report: {report_path}")
+            # Generate homepage
+            homepage_path = generator.generate_homepage(homepage_data)
+            homepage_content = True
+            logger.info(f"Generated homepage: {homepage_path}")
             
         except Exception as e:
-            logger.error(f"Failed to generate HTML report: {e}")
+            logger.error(f"Failed to generate HTML reports: {e}")
             html_content = None
+            homepage_content = None
         
         # Create and save metadata
         article_summaries = []
@@ -238,6 +268,7 @@ class ReportStage(ProcessingStage):
             "date": target_date,
             "articles_found": len(articles),
             "report_generated": html_content is not None,
+            "homepage_generated": homepage_content is not None,
             "metadata_saved": True,
             "avg_relevance": round(sum(a.relevance_score for a in articles) / len(articles), 3) if articles else 0
         }
