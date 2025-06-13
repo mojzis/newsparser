@@ -41,6 +41,17 @@ IMPORTANT: Each task within a phase should produce a testable CLI command:
 - Include the command syntax in the task plan (e.g., "Command: `nsp process-article <url>`")
 - Test the command before marking the task complete
 - Document example usage in commit messages
+- **ALWAYS commit changes after completing a task or significant feature**
+
+### Git Commit Guidelines
+
+IMPORTANT: Commit changes after completing tasks:
+- Use descriptive commit messages following existing patterns
+- Include command examples in commit messages
+- Add "🤖 Generated with [Claude Code](https://claude.ai/code)" footer
+- Test functionality before committing
+- Use `git add -A` to include new files
+- Check `.gitignore` to avoid committing data files
 
 ### Notebook Development Guidelines
 
