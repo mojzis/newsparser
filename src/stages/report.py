@@ -126,8 +126,10 @@ class ReportStage(ProcessingStage):
     
     def get_report_output_path(self, target_date: date) -> Path:
         """Get output path for the daily report."""
-        stage_dir = self.ensure_stage_dir(target_date)
-        return stage_dir / "report.html"
+        # Reports go to output/reports/ directory to match ReportGenerator
+        reports_dir = Path("output") / "reports" / str(target_date.year) / f"{target_date.month:02d}" / f"{target_date.day:02d}"
+        reports_dir.mkdir(parents=True, exist_ok=True)
+        return reports_dir / "report.html"
     
     def get_metadata_output_path(self, target_date: date) -> Path:
         """Get output path for the report metadata."""
