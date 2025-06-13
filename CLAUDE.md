@@ -118,6 +118,31 @@ poetry run pytest -k "test_post"
 ```
 
 ### CLI Commands (Phase 2.5+)
+
+#### Stage-Based Commands (New Architecture)
+```bash
+# Individual stages
+poetry run nsp stages collect --date 2024-01-15 --max-posts 100 --search mcp_tag
+poetry run nsp stages fetch --date 2024-01-15
+poetry run nsp stages evaluate --date 2024-01-15
+poetry run nsp stages report --date 2024-01-15
+
+# Run all stages in sequence
+poetry run nsp stages run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
+
+# Utility commands
+poetry run nsp stages status --date 2024-01-15          # Show stage progression
+poetry run nsp stages list-files collect --limit 10    # List files in stage
+poetry run nsp stages clean fetch --date 2024-01-15    # Clean stage data
+
+# Convenient top-level aliases
+poetry run nsp collect-new --date 2024-01-15
+poetry run nsp fetch-new --date 2024-01-15
+poetry run nsp evaluate-new --date 2024-01-15
+poetry run nsp report-new --date 2024-01-15
+```
+
+#### Legacy Commands (Original Architecture)
 ```bash
 # Collect posts from Bluesky
 poetry run nsp collect
@@ -183,10 +208,38 @@ The project follows a phased implementation approach (see `plans/phases_overview
 ### Key Components
 
 - **Data Models**: Pydantic models for posts and article evaluations with strict validation
-- **Storage**: Cloudflare R2 interface using boto3 (S3-compatible)
+- **Storage**: Cloudflare R2 interface using boto3 (S3-compatible) + Local stage-based storage
 - **Configuration**: Environment-based settings using pydantic-settings
-- **Data Format**: Daily Parquet files organized as `data/YYYY/MM/DD/posts.parquet`
+- **Stage-Based Processing**: Individual markdown files for fault-tolerant processing
+- **Data Formats**: 
+  - Legacy: Daily Parquet files organized as `data/YYYY/MM/DD/posts.parquet`
+  - New: Individual markdown files in `stages/{stage_name}/YYYY-MM-DD/*.md`
 - **Reports**: HTML reports stored as `reports/YYYY/MM/DD/report.html`
+
+### Stage-Based Directory Structure
+
+```
+stages/
+├── collect/
+│   └── 2024-12-06/
+│       ├── post_abc123.md
+│       ├── post_def456.md
+│       └── ...
+├── fetch/
+│   └── 2024-12-06/
+│       ├── url_hash1.md
+│       ├── url_hash2.md
+│       └── ...
+├── evaluate/
+│   └── 2024-12-06/
+│       ├── url_hash1.md  # enhanced with evaluation
+│       ├── url_hash2.md
+│       └── ...
+└── report/
+    └── 2024-12-06/
+        ├── report_meta.md
+        └── report.html
+```
 
 ### Testing Strategy
 

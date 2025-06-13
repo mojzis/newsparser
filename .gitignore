@@ -118,6 +118,7 @@ logs/
 # Data files (project specific)
 data/
 reports/
+/stages/
 *.parquet
 *.json.gz
 

@@ -21,6 +21,7 @@ from src.evaluation.processor import EvaluationProcessor
 from src.storage.r2_client import R2Client
 from src.utils.language_detection import LanguageType
 from src.utils.filtering import filter_posts_by_language, get_language_statistics
+from src.cli.stage_commands import stages
 
 console = Console()
 
@@ -29,6 +30,46 @@ console = Console()
 def cli():
     """Bluesky MCP Monitor CLI"""
     pass
+
+
+# Add the new stage-based commands
+cli.add_command(stages)
+
+# Add convenient aliases for stage commands at the top level
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--max-posts", default=100, help="Maximum posts to collect")
+@click.option("--search", default="mcp_tag", help="Search definition to use")
+@click.option("--config", "config_path", help="Path to search configuration YAML file")
+def collect_new(target_date, max_posts, search, config_path):
+    """Collect posts using new stage-based architecture."""
+    from src.cli.stage_commands import collect
+    ctx = click.Context(collect)
+    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path)
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+def fetch_new(target_date):
+    """Fetch content using new stage-based architecture."""
+    from src.cli.stage_commands import fetch
+    ctx = click.Context(fetch)
+    ctx.invoke(fetch, target_date=target_date)
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+def evaluate_new(target_date):
+    """Evaluate content using new stage-based architecture."""
+    from src.cli.stage_commands import evaluate
+    ctx = click.Context(evaluate)
+    ctx.invoke(evaluate, target_date=target_date)
+
+@cli.command()
+@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+def report_new(target_date):
+    """Generate report using new stage-based architecture."""
+    from src.cli.stage_commands import report
+    ctx = click.Context(report)
+    ctx.invoke(report, target_date=target_date)
 
 
 @cli.command()

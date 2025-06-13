@@ -25,7 +25,7 @@ searches:
     sort: "latest"
     enabled: true
 
-  mcp_tag:
+  mcp_tag2:
     name: "tag #mcp"
     description: "Posts about MCP tools and implementations"
     query_syntax: "native"
@@ -35,7 +35,7 @@ searches:
     sort: "latest"
     enabled: true
 
-  mcp_tag2:
+  mcp_tag:
     name: "tag #mcp - #minipainting"
     description: "Posts about MCP tools and implementations"
     query_syntax: "native"
@@ -43,6 +43,7 @@ searches:
       - "#mcp"
     exclude_terms:
       - "#minipainting"
+      - "#marvel"
     sort: "latest"
     enabled: true
 
