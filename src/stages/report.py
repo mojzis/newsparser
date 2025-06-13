@@ -63,29 +63,49 @@ class ReportStage(ProcessingStage):
                 if relevance_score < min_relevance:
                     continue
                 
-                # Extract post information (we need to find the original post)
-                # For now, we'll create a synthetic post ID and author
+                # Extract post information from original post data
                 url = md_file.get_frontmatter_value("url")
                 found_in_posts = md_file.get_frontmatter_value("found_in_posts", [])
                 
-                # Use first post ID if available, otherwise generate one
+                # Get original post data to extract correct author and timestamp
+                author = "unknown"
+                created_at = datetime.utcnow()  # fallback
+                post_id = None
+                
                 if found_in_posts:
                     post_id = found_in_posts[0]
-                    # Extract author from post ID if possible
-                    if post_id.startswith("at://did:"):
-                        # This is an AT protocol URI, author extraction is complex
-                        # For now, use domain from URL
+                    
+                    # Look up the original post to get author and timestamp
+                    try:
+                        # Extract post ID from AT protocol URI
+                        if post_id.startswith("at://did:"):
+                            actual_post_id = post_id.split("/")[-1]
+                        else:
+                            actual_post_id = post_id
+                        
+                        # Find the original post file in collect stage
+                        collect_dir = Path("stages/collect") / target_date.strftime("%Y-%m-%d")
+                        post_file = collect_dir / f"post_{actual_post_id}.md"
+                        
+                        if post_file.exists():
+                            post_md = MarkdownFile.load(post_file)
+                            author = post_md.get_frontmatter_value("author", "unknown")
+                            created_at_str = post_md.get_frontmatter_value("created_at")
+                            if created_at_str:
+                                # Handle both ISO format with and without timezone
+                                if created_at_str.endswith('+00:00'):
+                                    created_at = datetime.fromisoformat(created_at_str.replace('+00:00', 'Z').rstrip('Z'))
+                                else:
+                                    created_at = datetime.fromisoformat(created_at_str.rstrip('Z'))
+                        
+                    except Exception as e:
+                        logger.warning(f"Failed to load original post data for {post_id}: {e}")
+                        # Fallback to domain-based author
                         author = md_file.get_frontmatter_value("domain", "unknown")
-                    else:
-                        author = "unknown"
-                else:
+                
+                if not post_id:
                     post_id = f"synthetic_{url}"
                     author = md_file.get_frontmatter_value("domain", "unknown")
-                
-                # Create ReportArticle
-                created_at = datetime.fromisoformat(
-                    md_file.get_frontmatter_value("fetched_at").rstrip('Z')
-                )
                 
                 # Prepare evaluation dict in expected format
                 eval_dict = {
