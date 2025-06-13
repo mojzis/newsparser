@@ -11,6 +11,7 @@ from src.config.settings import Settings
 from src.models.post import BlueskyPost
 from src.stages.base import InputStage
 from src.stages.markdown import MarkdownFile, generate_file_id
+from src.utils.url_expansion import URLExpander
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +20,12 @@ class CollectStage(InputStage):
     """Collects posts from Bluesky and stores as individual markdown files."""
     
     def __init__(self, settings: Settings, search_definition: Optional[SearchDefinition] = None, 
-                 max_posts: int = 100, base_path: Path = Path("stages")):
+                 max_posts: int = 100, expand_urls: bool = True, base_path: Path = Path("stages")):
         super().__init__("collect", base_path)
         self.settings = settings
         self.search_definition = search_definition or SearchConfig.get_default_config().searches["mcp_mentions"]
         self.max_posts = max_posts
+        self.expand_urls = expand_urls
         self.bluesky_client = BlueskyClient(settings)
     
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
@@ -41,12 +43,58 @@ class CollectStage(InputStage):
                     max_posts=self.max_posts
                 )
                 
+                # Expand shortened URLs if enabled
+                if self.expand_urls and posts:
+                    posts = await self._expand_post_urls(posts)
+                
                 logger.info(f"Collected {len(posts)} posts")
                 return posts
                 
         except Exception as e:
             logger.error(f"Failed to collect posts: {e}")
             return []
+    
+    async def _expand_post_urls(self, posts: list[BlueskyPost]) -> list[BlueskyPost]:
+        """Expand shortened URLs in collected posts."""
+        logger.info("Expanding shortened URLs in collected posts...")
+        
+        async with URLExpander() as expander:
+            expanded_posts = []
+            
+            for post in posts:
+                if not post.links:
+                    expanded_posts.append(post)
+                    continue
+                
+                # Convert HttpUrl objects to strings for expansion
+                original_urls = [str(link) for link in post.links]
+                
+                # Expand URLs
+                expanded_urls = await expander.expand_urls(original_urls)
+                
+                # Check if any URLs were actually expanded
+                if expanded_urls != original_urls:
+                    # Create a new post with expanded URLs
+                    from pydantic import HttpUrl
+                    expanded_links = [HttpUrl(url) for url in expanded_urls]
+                    
+                    # Create new post dict and update links
+                    post_dict = post.model_dump()
+                    post_dict['links'] = expanded_links
+                    
+                    # Create new post instance
+                    expanded_post = BlueskyPost(**post_dict)
+                    expanded_posts.append(expanded_post)
+                    
+                    # Log expansions
+                    for orig, expanded in zip(original_urls, expanded_urls):
+                        if orig != expanded:
+                            logger.info(f"Expanded URL: {orig} -> {expanded}")
+                else:
+                    expanded_posts.append(post)
+            
+        logger.info(f"URL expansion completed for {len(posts)} posts")
+        return expanded_posts
     
     def post_to_markdown(self, post: BlueskyPost, target_date: date) -> MarkdownFile:
         """Convert a BlueskyPost to a MarkdownFile."""

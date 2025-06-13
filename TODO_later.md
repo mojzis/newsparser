@@ -1,12 +1,8 @@
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 
 
-
-ensure that upon stopping the execution the data isnt lost ...
-
 403 - dont retry
 
-shorteners - store the url after redirect
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
 
@@ -65,3 +61,17 @@ Home page should show the whole update from the last day + links to the previous
 Lets make it simple, a bit like google of olden days - white background, blue links ...
 
 add to CLAUDE - use ag for quick search through the codebase
+shorteners - store the url after redirect
+
+I would like to suggest a refactoring of the whole project.
+I would like the individual stages to work on their own, each storing the outputs locally, per item ( so that if the command fails midway, we still have some data to explore)
+lets please review the existing code, write down stages, types of content to store in each of the stages.
+maybe it could be .md with matter instead of json ?
+
+this way, we can keep iterating on the stages and improve by experimenting.
+
+so please, go through the existing code, describe the stages and content types and write down a plan of what needs to be done to refactor the code. (dont write code yet please)
+
+I like simple stuff ... I would think each phase could be a class - gets data, outputs data :) - will be glad to hear your suggestions.
+
+ensure that upon stopping the execution the data isnt lost ...

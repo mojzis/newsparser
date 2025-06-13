@@ -134,12 +134,14 @@ poetry run pytest -k "test_post"
 ```bash
 # Individual stages
 poetry run nsp stages collect --date 2024-01-15 --max-posts 100 --search mcp_tag
+poetry run nsp stages collect --date 2024-01-15 --no-expand-urls  # Skip URL expansion
 poetry run nsp stages fetch --date 2024-01-15
 poetry run nsp stages evaluate --date 2024-01-15
 poetry run nsp stages report --date 2024-01-15
 
 # Run all stages in sequence
 poetry run nsp stages run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
+poetry run nsp stages run-all --date 2024-01-15 --no-expand-urls  # Skip URL expansion
 
 # Utility commands
 poetry run nsp stages status --date 2024-01-15          # Show stage progression
@@ -148,6 +150,7 @@ poetry run nsp stages clean fetch --date 2024-01-15    # Clean stage data
 
 # Convenient top-level aliases
 poetry run nsp collect-new --date 2024-01-15
+poetry run nsp collect-new --date 2024-01-15 --no-expand-urls  # Skip URL expansion
 poetry run nsp fetch-new --date 2024-01-15
 poetry run nsp evaluate-new --date 2024-01-15
 poetry run nsp report-new --date 2024-01-15
@@ -222,6 +225,7 @@ The project follows a phased implementation approach (see `plans/phases_overview
 - **Storage**: Cloudflare R2 interface using boto3 (S3-compatible) + Local stage-based storage
 - **Configuration**: Environment-based settings using pydantic-settings
 - **Stage-Based Processing**: Individual markdown files for fault-tolerant processing
+- **URL Expansion**: Automatically resolves shortened URLs (bit.ly, tinyurl, youtu.be, etc.) to final destinations
 - **Data Formats**: 
   - Legacy: Daily Parquet files organized as `data/YYYY/MM/DD/posts.parquet`
   - New: Individual markdown files in `stages/{stage_name}/YYYY-MM-DD/*.md`

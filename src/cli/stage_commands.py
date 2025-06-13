@@ -44,7 +44,8 @@ def stages():
 @click.option("--max-posts", default=200, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-def collect(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str]):
+@click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
+def collect(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool):
     """Collect posts from Bluesky and store as individual markdown files."""
     
     parsed_date = parse_date(target_date)
@@ -76,7 +77,8 @@ def collect(target_date: Optional[str], max_posts: int, search: str, config_path
         collect_stage = CollectStage(
             settings=settings,
             search_definition=search_definition,
-            max_posts=max_posts
+            max_posts=max_posts,
+            expand_urls=expand_urls
         )
         
         result = asyncio.run(collect_stage.run_collection(parsed_date))
@@ -179,7 +181,8 @@ def report(target_date: Optional[str]):
 @click.option("--max-posts", default=100, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str]):
+@click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool):
     """Run all stages in sequence for the specified date."""
     
     parsed_date = parse_date(target_date)
@@ -188,7 +191,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 1: Collect
     console.print("\n[bold blue]Stage 1: Collect[/bold blue]")
     ctx = click.Context(collect)
-    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path)
+    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls)
     
     # Stage 2: Fetch
     console.print("\n[bold blue]Stage 2: Fetch[/bold blue]")
