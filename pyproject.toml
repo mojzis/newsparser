@@ -38,7 +38,8 @@ ty = "0.0.1-alpha.9"
 marimo = ">=0.10.0"
 
 [tool.poetry.scripts]
-nsp = "src.cli.commands:cli"
+nsp = "src.cli.new_commands:cli"
+onsp = "src.cli.legacy_commands:legacy_cli"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

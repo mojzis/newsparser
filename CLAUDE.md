@@ -130,54 +130,43 @@ poetry run pytest -k "test_post"
 
 ### CLI Commands (Phase 2.5+)
 
-#### Stage-Based Commands (New Architecture)
+The CLI has been restructured for clarity:
+- **`nsp`** - New stage-based architecture (recommended)
+- **`onsp`** - Legacy commands (for backward compatibility)
+
+#### Stage-Based Commands (Primary Interface)
 ```bash
-# Individual stages
+# Top-level convenience commands
+poetry run nsp collect --date 2024-01-15 --max-posts 100 --search mcp_tag
+poetry run nsp collect --date 2024-01-15 --no-expand-urls  # Skip URL expansion
+poetry run nsp fetch --date 2024-01-15
+poetry run nsp evaluate --date 2024-01-15
+poetry run nsp report --date 2024-01-15
+
+# Run all stages in sequence (most common usage)
+poetry run nsp run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
+poetry run nsp run-all --date 2024-01-15 --no-expand-urls  # Skip URL expansion
+
+# Show stage status
+poetry run nsp status --date 2024-01-15
+
+# Detailed stage management (via 'stages' subcommand)
 poetry run nsp stages collect --date 2024-01-15 --max-posts 100 --search mcp_tag
-poetry run nsp stages collect --date 2024-01-15 --no-expand-urls  # Skip URL expansion
-poetry run nsp stages fetch --date 2024-01-15
-poetry run nsp stages evaluate --date 2024-01-15
-poetry run nsp stages report --date 2024-01-15
-
-# Run all stages in sequence
 poetry run nsp stages run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
-poetry run nsp stages run-all --date 2024-01-15 --no-expand-urls  # Skip URL expansion
-
-# Utility commands
 poetry run nsp stages status --date 2024-01-15          # Show stage progression
 poetry run nsp stages list-files collect --limit 10    # List files in stage
 poetry run nsp stages clean fetch --date 2024-01-15    # Clean stage data
-
-# Convenient top-level aliases
-poetry run nsp collect-new --date 2024-01-15
-poetry run nsp collect-new --date 2024-01-15 --no-expand-urls  # Skip URL expansion
-poetry run nsp fetch-new --date 2024-01-15
-poetry run nsp evaluate-new --date 2024-01-15
-poetry run nsp report-new --date 2024-01-15
 ```
 
-#### Legacy Commands (Original Architecture)
+#### Legacy Commands (Backward Compatibility)
 ```bash
-# Collect posts from Bluesky
-poetry run nsp collect
-
-# Collect for specific date with custom search
-poetry run nsp collect --date 2024-01-15 --search mcp_tools --max-posts 200
-
-# List available search definitions
-poetry run nsp list-searches
-
-# Validate search configuration
-poetry run nsp validate-config
-
-# Check data status
-poetry run nsp status --date 2024-01-15
-
-# List stored posts
-poetry run nsp list-posts --limit 10
-
-# Launch data exploration notebook
-poetry run nsp notebook
+# Access legacy functionality via 'onsp' command
+poetry run onsp collect --date 2024-01-15 --search mcp_tools --max-posts 200
+poetry run onsp list-searches
+poetry run onsp validate-config
+poetry run onsp status --date 2024-01-15
+poetry run onsp list-posts --limit 10
+poetry run onsp notebook
 ```
 
 ### Code Quality
