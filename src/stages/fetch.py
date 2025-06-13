@@ -95,12 +95,14 @@ class FetchStage(ProcessingStage):
                 "title": extracted.title or "Untitled",
                 "author": extracted.author,
                 "domain": extracted.domain,
-                "published_date": extracted.published_date.isoformat() if extracted.published_date else None,
+                "medium": extracted.medium,
+                "language": extracted.language,
+                "extraction_timestamp": extracted.extraction_timestamp.isoformat() + 'Z',
                 "stage": "fetched"
             }
             
             # Use extracted markdown content
-            content = f"# {extracted.title or 'Article'}\n\n{extracted.content}"
+            content = f"# {extracted.title or 'Article'}\n\n{extracted.content_markdown}"
             return frontmatter, content
             
         except Exception as e:
