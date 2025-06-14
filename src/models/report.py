@@ -100,7 +100,7 @@ class ArchiveLink(BaseModel):
             formatted = report_date.strftime("%B %-d, %Y")
         
         # Create path
-        path = report_date.strftime("reports/%Y/%m/%d/report.html")
+        path = report_date.strftime("reports/%Y-%m-%d/report.html")
         
         return cls(
             date=report_date,

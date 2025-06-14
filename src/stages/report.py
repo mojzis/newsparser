@@ -147,8 +147,8 @@ class ReportStage(ProcessingStage):
     
     def get_report_output_path(self, target_date: date) -> Path:
         """Get output path for the daily report."""
-        # Reports go to output/reports/ directory to match ReportGenerator
-        reports_dir = Path("output") / "reports" / str(target_date.year) / f"{target_date.month:02d}" / f"{target_date.day:02d}"
+        # Reports go to output/reports/ directory with simple date format
+        reports_dir = Path("output") / "reports" / target_date.strftime("%Y-%m-%d")
         reports_dir.mkdir(parents=True, exist_ok=True)
         return reports_dir / "report.html"
     
