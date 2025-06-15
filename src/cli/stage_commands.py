@@ -40,16 +40,16 @@ def stages():
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
 @click.option("--max-posts", default=200, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
 def collect(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool):
-    """Collect posts from Bluesky and store as individual markdown files."""
+    """Collect posts from Bluesky. Posts are organized by their publication date."""
     
     parsed_date = parse_date(target_date)
-    console.print(f"🔍 Collecting posts for {parsed_date} using search '{search}'...")
+    console.print(f"🔍 Collecting posts using search '{search}'...")
     
     try:
         settings = get_settings()
@@ -84,9 +84,17 @@ def collect(target_date: Optional[str], max_posts: int, search: str, config_path
         result = asyncio.run(collect_stage.run_collection(parsed_date))
         
         console.print(f"✅ Collection completed:", style="green")
-        console.print(f"  • Processed: {result['processed']}")
+        console.print(f"  • New posts: {result.get('new_posts', 0)}")
+        console.print(f"  • Updated posts: {result.get('updated_posts', 0)}")
         console.print(f"  • Failed: {result['failed']}")
         console.print(f"  • Total: {result['total']}")
+        
+        # Show posts by date
+        posts_by_date = result.get('posts_by_date', {})
+        if posts_by_date:
+            console.print("\n📅 Posts by publication date:")
+            for date_str, count in sorted(posts_by_date.items()):
+                console.print(f"  • {date_str}: {count} posts")
         
     except Exception as e:
         console.print(f"❌ Collection failed: {e}", style="red")

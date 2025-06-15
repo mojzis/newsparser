@@ -1,7 +1,7 @@
+index doesnt list other days ?
+
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 
-
-403 - dont retry
 
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
@@ -10,13 +10,10 @@ nth: youtube - fetch data through api ?
 
 anthropic: store costs
 
-i hope its not saving to pandas on each step ... maybe local json for each, just to make sure ?
 
-split "debug commands" for steps and "main commands"
 
 typer issues - try again with a new version ... (we got stuck on it for quite some time ...)
 
-search config from file should be default, the config from code just fallback
 
 a page to search through the data with duck db js
 
@@ -75,3 +72,14 @@ so please, go through the existing code, describe the stages and content types a
 I like simple stuff ... I would think each phase could be a class - gets data, outputs data :) - will be glad to hear your suggestions.
 
 ensure that upon stopping the execution the data isnt lost ...
+
+i hope its not saving to pandas on each step ... maybe local json for each, just to make sure ?
+403 - dont retry
+
+split "debug commands" for steps and "main commands"
+
+search config from file should be default, the config from code just fallback
+
+errors in the details part of the report
+via www.youtube.com at 11:07 PM • www.youtube.com
+it shows domain, not BS user and the time is not the time of the post

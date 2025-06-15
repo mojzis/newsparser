@@ -29,8 +29,8 @@ class CollectStage(InputStage):
         self.bluesky_client = BlueskyClient(settings)
     
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
-        """Collect posts from Bluesky for the target date."""
-        logger.info(f"Collecting posts for {target_date} using '{self.search_definition.name}'")
+        """Collect posts from Bluesky matching search criteria."""
+        logger.info(f"Collecting posts using '{self.search_definition.name}' search")
         
         if not self.settings.has_bluesky_credentials:
             logger.error("Bluesky credentials not configured")
@@ -154,53 +154,83 @@ class CollectStage(InputStage):
     
     async def run_collection(self, target_date: Optional[date] = None) -> dict:
         """
-        Run the collection stage for the specified date.
+        Run the collection stage. Posts are organized by their publication date.
         
         Returns:
-            Summary of collection results
+            Summary of collection results including new vs updated stats
         """
-        if target_date is None:
-            target_date = date.today()
-        
-        logger.info(f"Running collect stage for {target_date}")
-        
-        # Ensure output directory exists
-        stage_dir = self.ensure_stage_dir(target_date)
+        logger.info(f"Running collect stage")
         
         # Collect posts from Bluesky
-        posts = await self.collect_posts(target_date)
+        posts = await self.collect_posts(target_date or date.today())
         
         processed = 0
         failed = 0
+        new_posts = 0
+        updated_posts = 0
+        
+        # Group posts by their publication date
+        from collections import defaultdict
+        posts_by_date = defaultdict(list)
         
         for post in posts:
-            try:
-                # Convert to markdown
-                md_file = self.post_to_markdown(post, target_date)
-                
-                # Generate filename and save
-                filename = self.get_post_filename(post)
-                output_path = stage_dir / filename
-                
-                # Skip if already exists
-                if output_path.exists():
-                    logger.debug(f"Post already exists: {filename}")
-                    continue
-                
-                md_file.save(output_path)
-                processed += 1
-                logger.debug(f"Saved post to {output_path}")
-                
-            except Exception as e:
-                failed += 1
-                logger.error(f"Failed to save post {post.id}: {e}")
+            post_date = post.created_at.date()
+            posts_by_date[post_date].append(post)
+        
+        # Process posts organized by publication date
+        for post_date, date_posts in posts_by_date.items():
+            # Ensure output directory exists for this publication date
+            stage_dir = self.ensure_stage_dir(post_date)
+            
+            for post in date_posts:
+                try:
+                    # Convert to markdown
+                    md_file = self.post_to_markdown(post, post_date)
+                    
+                    # Generate filename and save
+                    filename = self.get_post_filename(post)
+                    output_path = stage_dir / filename
+                    
+                    # Check if post already exists
+                    if output_path.exists():
+                        # Read existing post to check for updates
+                        existing_md = MarkdownFile.load(output_path)
+                        existing_engagement = existing_md.frontmatter.get("engagement", {})
+                        new_engagement = md_file.frontmatter.get("engagement", {})
+                        
+                        # Check if engagement metrics have changed
+                        if (existing_engagement.get("likes") != new_engagement.get("likes") or
+                            existing_engagement.get("reposts") != new_engagement.get("reposts") or
+                            existing_engagement.get("replies") != new_engagement.get("replies")):
+                            
+                            # Update the post with new metrics
+                            md_file.frontmatter["updated_at"] = datetime.utcnow().isoformat() + 'Z'
+                            md_file.save(output_path)
+                            updated_posts += 1
+                            logger.debug(f"Updated post metrics: {filename}")
+                        else:
+                            logger.debug(f"Post unchanged: {filename}")
+                    else:
+                        # New post
+                        md_file.save(output_path)
+                        new_posts += 1
+                        logger.debug(f"Saved new post to {output_path}")
+                    
+                    processed += 1
+                    
+                except Exception as e:
+                    failed += 1
+                    logger.error(f"Failed to save post {post.id}: {e}")
         
         result = {
             "stage": self.stage_name,
-            "date": target_date,
+            "run_date": date.today(),
             "processed": processed,
             "failed": failed,
-            "total": len(posts)
+            "total": len(posts),
+            "new_posts": new_posts,
+            "updated_posts": updated_posts,
+            "posts_by_date": {str(d): len(p) for d, p in posts_by_date.items()}
         }
         
         logger.info(f"Collection completed: {result}")
