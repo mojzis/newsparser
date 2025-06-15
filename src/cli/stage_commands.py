@@ -132,12 +132,11 @@ def fetch(days_back: int):
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def evaluate(target_date: Optional[str]):
-    """Evaluate content relevance using Anthropic API."""
+@click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
+def evaluate(days_back: int):
+    """Evaluate content relevance using Anthropic API for fetched content from the last N days."""
     
-    parsed_date = parse_date(target_date)
-    console.print(f"🤖 Evaluating content for {parsed_date}...")
+    console.print(f"🤖 Evaluating content from the last {days_back} days...")
     
     try:
         settings = get_settings()
@@ -148,14 +147,23 @@ def evaluate(target_date: Optional[str]):
             sys.exit(1)
         
         evaluate_stage = EvaluateStage(settings)
-        result = asyncio.run(evaluate_stage.run_evaluate(parsed_date))
+        result = asyncio.run(evaluate_stage.run_evaluate(days_back))
         
         console.print(f"✅ Evaluation completed:", style="green")
-        console.print(f"  • Processed: {result['processed']}")
+        console.print(f"  • Date range: {result['date_range']}")
+        console.print(f"  • New evaluations: {result['new_evaluations']}")
+        console.print(f"  • Previously evaluated: {result['previously_evaluated']}")
         console.print(f"  • Skipped: {result['skipped']}")
         console.print(f"  • Failed: {result['failed']}")
         console.print(f"  • MCP related: {result['mcp_related']}")
         console.print(f"  • Avg relevance: {result['avg_relevance_score']}")
+        
+        # Show evaluations by date if any were processed
+        evaluations_by_date = result.get('evaluations_by_date', {})
+        if evaluations_by_date:
+            console.print("\n📅 Evaluations by date:")
+            for date_str, count in sorted(evaluations_by_date.items()):
+                console.print(f"  • {date_str}: {count} evaluations")
         
     except Exception as e:
         console.print(f"❌ Evaluation failed: {e}", style="red")
@@ -220,7 +228,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 3: Evaluate
     console.print("\n[bold blue]Stage 3: Evaluate[/bold blue]")
     ctx = click.Context(evaluate)
-    ctx.invoke(evaluate, target_date=target_date)
+    ctx.invoke(evaluate, days_back=days_back)
     
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")

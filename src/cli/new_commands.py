@@ -41,12 +41,12 @@ def fetch(days_back):
 
 
 @cli.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def evaluate(target_date):
-    """Evaluate content using stage-based architecture."""
+@click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
+def evaluate(days_back):
+    """Evaluate content from fetched URLs in the last N days."""
     from src.cli.stage_commands import evaluate as stage_evaluate
     ctx = click.Context(stage_evaluate)
-    ctx.invoke(stage_evaluate, target_date=target_date)
+    ctx.invoke(stage_evaluate, days_back=days_back)
 
 
 @cli.command()

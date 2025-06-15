@@ -64,7 +64,11 @@ class EvaluateStage(ProcessingStage):
         )
     
     async def process_item(self, input_path: Path, target_date: date) -> Optional[Path]:
-        """Process a single fetched content file for evaluation."""
+        """Process a single fetched content file for evaluation.
+        
+        NOTE: This method is kept for backward compatibility but is not used
+        in the new multi-day scanning approach.
+        """
         try:
             # Load the fetched content
             md_file = MarkdownFile.load(input_path)
@@ -109,64 +113,153 @@ class EvaluateStage(ProcessingStage):
             logger.error(f"Failed to evaluate {input_path}: {e}")
             return None
     
-    async def run_evaluate(self, target_date: Optional[date] = None) -> dict:
+    async def run_evaluate(self, days_back: int = 7) -> dict:
         """
-        Run the evaluate stage for the specified date.
+        Run the evaluate stage, scanning fetched content from the last N days for unevaluated items.
+        
+        Args:
+            days_back: Number of days to look back for unevaluated content (default: 7)
         
         Returns:
             Summary of evaluation results
         """
-        if target_date is None:
-            target_date = date.today()
+        from datetime import timedelta
         
-        logger.info(f"Running evaluate stage for {target_date}")
+        logger.info(f"Running evaluate stage, scanning fetched content from last {days_back} days")
         
-        # Ensure output directory exists
-        self.ensure_stage_dir(target_date)
+        # Track all content we've already evaluated across all dates
+        evaluated_urls = set()
         
-        # Process all fetched content
+        # First, scan all existing evaluate stage files to know what we've already evaluated
+        evaluate_base = self.base_path / self.stage_name
+        if evaluate_base.exists():
+            for date_dir in evaluate_base.iterdir():
+                if date_dir.is_dir():
+                    for md_file_path in date_dir.glob("*.md"):
+                        try:
+                            md = MarkdownFile.load(md_file_path)
+                            url = md.get_frontmatter_value("url")
+                            if url:
+                                evaluated_urls.add(url)
+                        except Exception as e:
+                            logger.debug(f"Error reading {md_file_path}: {e}")
+        
+        logger.info(f"Found {len(evaluated_urls)} already evaluated URLs")
+        
+        # Now scan fetched content from the last N days
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days_back)
+        
         processed = 0
         skipped = 0
         failed = 0
+        new_evaluations = 0
         mcp_related = 0
         total_relevance_score = 0.0
+        evaluations_by_date = {}
         
-        for input_path in self.get_inputs(target_date):
-            try:
-                if not self.should_process_item(input_path, target_date):
-                    skipped += 1
-                    continue
+        # Scan each day in the range
+        current_date = start_date
+        while current_date <= end_date:
+            # Check if fetch stage has data for this date
+            fetch_dir = self.base_path / self.input_stage_name / current_date.strftime("%Y-%m-%d")
+            
+            if fetch_dir.exists():
+                logger.info(f"Scanning fetched content from {current_date}")
                 
-                result = await self.process_item(input_path, target_date)
-                if result:
-                    processed += 1
-                    
-                    # Load the result to get evaluation metrics
-                    result_md = MarkdownFile.load(result)
-                    evaluation = result_md.get_frontmatter_value("evaluation", {})
-                    
-                    if evaluation.get("is_mcp_related", False):
-                        mcp_related += 1
-                    
-                    total_relevance_score += evaluation.get("relevance_score", 0.0)
-                else:
-                    failed += 1
-                    
-            except Exception as e:
-                failed += 1
-                logger.error(f"Failed to process {input_path}: {e}")
+                for input_path in fetch_dir.glob("*.md"):
+                    try:
+                        # Load fetched content
+                        md_file = MarkdownFile.load(input_path)
+                        url = md_file.get_frontmatter_value("url")
+                        fetch_status = md_file.get_frontmatter_value("fetch_status")
+                        
+                        # Only process successfully fetched content
+                        if fetch_status != "success":
+                            skipped += 1
+                            continue
+                        
+                        # Skip if already evaluated
+                        if url in evaluated_urls:
+                            logger.debug(f"Content already evaluated: {url}")
+                            skipped += 1
+                            continue
+                        
+                        try:
+                            # Convert to ExtractedContent
+                            extracted_content = self.markdown_to_extracted_content(md_file)
+                            
+                            # Evaluate using Anthropic API
+                            logger.info(f"Evaluating content: {extracted_content.url}")
+                            evaluation = self.evaluator.evaluate_article(extracted_content, extracted_content.url)
+                            
+                            # Add evaluation to frontmatter
+                            evaluation_data = {
+                                "is_mcp_related": evaluation.is_mcp_related,
+                                "relevance_score": evaluation.relevance_score,
+                                "summary": evaluation.summary,
+                                "perex": evaluation.perex,
+                                "key_topics": evaluation.key_topics,
+                                "evaluated_at": evaluation.evaluated_at.isoformat() + 'Z',
+                                "evaluator": "claude-3-haiku-20240307"  # Model used for evaluation
+                            }
+                            
+                            # Update frontmatter with evaluation
+                            md_file.update_frontmatter({
+                                "evaluation": evaluation_data,
+                                "stage": "evaluated"
+                            })
+                            
+                            # Ensure output directory exists for this date
+                            self.ensure_stage_dir(current_date)
+                            
+                            # Save to output path in the same date directory
+                            output_path = self.base_path / self.stage_name / current_date.strftime("%Y-%m-%d") / input_path.name
+                            md_file.save(output_path)
+                            
+                            evaluated_urls.add(url)
+                            new_evaluations += 1
+                            processed += 1
+                            
+                            # Track MCP-related content
+                            if evaluation.is_mcp_related:
+                                mcp_related += 1
+                            
+                            total_relevance_score += evaluation.relevance_score
+                            
+                            # Track evaluations by date
+                            date_str = str(current_date)
+                            if date_str not in evaluations_by_date:
+                                evaluations_by_date[date_str] = 0
+                            evaluations_by_date[date_str] += 1
+                            
+                            logger.info(f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})")
+                            
+                        except Exception as e:
+                            failed += 1
+                            logger.error(f"Failed to evaluate {url}: {e}")
+                        
+                    except Exception as e:
+                        failed += 1
+                        logger.error(f"Failed to process {input_path}: {e}")
+            
+            current_date += timedelta(days=1)
         
-        avg_relevance = total_relevance_score / processed if processed > 0 else 0.0
+        avg_relevance = total_relevance_score / new_evaluations if new_evaluations > 0 else 0.0
         
         result = {
             "stage": self.stage_name,
-            "date": target_date,
+            "days_scanned": days_back,
+            "date_range": f"{start_date} to {end_date}",
             "processed": processed,
             "skipped": skipped,
             "failed": failed,
             "total": processed + skipped + failed,
+            "new_evaluations": new_evaluations,
+            "previously_evaluated": len(evaluated_urls) - new_evaluations,
             "mcp_related": mcp_related,
-            "avg_relevance_score": round(avg_relevance, 3)
+            "avg_relevance_score": round(avg_relevance, 3),
+            "evaluations_by_date": evaluations_by_date
         }
         
         logger.info(f"Evaluate stage completed: {result}")
