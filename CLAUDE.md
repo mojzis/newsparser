@@ -23,14 +23,6 @@ When working on this project, please maintain a neutral, professional tone:
 - Skip edge cases unless explicitly required
 - No additional abstractions beyond what's needed
 
-## Phase Planning Requirement
-
-Before proceeding with any new phase or significant feature implementation:
-1. Create a detailed phase plan document outlining all tasks and implementation steps
-2. Document the plan in the `plans/` directory with proper naming (e.g., `phase_3.md`)
-3. Update the `plans/phases_overview.md` with any new phases or modifications
-4. Get user approval for the plan before beginning implementation
-5. Document implementation progress and decisions in the phase-specific file
 
 ### Task Implementation Guidelines
 

@@ -1,7 +1,8 @@
-index doesnt list other days ?
 
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 
+
+data storage, how is it gonna work with github, where to store the md files ?
 
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
@@ -83,3 +84,5 @@ search config from file should be default, the config from code just fallback
 errors in the details part of the report
 via www.youtube.com at 11:07 PM • www.youtube.com
 it shows domain, not BS user and the time is not the time of the post
+
+index doesnt list other days ?

@@ -40,6 +40,7 @@ class ReportStage(ProcessingStage):
     def collect_mcp_articles_multi_day(self, days_back: int, reference_date: date, min_relevance: float = 0.3) -> List[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content across multiple days.
+        This method is used as fallback when no content exists for the specific date.
         
         Args:
             days_back: Number of days to look back
@@ -149,15 +150,16 @@ class ReportStage(ProcessingStage):
                             "domain": md_file.get_frontmatter_value("domain", "")
                         }
                         
-                        article = ReportArticle.from_post_and_evaluation(
-                            post_id=post_id,
-                            author=author,
-                            created_at=created_at,
-                            evaluation=eval_dict
-                        )
-                        
-                        articles.append(article)
-                        date_articles += 1
+                        # IMPORTANT: Only include articles posted on the specific current_date
+                        if created_at.date() == current_date:
+                            article = ReportArticle.from_post_and_evaluation(
+                                post_id=post_id,
+                                author=author,
+                                created_at=created_at,
+                                evaluation=eval_dict
+                            )
+                            articles.append(article)
+                            date_articles += 1
                         
                     except Exception as e:
                         logger.error(f"Failed to process {input_path} for report: {e}")
@@ -170,7 +172,7 @@ class ReportStage(ProcessingStage):
         # Sort by relevance score (highest first)
         articles.sort(key=lambda x: x.relevance_score, reverse=True)
         
-        logger.info(f"Collected {len(articles)} unique MCP-related articles from {days_back} days")
+        logger.info(f"Collected {len(articles)} unique MCP-related articles from {days_back} days (date-filtered)")
         if articles_by_date:
             for date_str, count in sorted(articles_by_date.items()):
                 logger.info(f"  - {date_str}: {count} articles")
@@ -180,9 +182,7 @@ class ReportStage(ProcessingStage):
     def collect_mcp_articles(self, target_date: date, min_relevance: float = 0.3) -> List[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content for a single date.
-        
-        NOTE: This method is kept for backward compatibility but the new
-        collect_mcp_articles_multi_day method is preferred.
+        Only includes articles that were originally posted on the target date.
         """
         articles = []
         
@@ -219,20 +219,30 @@ class ReportStage(ProcessingStage):
                         else:
                             actual_post_id = post_id
                         
-                        # Find the original post file in collect stage
-                        collect_dir = Path("stages/collect") / target_date.strftime("%Y-%m-%d")
-                        post_file = collect_dir / f"post_{actual_post_id}.md"
+                        # Search for the original post - first try target date, then expand search
+                        post_found = False
+                        from datetime import timedelta
                         
-                        if post_file.exists():
-                            post_md = MarkdownFile.load(post_file)
-                            author = post_md.get_frontmatter_value("author", "unknown")
-                            created_at_str = post_md.get_frontmatter_value("created_at")
-                            if created_at_str:
-                                # Handle both ISO format with and without timezone
-                                if created_at_str.endswith('+00:00'):
-                                    created_at = datetime.fromisoformat(created_at_str.replace('+00:00', 'Z').rstrip('Z'))
-                                else:
-                                    created_at = datetime.fromisoformat(created_at_str.rstrip('Z'))
+                        for search_days_back in range(10):  # Search up to 10 days back
+                            search_date = target_date - timedelta(days=search_days_back)
+                            collect_dir = Path("stages/collect") / search_date.strftime("%Y-%m-%d")
+                            post_file = collect_dir / f"post_{actual_post_id}.md"
+                            
+                            if post_file.exists():
+                                post_md = MarkdownFile.load(post_file)
+                                author = post_md.get_frontmatter_value("author", "unknown")
+                                created_at_str = post_md.get_frontmatter_value("created_at")
+                                if created_at_str:
+                                    # Handle both ISO format with and without timezone
+                                    if created_at_str.endswith('+00:00'):
+                                        created_at = datetime.fromisoformat(created_at_str.replace('+00:00', 'Z').rstrip('Z'))
+                                    else:
+                                        created_at = datetime.fromisoformat(created_at_str.rstrip('Z'))
+                                post_found = True
+                                break
+                        
+                        if not post_found:
+                            logger.warning(f"Could not find original post for {post_id}")
                         
                     except Exception as e:
                         logger.warning(f"Failed to load original post data for {post_id}: {e}")
@@ -242,6 +252,11 @@ class ReportStage(ProcessingStage):
                 if not post_id:
                     post_id = f"synthetic_{url}"
                     author = md_file.get_frontmatter_value("domain", "unknown")
+                
+                # IMPORTANT: Only include articles that were posted on the target date
+                if created_at.date() != target_date:
+                    logger.debug(f"Skipping article from {created_at.date()} - not from target date {target_date}")
+                    continue
                 
                 # Prepare evaluation dict in expected format
                 eval_dict = {
@@ -266,6 +281,7 @@ class ReportStage(ProcessingStage):
         
         # Sort by relevance score (highest first)
         articles.sort(key=lambda x: x.relevance_score, reverse=True)
+        logger.info(f"Collected {len(articles)} articles specifically from {target_date}")
         return articles
     
     def process_item(self, input_path: Path, target_date: date) -> Optional[Path]:
@@ -324,8 +340,17 @@ class ReportStage(ProcessingStage):
                 "status": "already_exists"
             }
         
-        # Collect MCP-related articles from multiple days
-        articles = self.collect_mcp_articles_multi_day(days_back, output_date)
+        # First try to collect articles from the specific output date
+        articles = self.collect_mcp_articles(output_date)
+        
+        # If no articles found for the output date, fall back to recent content
+        if not articles:
+            logger.info(f"No articles found for {output_date}, scanning last {days_back} days for fallback")
+            articles = self.collect_mcp_articles_multi_day(days_back, output_date)
+            
+            # Since we already filtered by date in collect_mcp_articles_multi_day,
+            # no additional filtering needed here
+            logger.info(f"Using {len(articles)} articles from multi-day fallback")
         
         if not articles:
             logger.warning(f"No MCP-related articles found in the last {days_back} days")

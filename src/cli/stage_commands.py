@@ -207,7 +207,7 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str]):
 
 @stages.command()
 @click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
-@click.option("--max-posts", default=100, help="Maximum posts to collect")
+@click.option("--max-posts", default=200, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
