@@ -50,13 +50,14 @@ def evaluate(days_back):
 
 
 @cli.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--days-back", default=7, help="Number of days to look back for evaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-def report(target_date, regenerate):
-    """Generate report using stage-based architecture."""
+@click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
+def report(days_back, regenerate, output_date):
+    """Generate report from evaluated content in the last N days."""
     from src.cli.stage_commands import report as stage_report
     ctx = click.Context(stage_report)
-    ctx.invoke(stage_report, target_date=target_date, regenerate=regenerate)
+    ctx.invoke(stage_report, days_back=days_back, regenerate=regenerate, output_date=output_date)
 
 
 @cli.command()
@@ -65,7 +66,7 @@ def report(target_date, regenerate):
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-@click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
+@click.option("--days-back", default=7, help="Days to look back for unfetched URLs and unevaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
 def run_all(target_date, max_posts, search, config_path, expand_urls, days_back, regenerate):
     """Run all stages in sequence. Posts are organized by their publication date."""

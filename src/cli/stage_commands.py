@@ -171,27 +171,31 @@ def evaluate(days_back: int):
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--days-back", default=7, help="Number of days to look back for evaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-def report(target_date: Optional[str], regenerate: bool):
-    """Generate daily report from evaluated content."""
+@click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
+def report(days_back: int, regenerate: bool, output_date: Optional[str]):
+    """Generate report from evaluated content in the last N days."""
     
-    parsed_date = parse_date(target_date)
-    console.print(f"📊 Generating report for {parsed_date}...")
+    parsed_output_date = parse_date(output_date)
+    console.print(f"📊 Generating report from content in the last {days_back} days...")
     
     try:
         report_stage = ReportStage()
-        result = asyncio.run(report_stage.run_report(parsed_date, regenerate=regenerate))
+        result = asyncio.run(report_stage.run_report(days_back, regenerate, parsed_output_date))
         
         if result.get("status") == "already_exists":
-            console.print(f"ℹ️  Report already exists for {parsed_date}", style="yellow")
+            console.print(f"ℹ️  Report already exists for {parsed_output_date}", style="yellow")
             return
         
         console.print(f"✅ Report completed:", style="green")
+        console.print(f"  • Days scanned: {result['days_scanned']}")
         console.print(f"  • Articles found: {result['articles_found']}")
         console.print(f"  • Report generated: {result['report_generated']}")
         console.print(f"  • Homepage generated: {result.get('homepage_generated', False)}")
         console.print(f"  • Metadata saved: {result['metadata_saved']}")
+        console.print(f"  • Output date: {result['date']}")
+        console.print(f"  • Avg relevance: {result.get('avg_relevance', 0)}")
         
         if result['articles_found'] > 0:
             console.print(f"  • Avg relevance: {result['avg_relevance']}")
@@ -233,7 +237,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")
     ctx = click.Context(report)
-    ctx.invoke(report, target_date=target_date, regenerate=regenerate)
+    ctx.invoke(report, days_back=days_back, regenerate=regenerate, output_date=target_date)
     
     console.print(f"\n✅ All stages completed for {parsed_date}!", style="green")
 
