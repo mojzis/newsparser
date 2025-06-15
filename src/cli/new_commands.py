@@ -32,12 +32,12 @@ def collect(target_date, max_posts, search, config_path, expand_urls):
 
 
 @cli.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def fetch(target_date):
-    """Fetch content using stage-based architecture."""
+@click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
+def fetch(days_back):
+    """Fetch content from URLs found in posts from the last N days."""
     from src.cli.stage_commands import fetch as stage_fetch
     ctx = click.Context(stage_fetch)
-    ctx.invoke(stage_fetch, target_date=target_date)
+    ctx.invoke(stage_fetch, days_back=days_back)
 
 
 @cli.command()
@@ -65,12 +65,13 @@ def report(target_date, regenerate):
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
+@click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, regenerate):
+def run_all(target_date, max_posts, search, config_path, expand_urls, days_back, regenerate):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, regenerate=regenerate)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, days_back=days_back, regenerate=regenerate)
 
 
 @cli.command()

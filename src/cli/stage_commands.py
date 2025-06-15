@@ -102,22 +102,29 @@ def collect(target_date: Optional[str], max_posts: int, search: str, config_path
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def fetch(target_date: Optional[str]):
-    """Fetch full content from URLs found in collected posts."""
+@click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
+def fetch(days_back: int):
+    """Fetch full content from URLs found in collected posts from the last N days."""
     
-    parsed_date = parse_date(target_date)
-    console.print(f"📄 Fetching content for {parsed_date}...")
+    console.print(f"🌐 Fetching content from posts in the last {days_back} days...")
     
     try:
         fetch_stage = FetchStage()
-        result = asyncio.run(fetch_stage.run_fetch(parsed_date))
+        result = asyncio.run(fetch_stage.run_fetch(days_back))
         
         console.print(f"✅ Fetch completed:", style="green")
+        console.print(f"  • Date range: {result['date_range']}")
         console.print(f"  • Processed posts: {result['processed_posts']}")
-        console.print(f"  • Skipped posts: {result['skipped_posts']}")
-        console.print(f"  • Failed posts: {result['failed_posts']}")
-        console.print(f"  • Total URLs: {result['total_urls']}")
+        console.print(f"  • New URLs fetched: {result['new_urls_fetched']}")
+        console.print(f"  • Previously fetched: {result['previously_fetched']}")
+        console.print(f"  • Total URLs found: {result['total_urls_found']}")
+        
+        # Show URLs by date if any were fetched
+        urls_by_date = result.get('urls_by_date', {})
+        if urls_by_date:
+            console.print("\n📅 URLs fetched by date:")
+            for date_str, count in sorted(urls_by_date.items()):
+                console.print(f"  • {date_str}: {count} URLs")
         
     except Exception as e:
         console.print(f"❌ Fetch failed: {e}", style="red")
@@ -187,17 +194,18 @@ def report(target_date: Optional[str], regenerate: bool):
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
 @click.option("--max-posts", default=100, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
+@click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, regenerate: bool):
-    """Run all stages in sequence for the specified date."""
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, days_back: int, regenerate: bool):
+    """Run all stages in sequence. Posts organized by publication date."""
     
     parsed_date = parse_date(target_date)
-    console.print(f"🚀 Running all stages for {parsed_date}...")
+    console.print(f"🚀 Running all stages...")
     
     # Stage 1: Collect
     console.print("\n[bold blue]Stage 1: Collect[/bold blue]")
@@ -207,7 +215,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 2: Fetch
     console.print("\n[bold blue]Stage 2: Fetch[/bold blue]")
     ctx = click.Context(fetch)
-    ctx.invoke(fetch, target_date=target_date)
+    ctx.invoke(fetch, days_back=days_back)
     
     # Stage 3: Evaluate
     console.print("\n[bold blue]Stage 3: Evaluate[/bold blue]")

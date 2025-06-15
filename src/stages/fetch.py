@@ -119,7 +119,11 @@ class FetchStage(ProcessingStage):
             return frontmatter, content
     
     async def process_item(self, input_path: Path, target_date: date) -> Optional[Path]:
-        """Process a single post file and extract URLs."""
+        """Process a single post file and extract URLs.
+        
+        NOTE: This method is kept for backward compatibility but is not used
+        in the new multi-day scanning approach.
+        """
         try:
             # Load the post markdown file
             md_file = MarkdownFile.load(input_path)
@@ -169,57 +173,140 @@ class FetchStage(ProcessingStage):
             logger.error(f"Failed to process {input_path}: {e}")
             return None
     
-    async def run_fetch(self, target_date: Optional[date] = None) -> dict:
+    async def run_fetch(self, days_back: int = 7) -> dict:
         """
-        Run the fetch stage for the specified date.
+        Run the fetch stage, scanning posts from the last N days for unfetched URLs.
+        
+        Args:
+            days_back: Number of days to look back for posts (default: 7)
         
         Returns:
             Summary of fetch results
         """
-        if target_date is None:
-            target_date = date.today()
+        from datetime import timedelta
         
-        logger.info(f"Running fetch stage for {target_date}")
+        logger.info(f"Running fetch stage, scanning posts from last {days_back} days")
         
-        # Ensure output directory exists
-        self.ensure_stage_dir(target_date)
+        # Track all URLs we've already fetched across all dates
+        fetched_urls = set()
         
-        # Process all posts from collect stage
-        processed = 0
-        skipped = 0
-        failed = 0
-        total_urls = 0
+        # First, scan all existing fetch stage files to know what we've already fetched
+        fetch_base = self.base_path / self.stage_name
+        if fetch_base.exists():
+            for date_dir in fetch_base.iterdir():
+                if date_dir.is_dir():
+                    for md_file_path in date_dir.glob("*.md"):
+                        try:
+                            md = MarkdownFile.load(md_file_path)
+                            url = md.get_frontmatter_value("url")
+                            if url:
+                                fetched_urls.add(url)
+                        except Exception as e:
+                            logger.debug(f"Error reading {md_file_path}: {e}")
+        
+        logger.info(f"Found {len(fetched_urls)} already fetched URLs")
+        
+        # Now scan posts from the last N days
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days_back)
+        
+        processed_posts = 0
+        skipped_posts = 0
+        failed_posts = 0
+        new_urls_fetched = 0
+        total_urls_found = 0
+        urls_by_date = {}
         
         async with self:  # Use async context manager
-            for input_path in self.get_inputs(target_date):
-                try:
-                    # Load post to count URLs
-                    md_file = MarkdownFile.load(input_path)
-                    links = md_file.get_frontmatter_value("links", [])
-                    total_urls += len(links)
+            # Scan each day in the range
+            current_date = start_date
+            while current_date <= end_date:
+                # Check if collect stage has data for this date
+                collect_dir = self.base_path / self.input_stage_name / current_date.strftime("%Y-%m-%d")
+                
+                if collect_dir.exists():
+                    logger.info(f"Scanning posts from {current_date}")
                     
-                    if not links:
-                        skipped += 1
-                        continue
-                    
-                    result = await self.process_item(input_path, target_date)
-                    if result:
-                        processed += 1
-                    else:
-                        skipped += 1
-                        
-                except Exception as e:
-                    failed += 1
-                    logger.error(f"Failed to process {input_path}: {e}")
+                    for input_path in collect_dir.glob("*.md"):
+                        try:
+                            # Load post to get URLs
+                            md_file = MarkdownFile.load(input_path)
+                            links = md_file.get_frontmatter_value("links", [])
+                            post_id = md_file.get_frontmatter_value("id")
+                            
+                            if not links:
+                                skipped_posts += 1
+                                continue
+                            
+                            total_urls_found += len(links)
+                            
+                            # Process each URL
+                            for url in links:
+                                if url in fetched_urls:
+                                    logger.debug(f"URL already fetched: {url}")
+                                    continue
+                                
+                                try:
+                                    # Determine which date directory to save in
+                                    # Use the post's publication date
+                                    post_created = md_file.get_frontmatter_value("created_at")
+                                    if post_created:
+                                        post_date = datetime.fromisoformat(post_created.replace('Z', '+00:00')).date()
+                                    else:
+                                        post_date = current_date
+                                    
+                                    # Ensure output directory exists
+                                    self.ensure_stage_dir(post_date)
+                                    
+                                    # Get output path
+                                    output_path = self.get_output_path_for_url(post_date, url)
+                                    
+                                    # Fetch and extract content
+                                    frontmatter, content = await self.fetch_and_extract_content(url)
+                                    
+                                    # Track which posts this URL was found in
+                                    if "found_in_posts" not in frontmatter:
+                                        frontmatter["found_in_posts"] = []
+                                    frontmatter["found_in_posts"].append(post_id)
+                                    
+                                    # Create and save markdown file
+                                    url_md = MarkdownFile(frontmatter, content)
+                                    url_md.save(output_path)
+                                    
+                                    fetched_urls.add(url)
+                                    new_urls_fetched += 1
+                                    
+                                    # Track URLs by date
+                                    date_str = str(post_date)
+                                    if date_str not in urls_by_date:
+                                        urls_by_date[date_str] = 0
+                                    urls_by_date[date_str] += 1
+                                    
+                                    logger.info(f"Fetched new URL: {url} -> {output_path.name}")
+                                    
+                                except Exception as e:
+                                    logger.error(f"Failed to fetch URL {url}: {e}")
+                            
+                            processed_posts += 1
+                            
+                        except Exception as e:
+                            failed_posts += 1
+                            logger.error(f"Failed to process {input_path}: {e}")
+                
+                current_date += timedelta(days=1)
         
         result = {
             "stage": self.stage_name,
-            "date": target_date,
-            "processed_posts": processed,
-            "skipped_posts": skipped,
-            "failed_posts": failed,
-            "total_posts": processed + skipped + failed,
-            "total_urls": total_urls
+            "days_scanned": days_back,
+            "date_range": f"{start_date} to {end_date}",
+            "processed_posts": processed_posts,
+            "skipped_posts": skipped_posts,
+            "failed_posts": failed_posts,
+            "total_posts": processed_posts + skipped_posts + failed_posts,
+            "total_urls_found": total_urls_found,
+            "new_urls_fetched": new_urls_fetched,
+            "previously_fetched": len(fetched_urls) - new_urls_fetched,
+            "urls_by_date": urls_by_date
         }
         
         logger.info(f"Fetch stage completed: {result}")
