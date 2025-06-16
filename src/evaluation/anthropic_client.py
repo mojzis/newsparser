@@ -147,7 +147,7 @@ Evaluate and respond with JSON containing:
 2. relevance_score (0.0-1.0): How relevant is this to MCP? 0=unrelated, 1=directly about MCP
 3. summary (string, max 200 chars): Write as the author would - direct, engaging content without meta-language like "This article" or "The piece describes"
 4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative, avoid exclamation marks
-5. key_topics (array of strings): Main topics discussed
+5. key_topics (array of strings): Extract 2-5 specific technical topics, tools, services, or implementation details. Focus on concrete technologies, not abstract concepts. Examples of GOOD topics: "Claude API", "OpenAI GPT-4", "TypeScript SDK", "PostgreSQL integration", "Slack bot", "GitHub Actions", "Visual Studio Code extension", "WebSocket transport", "JSON-RPC protocol", "Docker containers", "AWS Lambda", "React components". Examples of BAD topics to avoid: "AI", "MCP", "integration", "development", "tools", "technology"
 6. content_type (string): One of: "video", "newsletter", "article", "blog post", "product update", "invite" (hint provided above if detected)
 7. language (string): ISO 639-1 language code (e.g., "en" for English, "es" for Spanish, "fr" for French, "ja" for Japanese) (hint provided above if detected)
 
