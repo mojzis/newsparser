@@ -1,9 +1,17 @@
 
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 
+evaluation - store language, too.
 
 data storage, how is it gonna work with github, where to store the md files ?
 
+types of content
+- video
+- newsletter
+- article
+- blog post
+- product update
+- invite (meetup)
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
 
@@ -12,6 +20,16 @@ nth: youtube - fetch data through api ?
 anthropic: store costs
 
 
+improve header
+
+
+## how to write marimo notebooks
+- cell variables have to be unique
+ - dont call dataframe variables `df` anyway
+- dont keep checking whether a dataframe has content, just do your thing
+  - dont wrap output in conditional code
+- dont build export features
+- cant do 2 calls to mo in one cell to show content - only 1
 
 typer issues - try again with a new version ... (we got stuck on it for quite some time ...)
 
