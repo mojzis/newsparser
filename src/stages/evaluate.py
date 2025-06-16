@@ -85,7 +85,7 @@ class EvaluateStage(ProcessingStage):
             logger.info(f"Evaluating content: {extracted_content.url}")
             evaluation = self.evaluator.evaluate_article(extracted_content, extracted_content.url)
             
-            # Add evaluation to frontmatter
+            # Create minimal evaluation file with only essential data
             evaluation_data = {
                 "is_mcp_related": evaluation.is_mcp_related,
                 "relevance_score": evaluation.relevance_score,
@@ -98,15 +98,38 @@ class EvaluateStage(ProcessingStage):
                 "evaluator": "claude-3-haiku-20240307"  # Model used for evaluation
             }
             
-            # Update frontmatter with evaluation
-            md_file.update_frontmatter({
+            # Get essential reference data from original file
+            url = md_file.get_frontmatter_value("url")
+            found_in_posts = md_file.get_frontmatter_value("found_in_posts", [])
+            
+            # Create minimal evaluation-only file
+            evaluation_frontmatter = {
+                "url": url,
+                "found_in_posts": found_in_posts,
                 "evaluation": evaluation_data,
                 "stage": "evaluated"
-            })
+            }
+            
+            # Create minimal content (just reference to fetch stage)
+            evaluation_content = f"""# Evaluation Results
+
+This content was evaluated for MCP relevance.
+
+**Relevance Score:** {evaluation.relevance_score}  
+**MCP Related:** {'Yes' if evaluation.is_mcp_related else 'No'}  
+**Content Type:** {evaluation.content_type}  
+**Language:** {evaluation.language}
+
+*Full content available in fetch stage.*
+"""
+            
+            # Create new evaluation file
+            from src.utils.markdown_file import MarkdownFile
+            eval_md = MarkdownFile(evaluation_frontmatter, evaluation_content)
             
             # Save to output path
             output_path = self.get_output_path(input_path, target_date)
-            md_file.save(output_path)
+            eval_md.save(output_path)
             
             logger.info(f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})")
             return output_path
@@ -115,12 +138,13 @@ class EvaluateStage(ProcessingStage):
             logger.error(f"Failed to evaluate {input_path}: {e}")
             return None
     
-    async def run_evaluate(self, days_back: int = 7) -> dict:
+    async def run_evaluate(self, days_back: int = 7, regenerate: bool = False) -> dict:
         """
         Run the evaluate stage, scanning fetched content from the last N days for unevaluated items.
         
         Args:
             days_back: Number of days to look back for unevaluated content (default: 7)
+            regenerate: Whether to re-evaluate existing evaluations (default: False)
         
         Returns:
             Summary of evaluation results
@@ -129,24 +153,27 @@ class EvaluateStage(ProcessingStage):
         
         logger.info(f"Running evaluate stage, scanning fetched content from last {days_back} days")
         
-        # Track all content we've already evaluated across all dates
+        # Track all content we've already evaluated across all dates (unless regenerating)
         evaluated_urls = set()
         
-        # First, scan all existing evaluate stage files to know what we've already evaluated
-        evaluate_base = self.base_path / self.stage_name
-        if evaluate_base.exists():
-            for date_dir in evaluate_base.iterdir():
-                if date_dir.is_dir():
-                    for md_file_path in date_dir.glob("*.md"):
-                        try:
-                            md = MarkdownFile.load(md_file_path)
-                            url = md.get_frontmatter_value("url")
-                            if url:
-                                evaluated_urls.add(url)
-                        except Exception as e:
-                            logger.debug(f"Error reading {md_file_path}: {e}")
-        
-        logger.info(f"Found {len(evaluated_urls)} already evaluated URLs")
+        if not regenerate:
+            # Only track existing evaluations if not regenerating
+            evaluate_base = self.base_path / self.stage_name
+            if evaluate_base.exists():
+                for date_dir in evaluate_base.iterdir():
+                    if date_dir.is_dir():
+                        for md_file_path in date_dir.glob("*.md"):
+                            try:
+                                md = MarkdownFile.load(md_file_path)
+                                url = md.get_frontmatter_value("url")
+                                if url:
+                                    evaluated_urls.add(url)
+                            except Exception as e:
+                                logger.debug(f"Error reading {md_file_path}: {e}")
+            
+            logger.info(f"Found {len(evaluated_urls)} already evaluated URLs")
+        else:
+            logger.info("Regenerate mode: will re-evaluate all content")
         
         # Now scan fetched content from the last N days
         end_date = date.today()

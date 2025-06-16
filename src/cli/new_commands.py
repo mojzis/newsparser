@@ -42,11 +42,12 @@ def fetch(days_back):
 
 @cli.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
-def evaluate(days_back):
+@click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
+def evaluate(days_back, regenerate):
     """Evaluate content from fetched URLs in the last N days."""
     from src.cli.stage_commands import evaluate as stage_evaluate
     ctx = click.Context(stage_evaluate)
-    ctx.invoke(stage_evaluate, days_back=days_back)
+    ctx.invoke(stage_evaluate, days_back=days_back, regenerate=regenerate)
 
 
 @cli.command()
@@ -69,12 +70,13 @@ def report(days_back, regenerate, output_date, bulk, debug):
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs and unevaluated content (default: 7)")
-@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, days_back, regenerate):
+@click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
+@click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
+def run_all(target_date, max_posts, search, config_path, expand_urls, days_back, regenerate_reports, regenerate_evaluations):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, days_back=days_back, regenerate=regenerate)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations)
 
 
 @cli.command()

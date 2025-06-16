@@ -133,10 +133,14 @@ def fetch(days_back: int):
 
 @stages.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
-def evaluate(days_back: int):
+@click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
+def evaluate(days_back: int, regenerate: bool):
     """Evaluate content relevance using Anthropic API for fetched content from the last N days."""
     
-    console.print(f"🤖 Evaluating content from the last {days_back} days...")
+    if regenerate:
+        console.print(f"🤖 Re-evaluating content from the last {days_back} days...")
+    else:
+        console.print(f"🤖 Evaluating new content from the last {days_back} days...")
     
     try:
         settings = get_settings()
@@ -147,7 +151,7 @@ def evaluate(days_back: int):
             sys.exit(1)
         
         evaluate_stage = EvaluateStage(settings)
-        result = asyncio.run(evaluate_stage.run_evaluate(days_back))
+        result = asyncio.run(evaluate_stage.run_evaluate(days_back, regenerate=regenerate))
         
         console.print(f"✅ Evaluation completed:", style="green")
         console.print(f"  • Date range: {result['date_range']}")
@@ -233,8 +237,9 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
-@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, days_back: int, regenerate: bool):
+@click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
+@click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool):
     """Run all stages in sequence. Posts organized by publication date."""
     
     parsed_date = parse_date(target_date)
@@ -253,12 +258,12 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 3: Evaluate
     console.print("\n[bold blue]Stage 3: Evaluate[/bold blue]")
     ctx = click.Context(evaluate)
-    ctx.invoke(evaluate, days_back=days_back)
+    ctx.invoke(evaluate, days_back=days_back, regenerate=regenerate_evaluations)
     
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")
     ctx = click.Context(report)
-    ctx.invoke(report, days_back=days_back, regenerate=regenerate, output_date=target_date)
+    ctx.invoke(report, days_back=days_back, regenerate=regenerate_reports, output_date=target_date)
     
     console.print(f"\n✅ All stages completed for {parsed_date}!", style="green")
 

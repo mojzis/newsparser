@@ -17,7 +17,9 @@ class TestReportArticle:
             "perex": "A witty summary of the article",
             "summary": "A regular summary",
             "relevance_score": 0.85,
-            "domain": "example.com"
+            "domain": "example.com",
+            "content_type": "article",
+            "language": "en"
         }
         
         article = ReportArticle.from_post_and_evaluation(
@@ -63,7 +65,9 @@ class TestReportArticle:
             "title": "Test Article",
             "perex": "A witty summary",
             "relevance_score": 0.85,
-            "domain": "example.com"
+            "domain": "example.com",
+            "content_type": "blog post",
+            "language": "es"
         }
         
         article = ReportArticle.from_post_and_evaluation(
@@ -87,7 +91,9 @@ class TestReportArticle:
             author="user",
             timestamp="3:45 PM",
             relevance_score=0.5,
-            domain="example.com"
+            domain="example.com",
+            content_type="video",
+            language="fr"
         )
         assert article.relevance_score == 0.5
         
@@ -117,7 +123,9 @@ class TestReportDay:
                 author="user1",
                 timestamp="1:00 PM",
                 relevance_score=0.9,
-                domain="example.com"
+                domain="example.com",
+                content_type="article",
+                language="en"
             ),
             ReportArticle(
                 url="https://example.com/2",
@@ -127,7 +135,9 @@ class TestReportDay:
                 author="user2",
                 timestamp="2:00 PM",
                 relevance_score=0.8,
-                domain="example.com"
+                domain="example.com",
+                content_type="blog post",
+                language="es"
             )
         ]
         
@@ -162,7 +172,7 @@ class TestArchiveLink:
         )
         
         # The formatting will depend on current year, but path should be consistent
-        assert link.path == "reports/2024/12/06/report.html"
+        assert link.path == "reports/2024-12-06/report.html"
         assert link.article_count == 5
     
     def test_create_previous_year(self):
@@ -173,7 +183,7 @@ class TestArchiveLink:
         )
         
         assert link.formatted == "December 6, 2023"  # Include year
-        assert link.path == "reports/2023/12/06/report.html"
+        assert link.path == "reports/2023-12-06/report.html"
         assert link.article_count == 3
 
 
@@ -189,7 +199,9 @@ class TestHomepageData:
                 author="user1",
                 timestamp="1:00 PM",
                 relevance_score=0.9,
-                domain="example.com"
+                domain="example.com",
+                content_type="newsletter",
+                language="ja"
             )
         ]
         

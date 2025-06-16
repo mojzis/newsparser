@@ -43,6 +43,49 @@ class ReportStage(ProcessingStage):
         """Get all evaluated files for the date."""
         return super().get_inputs(target_date)
     
+    def _get_fetch_data(self, url: str, target_date: date) -> dict:
+        """Get content metadata from fetch stage for a given URL."""
+        from datetime import timedelta
+        
+        # Search for the fetch file across multiple days (content might be fetched on different dates)
+        for days_back in range(10):  # Search up to 10 days back
+            search_date = target_date - timedelta(days=days_back)
+            fetch_dir = Path("stages/fetch") / search_date.strftime("%Y-%m-%d")
+            
+            if not fetch_dir.exists():
+                continue
+            
+            # Look for file with this URL
+            for fetch_file in fetch_dir.glob("*.md"):
+                try:
+                    fetch_md = MarkdownFile.load(fetch_file)
+                    file_url = fetch_md.get_frontmatter_value("url")
+                    
+                    if str(file_url) == str(url):
+                        # Found the fetch data for this URL
+                        return {
+                            "title": fetch_md.get_frontmatter_value("title"),
+                            "domain": fetch_md.get_frontmatter_value("domain"),
+                            "author": fetch_md.get_frontmatter_value("author"),
+                            "medium": fetch_md.get_frontmatter_value("medium"),
+                            "word_count": fetch_md.get_frontmatter_value("word_count"),
+                            "content_markdown": fetch_md.content
+                        }
+                except Exception as e:
+                    logger.debug(f"Error reading fetch file {fetch_file}: {e}")
+                    continue
+        
+        # Fallback if not found
+        logger.warning(f"Could not find fetch data for URL: {url}")
+        return {
+            "title": "Untitled",
+            "domain": "",
+            "author": None,
+            "medium": None,
+            "word_count": 0,
+            "content_markdown": ""
+        }
+    
     def collect_mcp_articles_multi_day(self, days_back: int, reference_date: date, min_relevance: float = 0.3, debug: bool = False) -> List[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content across multiple days.
@@ -140,20 +183,24 @@ class ReportStage(ProcessingStage):
                                     
                             except Exception as e:
                                 logger.warning(f"Failed to load original post data for {post_id}: {e}")
-                                # Fallback to domain-based author
-                                author = md_file.get_frontmatter_value("domain", "unknown")
                         
                         if not post_id:
                             post_id = f"synthetic_{url}"
-                            author = md_file.get_frontmatter_value("domain", "unknown")
+                        
+                        # Get content metadata from fetch stage
+                        fetch_data = self._get_fetch_data(url, current_date)
+                        
+                        # Use fetch data for author fallback if post not found
+                        if author == "unknown":
+                            author = fetch_data.get("domain", "unknown")
                         
                         # Prepare evaluation dict in expected format
                         eval_dict = {
                             "url": url,
-                            "title": md_file.get_frontmatter_value("title", "Untitled"),
+                            "title": fetch_data.get("title", "Untitled"),
                             "perex": evaluation.get("perex", evaluation.get("summary", "")),
                             "relevance_score": relevance_score,
-                            "domain": md_file.get_frontmatter_value("domain", ""),
+                            "domain": fetch_data.get("domain", ""),
                             "content_type": evaluation.get("content_type", "article"),
                             "language": evaluation.get("language", "en")
                         }
@@ -256,25 +303,29 @@ class ReportStage(ProcessingStage):
                         
                     except Exception as e:
                         logger.warning(f"Failed to load original post data for {post_id}: {e}")
-                        # Fallback to domain-based author
-                        author = md_file.get_frontmatter_value("domain", "unknown")
                 
                 if not post_id:
                     post_id = f"synthetic_{url}"
-                    author = md_file.get_frontmatter_value("domain", "unknown")
                 
                 # IMPORTANT: Only include articles that were posted on the target date
                 if created_at.date() != target_date:
                     logger.debug(f"Skipping article from {created_at.date()} - not from target date {target_date}")
                     continue
                 
+                # Get content metadata from fetch stage
+                fetch_data = self._get_fetch_data(url, target_date)
+                
+                # Use fetch data for author fallback if post not found
+                if author == "unknown":
+                    author = fetch_data.get("domain", "unknown")
+                
                 # Prepare evaluation dict in expected format
                 eval_dict = {
                     "url": url,
-                    "title": md_file.get_frontmatter_value("title", "Untitled"),
+                    "title": fetch_data.get("title", "Untitled"),
                     "perex": evaluation.get("perex", evaluation.get("summary", "")),
                     "relevance_score": relevance_score,
-                    "domain": md_file.get_frontmatter_value("domain", ""),
+                    "domain": fetch_data.get("domain", ""),
                     "content_type": evaluation.get("content_type", "article"),
                     "language": evaluation.get("language", "en")
                 }

@@ -177,19 +177,6 @@ rg "pattern" src/       # Search in specific directory
 
 ## Architecture
 
-The project follows a phased implementation approach (see `plans/phases_overview.md`):
-
-1. **Phase 1** (Completed): Core infrastructure with Pydantic models, R2 storage interface, and logging
-2. **Phase 2** (Completed): Bluesky integration using atproto SDK
-3. **Phase 2.5** (Completed): CLI tools and data exploration with typer and marimo
-4. **Phase 2.6** (Completed): Configurable search queries with YAML configuration and Lucene syntax
-5. **Phase 3**: Content processing with Anthropic API
-6. **Phase 4**: Data storage in Parquet format
-7. **Phase 5**: HTML report generation
-8. **Phase 6**: Automated Bluesky publishing
-9. **Phase 7**: GitHub Actions automation
-10. **Phase 8**: Enhancements and optimization
-
 ### Key Components
 
 - **Data Models**: Pydantic models for posts and article evaluations with strict validation
@@ -235,14 +222,3 @@ stages/
 - Mocked external services (R2, Bluesky, Anthropic) for testing
 - Integration tests using moto for AWS/S3 mocking
 
-## Project Status
-
-Phase 2.6 completed. The project now has:
-- Complete Bluesky integration with configurable search queries
-- YAML-based search configuration with include/exclude terms and Lucene syntax  
-- CLI tools built with Click for operational tasks with search definition support
-- Interactive data exploration notebook with marimo
-- Query validation and configuration management tools
-- Rich console formatting and comprehensive error handling
-
-Next phase: Content processing with Anthropic API integration as outlined in the phases overview.
