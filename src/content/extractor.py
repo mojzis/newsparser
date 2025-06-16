@@ -164,6 +164,31 @@ class ContentExtractor:
         
         return None
     
+    def _extract_language_from_html(self, html: str) -> str | None:
+        """Extract language from HTML lang attributes."""
+        soup = BeautifulSoup(html, "html.parser")
+        
+        # Check html tag lang attribute
+        html_tag = soup.find('html')
+        if html_tag and html_tag.get('lang'):
+            lang = html_tag.get('lang')
+            # Extract ISO 639-1 code (e.g., "en" from "en-US")
+            return lang.split('-')[0].lower() if lang else None
+        
+        # Check meta tags for content-language
+        lang_meta = soup.find('meta', attrs={'http-equiv': 'content-language'})
+        if lang_meta and lang_meta.get('content'):
+            content = lang_meta.get('content')
+            return content.split('-')[0].lower() if content else None
+        
+        # Check Open Graph locale
+        og_locale = soup.find('meta', property='og:locale')
+        if og_locale and og_locale.get('content'):
+            content = og_locale.get('content')
+            return content.split('_')[0].lower() if content else None
+        
+        return None
+    
     def _detect_language(self, text: str) -> str | None:
         """Basic language detection based on common patterns."""
         # Simple heuristic - could be enhanced with proper language detection
@@ -177,6 +202,51 @@ class ContentExtractor:
             return "en"
         
         return None
+    
+    def _detect_content_type(self, url: str, html: str) -> str:
+        """Detect content type from URL patterns and HTML structure."""
+        url_lower = url.lower()
+        
+        # Video platforms
+        video_domains = ['youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com', 'twitch.tv', 'tiktok.com']
+        if any(domain in url_lower for domain in video_domains):
+            return 'video'
+        
+        # Newsletter platforms
+        newsletter_domains = ['substack.com', 'beehiiv.com', 'convertkit.com', 'buttondown.email', 'revue.com']
+        if any(domain in url_lower for domain in newsletter_domains):
+            return 'newsletter'
+        
+        # GitHub repositories and documentation
+        if 'github.com' in url_lower or 'docs.' in url_lower or '/documentation/' in url_lower:
+            return 'documentation'
+        
+        # Product updates based on URL patterns
+        update_patterns = ['/changelog', '/release-notes', '/updates', '/releases', '/whats-new']
+        if any(pattern in url_lower for pattern in update_patterns):
+            return 'product update'
+        
+        # Blog patterns
+        blog_patterns = ['/blog/', '/posts/', '/article/', 'medium.com', 'dev.to', 'hashnode.']
+        if any(pattern in url_lower for pattern in blog_patterns):
+            return 'blog post'
+        
+        # Check HTML for video embeds
+        soup = BeautifulSoup(html, "html.parser")
+        video_selectors = [
+            'iframe[src*="youtube"]',
+            'iframe[src*="vimeo"]',
+            'video',
+            'embed[src*="youtube"]',
+            '.youtube-player',
+            '.video-container'
+        ]
+        for selector in video_selectors:
+            if soup.select_one(selector):
+                return 'video'
+        
+        # Default to article
+        return 'article'
     
     def extract_content(self, article_content: ArticleContent, debug: bool = False) -> ExtractedContent | ContentError:
         """
@@ -307,12 +377,17 @@ class ContentExtractor:
             # Count words (approximate)
             word_count = len(re.findall(r"\b\w+\b", markdown_content))
             
-            # Detect language
-            language = self._detect_language(markdown_content)
+            # Detect language - first try HTML attributes, then fall back to text analysis
+            language = self._extract_language_from_html(article_content.html)
+            if not language:
+                language = self._detect_language(markdown_content)
             
             # Extract author and medium
             author = self._extract_author(article_content.html)
             medium = self._extract_medium(article_content.html)
+            
+            # Detect content type
+            content_type = self._detect_content_type(url_str, article_content.html)
             
             logger.info(
                 f"Extracted content from {url_str}: "
@@ -325,6 +400,7 @@ class ContentExtractor:
                 content_markdown=markdown_content,
                 word_count=word_count,
                 language=language,
+                content_type=content_type,
                 domain=domain,
                 author=author,
                 medium=medium,

@@ -174,31 +174,52 @@ def evaluate(days_back: int):
 @click.option("--days-back", default=7, help="Number of days to look back for evaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
-def report(days_back: int, regenerate: bool, output_date: Optional[str]):
+@click.option("--bulk/--single", default=False, help="Generate reports for all days with content in range (default: auto-detect)")
+@click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
+def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: bool, debug: bool):
     """Generate report from evaluated content in the last N days."""
     
     parsed_output_date = parse_date(output_date)
-    console.print(f"📊 Generating report from content in the last {days_back} days...")
+    
+    # Auto-enable bulk mode if days_back > 0 and not explicitly set to single
+    if days_back > 0 and not bulk:
+        bulk = True
+        console.print(f"📊 Auto-enabling bulk mode to regenerate reports for all {days_back} days with content...")
+    elif bulk:
+        console.print(f"📊 Generating reports for each day with content in the last {days_back} days...")
+    else:
+        console.print(f"📊 Generating single report from content in the last {days_back} days...")
     
     try:
         report_stage = ReportStage()
-        result = asyncio.run(report_stage.run_report(days_back, regenerate, parsed_output_date))
         
-        if result.get("status") == "already_exists":
-            console.print(f"ℹ️  Report already exists for {parsed_output_date}", style="yellow")
-            return
-        
-        console.print(f"✅ Report completed:", style="green")
-        console.print(f"  • Days scanned: {result['days_scanned']}")
-        console.print(f"  • Articles found: {result['articles_found']}")
-        console.print(f"  • Report generated: {result['report_generated']}")
-        console.print(f"  • Homepage generated: {result.get('homepage_generated', False)}")
-        console.print(f"  • Metadata saved: {result['metadata_saved']}")
-        console.print(f"  • Output date: {result['date']}")
-        console.print(f"  • Avg relevance: {result.get('avg_relevance', 0)}")
-        
-        if result['articles_found'] > 0:
-            console.print(f"  • Avg relevance: {result['avg_relevance']}")
+        if bulk:
+            result = asyncio.run(report_stage.run_bulk_report(days_back, regenerate, parsed_output_date, debug))
+            
+            console.print(f"✅ Bulk report generation completed:", style="green")
+            console.print(f"  • Reference date: {result['reference_date']}")
+            console.print(f"  • Days scanned: {result['days_scanned']}")
+            console.print(f"  • Reports generated: {result['reports_generated']}")
+            console.print(f"  • Total articles: {result['total_articles']}")
+            console.print(f"  • Dates processed: {', '.join(result['dates_processed'])}")
+        else:
+            result = asyncio.run(report_stage.run_report(days_back, regenerate, parsed_output_date, debug))
+            
+            if result.get("status") == "already_exists":
+                console.print(f"ℹ️  Report already exists for {parsed_output_date}", style="yellow")
+                return
+            
+            console.print(f"✅ Report completed:", style="green")
+            console.print(f"  • Days scanned: {result['days_scanned']}")
+            console.print(f"  • Articles found: {result['articles_found']}")
+            console.print(f"  • Report generated: {result['report_generated']}")
+            console.print(f"  • Homepage generated: {result.get('homepage_generated', False)}")
+            console.print(f"  • Metadata saved: {result['metadata_saved']}")
+            console.print(f"  • Output date: {result['date']}")
+            console.print(f"  • Avg relevance: {result.get('avg_relevance', 0)}")
+            
+            if result['articles_found'] > 0:
+                console.print(f"  • Avg relevance: {result['avg_relevance']}")
         
     except Exception as e:
         console.print(f"❌ Report generation failed: {e}", style="red")
@@ -348,6 +369,53 @@ def clean(stage_name: str, target_date: Optional[str], confirm: bool):
         pass  # Directory not empty
     
     console.print(f"✅ Cleaned {len(files)} files from {stage_name} stage", style="green")
+
+
+@stages.command()
+@click.option("--port", default=8000, help="Port to serve on (default: 8000)")
+@click.option("--host", default="localhost", help="Host to bind to (default: localhost)")
+def present(port: int, host: str):
+    """Start HTTP server to view generated HTML reports."""
+    import subprocess
+    from pathlib import Path
+    import webbrowser
+    import time
+    
+    output_dir = Path("output")
+    if not output_dir.exists():
+        console.print("❌ Output directory does not exist. Generate reports first.", style="red")
+        sys.exit(1)
+    
+    console.print(f"🌐 Starting HTTP server on http://{host}:{port}")
+    console.print(f"📁 Serving files from: {output_dir.absolute()}")
+    console.print("💡 Press Ctrl+C to stop the server")
+    
+    try:
+        # Change to output directory and start Python HTTP server
+        import os
+        os.chdir(output_dir)
+        
+        # Open browser after a short delay
+        def open_browser():
+            time.sleep(1)
+            webbrowser.open(f"http://{host}:{port}")
+        
+        import threading
+        browser_thread = threading.Thread(target=open_browser)
+        browser_thread.daemon = True
+        browser_thread.start()
+        
+        # Start the server
+        subprocess.run([
+            sys.executable, "-m", "http.server", str(port), 
+            "--bind", host
+        ])
+        
+    except KeyboardInterrupt:
+        console.print("\n👋 Server stopped", style="yellow")
+    except Exception as e:
+        console.print(f"❌ Server failed: {e}", style="red")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

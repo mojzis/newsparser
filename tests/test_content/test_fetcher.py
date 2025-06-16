@@ -5,6 +5,7 @@ import httpx
 
 from src.content.fetcher import ArticleFetcher
 from src.content.models import ArticleContent, ContentError
+from pydantic import ValidationError
 
 
 class TestArticleFetcher:
@@ -33,11 +34,14 @@ class TestArticleFetcher:
     
     @pytest.mark.asyncio
     async def test_invalid_url_returns_error(self):
-        """Test that invalid URL returns ContentError."""
+        """Test that invalid URL validation."""
         fetcher = ArticleFetcher()
         
-        result = await fetcher.fetch_article("invalid-url")
+        # First test the validation function
+        assert not fetcher._is_valid_url("invalid-url")
         
+        # The fetch_article should handle invalid URLs
+        result = await fetcher.fetch_article("invalid-url")
         assert isinstance(result, ContentError)
         assert result.error_type == "validation"
         assert "Invalid or unsafe URL" in result.error_message
@@ -58,7 +62,7 @@ class TestArticleFetcher:
         result = await fetcher.fetch_article("https://example.com/article")
         
         assert isinstance(result, ArticleContent)
-        assert result.url == "https://example.com/article"
+        assert str(result.url) == "https://example.com/article"
         assert result.status_code == 200
         assert "Test" in result.html
         assert result.headers["content-type"] == "text/html"
@@ -77,7 +81,7 @@ class TestArticleFetcher:
         result = await fetcher.fetch_article("https://example.com/notfound")
         
         assert isinstance(result, ContentError)
-        assert result.error_type == "http_error"
+        assert result.error_type == "permanent_http_error"
         assert "HTTP 404" in result.error_message
     
     @pytest.mark.asyncio

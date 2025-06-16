@@ -7,18 +7,47 @@ data storage, how is it gonna work with github, where to store the md files ?
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
 
+
+content tags ?
+
+report html - improve header
+
+add a pandas howto ...
+
+authors overview
+
+
+make the whole into a library - settings including prompts "out", ideally also a possibility to change the style / templates
+
+identify paywalled links
+
+add to pandas method (maybe somehow in a clever way ? frontmatter -> pydantic -> pandas ?)
+
+do we need to store content in evaluate files ?
+
+expand the links to posts to be actually posts 
+
+find their tags on the page ? (would have to be done before converting to markdown ?)
+
 nth: youtube - fetch data through api ?
+
+make domain a link, too
+
+improve prompt for key topics, now its mostly mcp or ai ... we need to go deeper within that
 
 anthropic: store costs
 
-content tags
 
-report html - improve header
 
 ## THOUGHTS on process
 claude file - break into stages of product ? (development / analysis / refactoring / tuning ...)
 
 tasks mcp - to save on context ...
+
+it looks like including the word think in the prompt triggers opus and thinking comments
+
+is there a way to review the compacted file ?
+
 
 typer issues - try again with a new version ... (we got stuck on it for quite some time ...)
 
@@ -114,3 +143,6 @@ types of content
 - blog post
 - product update
 - invite (meetup)
+
+add some verification of the language check - it doesnt seem to work ? - use html tag first
+content type wrong too: youtube marked as article ... blog in url - its a blog :)

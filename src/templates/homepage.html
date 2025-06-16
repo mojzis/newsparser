@@ -5,26 +5,45 @@
     Daily digest of Model Context Protocol discussions from Bluesky
 </div>
 
-{% if today_articles %}
-<h2>Today's Articles ({{ today }})</h2>
+{% if day_sections %}
+{% for day_section in day_sections %}
+<h2>{{ day_section.formatted_date }}</h2>
 
-{% for article in today_articles %}
+{% for article in day_section.articles %}
 <div class="article">
     <div class="article-title">
-        {{ article.content_type | content_icon }} <a href="{{ article.url }}">{{ article.title }}</a>{% if article.language | language_flag %} {{ article.language | language_flag }}{% endif %}
+        {{ article.content_type | content_icon_tooltip | safe }} <a href="{{ article.url }}">{{ article.title }}</a>{% if article.language | language_flag %} {{ article.language | language_flag }}{% endif %}
     </div>
     <div class="perex">{{ article.perex }}</div>
     <div class="meta">
         via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
         at {{ article.timestamp }}
-        • {{ article.domain }}
+        • {{ article.domain }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
+    </div>
+</div>
+{% endfor %}
+
+{% endfor %}
+{% elif today_articles %}
+<h2>Today's Resources ({{ today }})</h2>
+
+{% for article in today_articles %}
+<div class="article">
+    <div class="article-title">
+        {{ article.content_type | content_icon_tooltip | safe }} <a href="{{ article.url }}">{{ article.title }}</a>{% if article.language | language_flag %} {{ article.language | language_flag }}{% endif %}
+    </div>
+    <div class="perex">{{ article.perex }}</div>
+    <div class="meta">
+        via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
+        at {{ article.timestamp }}
+        • {{ article.domain }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
     </div>
 </div>
 {% endfor %}
 {% else %}
 <h2>Today ({{ today }})</h2>
 <div class="no-articles">
-    No MCP-related articles found today. Check back tomorrow!
+    No MCP-related resources found today. Check back tomorrow!
 </div>
 {% endif %}
 
@@ -34,7 +53,7 @@
     {% for date in archive_dates %}
     <div class="archive-link">
         <a href="{{ date.path }}">{{ date.formatted }}</a> 
-        <span style="color: #999;">({{ date.article_count }} article{{ 's' if date.article_count != 1 else '' }})</span>
+        <span style="color: #999;">({{ date.article_count }} resource{{ 's' if date.article_count != 1 else '' }})</span>
     </div>
     {% endfor %}
 </div>

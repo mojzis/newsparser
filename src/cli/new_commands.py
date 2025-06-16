@@ -53,11 +53,13 @@ def evaluate(days_back):
 @click.option("--days-back", default=7, help="Number of days to look back for evaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
-def report(days_back, regenerate, output_date):
+@click.option("--bulk/--single", default=False, help="Generate reports for all days with content in range (default: auto-detect)")
+@click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
+def report(days_back, regenerate, output_date, bulk, debug):
     """Generate report from evaluated content in the last N days."""
     from src.cli.stage_commands import report as stage_report
     ctx = click.Context(stage_report)
-    ctx.invoke(stage_report, days_back=days_back, regenerate=regenerate, output_date=output_date)
+    ctx.invoke(stage_report, days_back=days_back, regenerate=regenerate, output_date=output_date, bulk=bulk, debug=debug)
 
 
 @cli.command()
@@ -82,6 +84,16 @@ def status(target_date):
     from src.cli.stage_commands import status as stage_status
     ctx = click.Context(stage_status)
     ctx.invoke(stage_status, target_date=target_date)
+
+
+@cli.command()
+@click.option("--port", default=8000, help="Port to serve on (default: 8000)")
+@click.option("--host", default="localhost", help="Host to bind to (default: localhost)")
+def present(port, host):
+    """Start HTTP server to view generated HTML reports."""
+    from src.cli.stage_commands import present as stage_present
+    ctx = click.Context(stage_present)
+    ctx.invoke(stage_present, port=port, host=host)
 
 
 if __name__ == "__main__":

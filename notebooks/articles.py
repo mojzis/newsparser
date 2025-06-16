@@ -21,12 +21,6 @@ def _(ReportStage, date):
 
 @app.cell
 def _(data):
-    data
-    return
-
-
-@app.cell
-def _(data):
     data[0].model_dump_json()
     return
 

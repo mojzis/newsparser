@@ -56,8 +56,13 @@ class AnthropicEvaluator:
                 truncated = True
                 logger.info(f"Truncated content from {word_count} to {len(article_text.split())} words")
             
-            # Create prompt
-            prompt = self._create_evaluation_prompt(article_text, content.title)
+            # Create prompt with hints from content extraction
+            prompt = self._create_evaluation_prompt(
+                article_text, 
+                content.title,
+                detected_language=content.language,
+                detected_content_type=content.content_type
+            )
             
             # Call Anthropic API
             response = self.client.messages.create(
@@ -110,15 +115,30 @@ class AnthropicEvaluator:
                 error=str(e)
             )
     
-    def _create_evaluation_prompt(self, content: str, title: Optional[str]) -> str:
+    def _create_evaluation_prompt(
+        self, 
+        content: str, 
+        title: Optional[str],
+        detected_language: Optional[str] = None,
+        detected_content_type: Optional[str] = None
+    ) -> str:
         """Create evaluation prompt for Anthropic."""
         title_part = f"\nTitle: {title}" if title else ""
+        
+        # Add hints if available
+        hints = []
+        if detected_language:
+            hints.append(f"Detected language: {detected_language}")
+        if detected_content_type:
+            hints.append(f"Detected content type: {detected_content_type}")
+        
+        hints_part = "\n" + "\n".join(hints) if hints else ""
         
         return f"""Analyze this article for relevance to Model Context Protocol (MCP).
 
 MCP is a protocol for AI tool integration that allows language models to access external tools and data sources.
 
-Article:{title_part}
+Article:{title_part}{hints_part}
 Content:
 {content}
 
@@ -128,8 +148,8 @@ Evaluate and respond with JSON containing:
 3. summary (string, max 200 chars): Write as the author would - direct, engaging content without meta-language like "This article" or "The piece describes"
 4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative, avoid exclamation marks
 5. key_topics (array of strings): Main topics discussed
-6. content_type (string): One of: "video", "newsletter", "article", "blog post", "product update", "invite"
-7. language (string): ISO 639-1 language code (e.g., "en" for English, "es" for Spanish, "fr" for French, "ja" for Japanese)
+6. content_type (string): One of: "video", "newsletter", "article", "blog post", "product update", "invite" (hint provided above if detected)
+7. language (string): ISO 639-1 language code (e.g., "en" for English, "es" for Spanish, "fr" for French, "ja" for Japanese) (hint provided above if detected)
 
 Respond only with valid JSON, no other text."""
     

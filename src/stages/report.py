@@ -7,8 +7,9 @@ import logging
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from src.models.report import ReportArticle, ReportDay, HomepageData, ArchiveLink
+from src.models.report import ReportArticle, ReportDay, HomepageData, ArchiveLink, DaySection
 from src.reports.generator import ReportGenerator
+from src.reports.formatting import get_content_type_icon, get_content_type_with_tooltip, get_language_flag
 from src.stages.base import ProcessingStage
 from src.stages.markdown import MarkdownFile
 
@@ -32,12 +33,17 @@ class ReportStage(ProcessingStage):
             loader=FileSystemLoader(str(self.template_dir)),
             autoescape=select_autoescape(['html', 'xml'])
         )
+        
+        # Add custom filters (for potential template previews)
+        self.env.filters['content_icon'] = get_content_type_icon
+        self.env.filters['content_icon_tooltip'] = get_content_type_with_tooltip
+        self.env.filters['language_flag'] = get_language_flag
     
     def get_inputs(self, target_date: date) -> Iterator[Path]:
         """Get all evaluated files for the date."""
         return super().get_inputs(target_date)
     
-    def collect_mcp_articles_multi_day(self, days_back: int, reference_date: date, min_relevance: float = 0.3) -> List[ReportArticle]:
+    def collect_mcp_articles_multi_day(self, days_back: int, reference_date: date, min_relevance: float = 0.3, debug: bool = False) -> List[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content across multiple days.
         This method is used as fallback when no content exists for the specific date.
@@ -154,11 +160,13 @@ class ReportStage(ProcessingStage):
                         
                         # IMPORTANT: Only include articles posted on the specific current_date
                         if created_at.date() == current_date:
+                            debug_filename = input_path.name if debug else None
                             article = ReportArticle.from_post_and_evaluation(
                                 post_id=post_id,
                                 author=author,
                                 created_at=created_at,
-                                evaluation=eval_dict
+                                evaluation=eval_dict,
+                                debug_filename=debug_filename
                             )
                             articles.append(article)
                             date_articles += 1
@@ -181,7 +189,7 @@ class ReportStage(ProcessingStage):
         
         return articles
     
-    def collect_mcp_articles(self, target_date: date, min_relevance: float = 0.3) -> List[ReportArticle]:
+    def collect_mcp_articles(self, target_date: date, min_relevance: float = 0.3, debug: bool = False) -> List[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content for a single date.
         Only includes articles that were originally posted on the target date.
@@ -271,11 +279,13 @@ class ReportStage(ProcessingStage):
                     "language": evaluation.get("language", "en")
                 }
                 
+                debug_filename = input_path.name if debug else None
                 article = ReportArticle.from_post_and_evaluation(
                     post_id=post_id,
                     author=author,
                     created_at=created_at,
-                    evaluation=eval_dict
+                    evaluation=eval_dict,
+                    debug_filename=debug_filename
                 )
                 
                 articles.append(article)
@@ -313,7 +323,7 @@ class ReportStage(ProcessingStage):
         stage_dir = self.ensure_stage_dir(target_date)
         return stage_dir / "report_meta.md"
     
-    async def run_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None) -> dict:
+    async def run_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None, debug: bool = False) -> dict:
         """
         Run the report stage, scanning evaluated content from the last N days.
         
@@ -345,12 +355,12 @@ class ReportStage(ProcessingStage):
             }
         
         # First try to collect articles from the specific output date
-        articles = self.collect_mcp_articles(output_date)
+        articles = self.collect_mcp_articles(output_date, debug=debug)
         
         # If no articles found for the output date, fall back to recent content
         if not articles:
             logger.info(f"No articles found for {output_date}, scanning last {days_back} days for fallback")
-            articles = self.collect_mcp_articles_multi_day(days_back, output_date)
+            articles = self.collect_mcp_articles_multi_day(days_back, output_date, debug=debug)
             
             # Since we already filtered by date in collect_mcp_articles_multi_day,
             # no additional filtering needed here
@@ -396,24 +406,31 @@ class ReportStage(ProcessingStage):
             html_content = True
             logger.info(f"Generated HTML report: {daily_path}")
             
-            # Generate homepage with archive links
-            # Get archive dates by checking for recent evaluations
+            # Generate enhanced homepage with minimum 10 articles
+            day_sections = self.collect_homepage_articles(min_articles=10, debug=debug)
+            
+            # Get archive dates by checking for recent evaluations (beyond the day sections)
             archive_links = []
-            for check_days_back in range(1, 8):  # Check last 7 days
+            days_covered = {section.date for section in day_sections}
+            
+            for check_days_back in range(1, 15):  # Check last 15 days for archive
                 check_date = date.fromordinal(output_date.toordinal() - check_days_back)
                 
+                # Skip dates already included in day sections
+                if check_date in days_covered:
+                    continue
+                
                 # Check if there are evaluated articles for this date
-                evaluated_articles = self.collect_mcp_articles(check_date)
+                evaluated_articles = self.collect_mcp_articles(check_date, debug=False)  # No debug for archive check
                 if evaluated_articles:
                     archive_links.append(ArchiveLink.create(
                         report_date=check_date,
                         article_count=len(evaluated_articles)
                     ))
             
-            # Create homepage data
-            homepage_data = HomepageData(
-                today=output_date.strftime("%B %-d, %Y"),
-                today_articles=articles,
+            # Create enhanced homepage data
+            homepage_data = HomepageData.create_enhanced(
+                day_sections=day_sections,
                 archive_dates=archive_links
             )
             
@@ -464,3 +481,147 @@ class ReportStage(ProcessingStage):
         
         logger.info(f"Report stage completed: {result}")
         return result
+    
+    async def run_bulk_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None, debug: bool = False) -> dict:
+        """
+        Generate reports for each day that has evaluated content in the last N days.
+        
+        Args:
+            days_back: Number of days to look back for evaluated content (default: 7)
+            regenerate: Whether to regenerate existing reports (default True)
+            output_date: Reference date to work backwards from (defaults to today)
+        
+        Returns:
+            Summary of bulk report generation results
+        """
+        from datetime import timedelta
+        
+        if output_date is None:
+            output_date = date.today()
+        
+        logger.info(f"Running bulk report generation, scanning last {days_back} days from {output_date}")
+        
+        reports_generated = 0
+        total_articles = 0
+        dates_processed = []
+        
+        # Scan each day in the range
+        for days_ago in range(days_back + 1):  # Include the output_date itself
+            check_date = output_date - timedelta(days=days_ago)
+            
+            # Check if there are evaluated articles for this date
+            articles = self.collect_mcp_articles(check_date, debug=debug)
+            
+            if articles:
+                logger.info(f"Found {len(articles)} articles for {check_date}, generating report...")
+                
+                # Check if we should regenerate
+                if not regenerate and not self.should_process_item(Path(), check_date):
+                    logger.info(f"Report already exists for {check_date} and regenerate=False, skipping")
+                    continue
+                
+                try:
+                    # Generate report for this specific date
+                    result = await self.run_report(0, regenerate, check_date, debug)  # days_back=0 to avoid recursion
+                    
+                    if result.get("report_generated"):
+                        reports_generated += 1
+                        total_articles += result.get("articles_found", 0)
+                        dates_processed.append(check_date.isoformat())
+                        logger.info(f"✅ Generated report for {check_date} with {result.get('articles_found', 0)} articles")
+                    else:
+                        logger.warning(f"⚠️  Failed to generate report for {check_date}")
+                        
+                except Exception as e:
+                    logger.error(f"❌ Error generating report for {check_date}: {e}")
+            else:
+                logger.debug(f"No articles found for {check_date}, skipping")
+        
+        # Generate updated homepage with all the reports
+        if reports_generated > 0:
+            try:
+                # Generate enhanced homepage with minimum 10 articles
+                day_sections = self.collect_homepage_articles(min_articles=10, debug=debug)
+                
+                # Get archive dates by checking for recent evaluations (beyond the day sections)
+                archive_links = []
+                days_covered = {section.date for section in day_sections}
+                
+                for check_days_back in range(1, 15):  # Check last 15 days for archive
+                    check_date = output_date - timedelta(days=check_days_back)
+                    
+                    # Skip dates already included in day sections
+                    if check_date in days_covered:
+                        continue
+                    
+                    # Check if there are evaluated articles for this date
+                    evaluated_articles = self.collect_mcp_articles(check_date, debug=False)
+                    if evaluated_articles:
+                        archive_links.append(ArchiveLink.create(
+                            report_date=check_date,
+                            article_count=len(evaluated_articles)
+                        ))
+                
+                # Create enhanced homepage data
+                homepage_data = HomepageData.create_enhanced(
+                    day_sections=day_sections,
+                    archive_dates=archive_links
+                )
+                
+                # Generate homepage
+                generator = ReportGenerator()
+                homepage_path = generator.generate_homepage(homepage_data)
+                logger.info(f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}")
+            except Exception as e:
+                logger.error(f"❌ Failed to update homepage: {e}")
+        
+        result = {
+            "stage": self.stage_name,
+            "bulk_operation": True,
+            "reference_date": output_date,
+            "days_scanned": days_back,
+            "reports_generated": reports_generated,
+            "total_articles": total_articles,
+            "dates_processed": dates_processed
+        }
+        
+        logger.info(f"Bulk report generation completed: {result}")
+        return result
+    
+    def collect_homepage_articles(self, min_articles: int = 10, max_days_back: int = 14, debug: bool = False) -> list[DaySection]:
+        """
+        Collect articles for homepage, ensuring at least min_articles are included.
+        Groups articles by day and continues collecting from previous days until minimum is met.
+        
+        Args:
+            min_articles: Minimum number of articles to collect
+            max_days_back: Maximum number of days to look back
+            debug: Whether to include debug information
+            
+        Returns:
+            List of DaySection objects, ordered from newest to oldest
+        """
+        from datetime import timedelta
+        
+        day_sections = []
+        total_articles = 0
+        today = date.today()
+        
+        logger.info(f"Collecting homepage articles with minimum {min_articles} articles")
+        
+        # Collect articles day by day until we have enough
+        for days_ago in range(max_days_back + 1):
+            if total_articles >= min_articles:
+                break
+                
+            check_date = today - timedelta(days=days_ago)
+            articles = self.collect_mcp_articles(check_date, debug=debug)
+            
+            if articles:
+                day_section = DaySection.create(check_date, articles)
+                day_sections.append(day_section)
+                total_articles += len(articles)
+                logger.info(f"Added {len(articles)} articles from {check_date} (total: {total_articles})")
+        
+        logger.info(f"Collected {total_articles} articles across {len(day_sections)} days for homepage")
+        return day_sections

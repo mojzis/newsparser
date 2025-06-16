@@ -100,8 +100,15 @@ class ArticleFetcher:
         url_str = str(url)
         
         if not self._is_valid_url(url_str):
+            # For invalid URLs, create a dummy valid URL for the error object
+            try:
+                from pydantic import HttpUrl
+                error_url = HttpUrl("https://invalid.url")
+            except:
+                error_url = "https://invalid.url"
+            
             return ContentError(
-                url=url,
+                url=error_url,
                 error_type="validation",
                 error_message=f"Invalid or unsafe URL: {url_str}",
             )

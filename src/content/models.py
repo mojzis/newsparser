@@ -13,6 +13,7 @@ class ExtractedContent(BaseModel):
     content_markdown: str = Field(..., description="Article content in Markdown format")
     word_count: int = Field(ge=0, description="Number of words in content")
     language: str | None = Field(default=None, description="Detected language")
+    content_type: str | None = Field(default=None, description="Detected content type (video, article, blog post, etc.)")
     domain: str = Field(..., description="Domain of the URL")
     author: str | None = Field(default=None, description="Article author if available")
     medium: str | None = Field(default=None, description="Publication/source name")

@@ -7,7 +7,7 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.models.report import ArchiveLink, HomepageData, ReportArticle, ReportDay
-from src.reports.formatting import get_content_type_icon, get_language_flag
+from src.reports.formatting import get_content_type_icon, get_content_type_with_tooltip, get_language_flag
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -40,6 +40,7 @@ class ReportGenerator:
         
         # Add custom filters
         self.env.filters['content_icon'] = get_content_type_icon
+        self.env.filters['content_icon_tooltip'] = get_content_type_with_tooltip
         self.env.filters['language_flag'] = get_language_flag
     
     def generate_daily_report(self, report_day: ReportDay) -> Path:
@@ -88,6 +89,7 @@ class ReportGenerator:
         html_content = template.render(
             today=homepage_data.today,
             today_articles=homepage_data.today_articles,
+            day_sections=homepage_data.day_sections,
             archive_dates=homepage_data.archive_dates
         )
         

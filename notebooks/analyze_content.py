@@ -68,11 +68,9 @@ def _(Path, datetime, pd, timedelta, yaml):
                                     'domain': frontmatter.get('domain', ''),
                                     'is_mcp_related': evaluation.get('is_mcp_related', False),
                                     'relevance_score': evaluation.get('relevance_score', 0.0),
+                                    'key_topics': evaluation.get('key_topics', []),
                                     'perex': evaluation.get('perex', ''),
                                     'summary': evaluation.get('summary', ''),
-                                    'content_type': evaluation.get('content_type', 'article'),
-                                    'language': evaluation.get('language', 'en'),
-                                    'key_topics': ', '.join(evaluation.get('key_topics', [])),
                                     'found_in_posts': len(frontmatter.get('found_in_posts', [])),
                                     'file_path': str(md_file)
                                 }
@@ -149,6 +147,20 @@ def _(evaluated_content, mo):
 
 @app.cell
 def _(evaluated_content, mo):
+    kt = (
+        evaluated_content.loc[lambda x: x["is_mcp_related"]]
+        [["url","key_topics"]]
+        .explode("key_topics")
+        .groupby("key_topics", as_index=False)
+        .agg(num_urls=("url","nunique"))
+        .sort_values("num_urls", ascending=False)
+    )
+    mo.ui.table(kt,page_size=30)
+    return
+
+
+@app.cell
+def _(evaluated_content, mo):
         # Filter to MCP-related content
     mcp_df = evaluated_content[evaluated_content['is_mcp_related']].copy()
 
@@ -188,58 +200,6 @@ def _(evaluated_content, mo):
 
     mo.ui.table(
         domain_stats.reset_index(),
-        selection=None,
-        pagination=False
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("## Content Type Analysis")
-    return
-
-
-@app.cell
-def _(evaluated_content, mo):
-    # Analyze content types
-    content_type_stats = evaluated_content.groupby('content_type').agg({
-        'url': 'count',
-        'is_mcp_related': 'sum',
-        'relevance_score': 'mean'
-    }).round(3)
-    
-    content_type_stats.columns = ['total', 'mcp_related', 'avg_relevance']
-    content_type_stats = content_type_stats.sort_values('total', ascending=False)
-    
-    mo.ui.table(
-        content_type_stats.reset_index(),
-        selection=None,
-        pagination=False
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("## Language Distribution")
-    return
-
-
-@app.cell
-def _(evaluated_content, mo):
-    # Analyze languages
-    language_stats = evaluated_content.groupby('language').agg({
-        'url': 'count',
-        'is_mcp_related': 'sum',
-        'relevance_score': 'mean'
-    }).round(3)
-    
-    language_stats.columns = ['total', 'mcp_related', 'avg_relevance']
-    language_stats = language_stats.sort_values('total', ascending=False)
-    
-    mo.ui.table(
-        language_stats.reset_index(),
         selection=None,
         pagination=False
     )
@@ -330,7 +290,7 @@ def _(domain_filter, evaluated_content, mcp_only, min_relevance, mo):
     """)
 
     mo.ui.table(
-        filtered_df[['date', 'title', 'domain', 'content_type', 'language', 'is_mcp_related', 'relevance_score', 'perex']].head(20),
+        filtered_df[['date', 'title', 'domain', 'is_mcp_related', 'relevance_score', 'perex']].head(20),
         selection=None,
         pagination=True,
         page_size=30
