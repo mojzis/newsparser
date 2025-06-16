@@ -16,6 +16,10 @@ class ArticleEvaluation(BaseModel):
     perex: str = Field(..., min_length=10, max_length=200, description="Witty, engaging summary for display")
     key_topics: list[str] = Field(default_factory=list, description="Key topics discussed")
     
+    # Content classification
+    content_type: str = Field(..., description="Type of content (video, newsletter, article, blog post, product update, invite)")
+    language: str = Field(..., description="Language of the content (e.g., en, es, fr, ja)")
+    
     # Article metadata
     title: Optional[str] = Field(None, description="Article title")
     author: Optional[str] = Field(None, description="Article author")

@@ -20,18 +20,15 @@ nth: youtube - fetch data through api ?
 anthropic: store costs
 
 
-improve header
+report html - improve header
 
+## THOUGHTS on process
+claude file - break into stages of product ? (development / analysis / refactoring / tuning ...)
 
-## how to write marimo notebooks
-- cell variables have to be unique
- - dont call dataframe variables `df` anyway
-- dont keep checking whether a dataframe has content, just do your thing
-  - dont wrap output in conditional code
-- dont build export features
-- cant do 2 calls to mo in one cell to show content - only 1
+tasks mcp - to save on context ...
 
 typer issues - try again with a new version ... (we got stuck on it for quite some time ...)
+
 
 
 a page to search through the data with duck db js
@@ -104,3 +101,11 @@ via www.youtube.com at 11:07 PM • www.youtube.com
 it shows domain, not BS user and the time is not the time of the post
 
 index doesnt list other days ?
+
+## how to write marimo notebooks
+- cell variables have to be unique
+ - dont call dataframe variables `df` anyway
+- dont keep checking whether a dataframe has content, just do your thing
+  - dont wrap output in conditional code
+- dont build export features
+- cant do 2 calls to mo in one cell to show content - only 1

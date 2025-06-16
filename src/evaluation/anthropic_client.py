@@ -80,6 +80,8 @@ class AnthropicEvaluator:
                 summary=result["summary"],
                 perex=result["perex"],
                 key_topics=result["key_topics"],
+                content_type=result["content_type"],
+                language=result["language"],
                 title=content.title,
                 author=content.author,
                 medium=content.medium,
@@ -100,6 +102,8 @@ class AnthropicEvaluator:
                 summary="Evaluation failed",
                 perex="Evaluation failed",
                 key_topics=[],
+                content_type="article",
+                language="en",
                 domain=content.domain,
                 evaluated_at=content.extraction_timestamp,
                 word_count=len(content.content_markdown.split()),
@@ -124,6 +128,8 @@ Evaluate and respond with JSON containing:
 3. summary (string, max 200 chars): Write as the author would - direct, engaging content without meta-language like "This article" or "The piece describes"
 4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative, avoid exclamation marks
 5. key_topics (array of strings): Main topics discussed
+6. content_type (string): One of: "video", "newsletter", "article", "blog post", "product update", "invite"
+7. language (string): ISO 639-1 language code (e.g., "en" for English, "es" for Spanish, "fr" for French, "ja" for Japanese)
 
 Respond only with valid JSON, no other text."""
     
@@ -142,7 +148,9 @@ Respond only with valid JSON, no other text."""
                 "relevance_score": float(data.get("relevance_score", 0.0)),
                 "summary": str(data.get("summary", ""))[:500],
                 "perex": str(data.get("perex", ""))[:200],
-                "key_topics": list(data.get("key_topics", []))
+                "key_topics": list(data.get("key_topics", [])),
+                "content_type": str(data.get("content_type", "article")),
+                "language": str(data.get("language", "en"))
             }
             
         except json.JSONDecodeError as e:
@@ -155,5 +163,7 @@ Respond only with valid JSON, no other text."""
                 "relevance_score": 0.0,
                 "summary": "Failed to parse response",
                 "perex": "Failed to parse response",
-                "key_topics": []
+                "key_topics": [],
+                "content_type": "article",
+                "language": "en"
             }

@@ -24,17 +24,6 @@ When working on this project, please maintain a neutral, professional tone:
 - No additional abstractions beyond what's needed
 
 
-### Task Implementation Guidelines
-
-IMPORTANT: Each task within a phase should produce a testable CLI command:
-- Tasks (e.g., 1.1, 1.2, 2.1) should each add a functional command
-- Don't wait until phase completion to add commands
-- Commands should demonstrate the specific functionality of that task
-- Include the command syntax in the task plan (e.g., "Command: `nsp process-article <url>`")
-- Test the command before marking the task complete
-- Document example usage in commit messages
-- **ALWAYS commit changes after completing a task or significant feature**
-
 ### Git Commit Guidelines
 
 IMPORTANT: Commit changes after completing tasks:
@@ -53,6 +42,7 @@ When working with Jupyter/marimo notebooks:
 - Use nest_asyncio if async calls are absolutely necessary
 - Prefer CLI commands for complex async operations
 - Document which features should use CLI vs notebook interface
+- **For marimo notebooks**: See `MARIMO_RULES.md` for specific marimo conventions
 
 ## Project Overview
 

@@ -92,6 +92,8 @@ class EvaluateStage(ProcessingStage):
                 "summary": evaluation.summary,
                 "perex": evaluation.perex,
                 "key_topics": evaluation.key_topics,
+                "content_type": evaluation.content_type,
+                "language": evaluation.language,
                 "evaluated_at": evaluation.evaluated_at.isoformat() + 'Z',
                 "evaluator": "claude-3-haiku-20240307"  # Model used for evaluation
             }
@@ -200,6 +202,8 @@ class EvaluateStage(ProcessingStage):
                                 "summary": evaluation.summary,
                                 "perex": evaluation.perex,
                                 "key_topics": evaluation.key_topics,
+                                "content_type": evaluation.content_type,
+                                "language": evaluation.language,
                                 "evaluated_at": evaluation.evaluated_at.isoformat() + 'Z',
                                 "evaluator": "claude-3-haiku-20240307"  # Model used for evaluation
                             }
