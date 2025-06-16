@@ -22,6 +22,8 @@ class ReportArticle(BaseModel):
     # Metadata
     relevance_score: float = Field(..., ge=0.0, le=1.0, description="Relevance score")
     domain: str = Field(..., description="Article domain")
+    content_type: str = Field(..., description="Type of content")
+    language: str = Field(..., description="Language code")
     
     @classmethod
     def from_post_and_evaluation(
@@ -56,7 +58,9 @@ class ReportArticle(BaseModel):
             author=author,
             timestamp=timestamp,
             relevance_score=evaluation["relevance_score"],
-            domain=evaluation["domain"]
+            domain=evaluation["domain"],
+            content_type=evaluation.get("content_type", "article"),
+            language=evaluation.get("language", "en")
         )
 
 

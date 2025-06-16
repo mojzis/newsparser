@@ -9,7 +9,7 @@
     {% for article in articles %}
     <div class="article">
         <div class="article-title">
-            <a href="{{ article.url }}">{{ article.title }}</a>
+            {{ article.content_type | content_icon }} <a href="{{ article.url }}">{{ article.title }}</a>{% if article.language | language_flag %} {{ article.language | language_flag }}{% endif %}
         </div>
         <div class="perex">{{ article.perex }}</div>
         <div class="meta">

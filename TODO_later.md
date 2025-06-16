@@ -1,17 +1,9 @@
 
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 
-evaluation - store language, too.
 
 data storage, how is it gonna work with github, where to store the md files ?
 
-types of content
-- video
-- newsletter
-- article
-- blog post
-- product update
-- invite (meetup)
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
 
@@ -19,6 +11,7 @@ nth: youtube - fetch data through api ?
 
 anthropic: store costs
 
+content tags
 
 report html - improve header
 
@@ -29,7 +22,9 @@ tasks mcp - to save on context ...
 
 typer issues - try again with a new version ... (we got stuck on it for quite some time ...)
 
-
+error handling:
+2025-06-16 10:30:27 - src.evaluation.anthropic_client - ERROR - Failed to parse JSON response: Expecting ',' delimiter: line 5 column 26 (char 367)
+log should contain which article it was ..., and store response
 
 a page to search through the data with duck db js
 
@@ -109,3 +104,13 @@ index doesnt list other days ?
   - dont wrap output in conditional code
 - dont build export features
 - cant do 2 calls to mo in one cell to show content - only 1
+
+evaluation - store language, too.
+
+types of content
+- video
+- newsletter
+- article
+- blog post
+- product update
+- invite (meetup)

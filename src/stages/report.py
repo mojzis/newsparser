@@ -147,7 +147,9 @@ class ReportStage(ProcessingStage):
                             "title": md_file.get_frontmatter_value("title", "Untitled"),
                             "perex": evaluation.get("perex", evaluation.get("summary", "")),
                             "relevance_score": relevance_score,
-                            "domain": md_file.get_frontmatter_value("domain", "")
+                            "domain": md_file.get_frontmatter_value("domain", ""),
+                            "content_type": evaluation.get("content_type", "article"),
+                            "language": evaluation.get("language", "en")
                         }
                         
                         # IMPORTANT: Only include articles posted on the specific current_date
@@ -264,7 +266,9 @@ class ReportStage(ProcessingStage):
                     "title": md_file.get_frontmatter_value("title", "Untitled"),
                     "perex": evaluation.get("perex", evaluation.get("summary", "")),
                     "relevance_score": relevance_score,
-                    "domain": md_file.get_frontmatter_value("domain", "")
+                    "domain": md_file.get_frontmatter_value("domain", ""),
+                    "content_type": evaluation.get("content_type", "article"),
+                    "language": evaluation.get("language", "en")
                 }
                 
                 article = ReportArticle.from_post_and_evaluation(

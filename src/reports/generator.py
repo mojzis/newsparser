@@ -7,6 +7,7 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.models.report import ArchiveLink, HomepageData, ReportArticle, ReportDay
+from src.reports.formatting import get_content_type_icon, get_language_flag
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -36,6 +37,10 @@ class ReportGenerator:
             loader=FileSystemLoader(str(self.template_dir)),
             autoescape=select_autoescape(['html', 'xml'])
         )
+        
+        # Add custom filters
+        self.env.filters['content_icon'] = get_content_type_icon
+        self.env.filters['language_flag'] = get_language_flag
     
     def generate_daily_report(self, report_day: ReportDay) -> Path:
         """
