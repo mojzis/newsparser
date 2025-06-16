@@ -24,11 +24,15 @@ cli.add_command(stages)
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-def collect(target_date, max_posts, search, config_path, expand_urls):
+@click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
+@click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
+@click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
+def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height):
     """Collect posts using stage-based architecture."""
     from src.cli.stage_commands import collect as stage_collect
     ctx = click.Context(stage_collect)
-    ctx.invoke(stage_collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls)
+    ctx.invoke(stage_collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, 
+               expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height)
 
 
 @cli.command()
@@ -69,14 +73,17 @@ def report(days_back, regenerate, output_date, bulk, debug):
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
+@click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
+@click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
+@click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs and unevaluated content (default: 7)")
 @click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, days_back, regenerate_reports, regenerate_evaluations):
+def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations)
 
 
 @cli.command()

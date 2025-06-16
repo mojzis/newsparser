@@ -163,7 +163,13 @@ poetry run ruff check . --fix
 poetry run ty check src/
 ```
 
-### Search Tools
+### Code Search Guidelines
+
+When searching for code in this project:
+- **Always search within the `src/` directory** to avoid irrelevant results from data, content, and output directories
+- Use the Grep tool with `path: "src"` parameter to limit scope
+- Use the Glob tool with patterns like `src/**/*.py` for file discovery
+
 ```bash
 # Fast code search with ag (The Silver Searcher) - preferred for complex searches
 ag "pattern" --python  # Search in Python files only

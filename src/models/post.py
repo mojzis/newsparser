@@ -1,10 +1,12 @@
 import re
 from datetime import datetime
+from typing import Any, Optional, Literal
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
-from typing import Any
 
 from src.utils.language_detection import LanguageType, detect_language_from_text
+
+ThreadPosition = Literal["root", "reply", "nested_reply"]
 
 
 class EngagementMetrics(BaseModel):
@@ -29,6 +31,20 @@ class BlueskyPost(BaseModel):
     )
     engagement_metrics: EngagementMetrics = Field(
         ..., description="Engagement statistics"
+    )
+    
+    # Thread relationship fields
+    thread_root_uri: Optional[str] = Field(
+        default=None, description="URI of the root post in this thread"
+    )
+    thread_position: Optional[ThreadPosition] = Field(
+        default=None, description="Position of this post within the thread"
+    )
+    parent_post_uri: Optional[str] = Field(
+        default=None, description="URI of the direct parent post (for replies)"
+    )
+    thread_depth: Optional[int] = Field(
+        default=None, ge=0, description="Nesting level within the thread (0=root)"
     )
 
     @field_validator("content")
@@ -83,6 +99,28 @@ class BlueskyPost(BaseModel):
     def detect_language(self) -> LanguageType:
         """Manually detect language from post content."""
         return detect_language_from_text(self.content)
+    
+    def is_thread_root(self) -> bool:
+        """Check if this post is the root of a thread."""
+        return self.thread_position == "root"
+    
+    def is_reply(self) -> bool:
+        """Check if this post is a reply to another post."""
+        return self.thread_position in ("reply", "nested_reply")
+    
+    def set_thread_metadata(
+        self, 
+        root_uri: str, 
+        position: ThreadPosition, 
+        depth: int,
+        parent_uri: Optional[str] = None
+    ) -> "BlueskyPost":
+        """Set thread relationship metadata for this post."""
+        self.thread_root_uri = root_uri
+        self.thread_position = position
+        self.thread_depth = depth
+        self.parent_post_uri = parent_uri
+        return self
 
     class Config:
         json_encoders = {

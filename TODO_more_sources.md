@@ -88,3 +88,6 @@ Build your own search index
 
 Recommendation:
 Podcast Index is your best bet - it's specifically designed to be open, comprehensive, and developer-friendly with generous free tiers.Add to Conversation
+
+
+there was an article about mcp & puppeteer to read linkedin - that might be rather cool :)

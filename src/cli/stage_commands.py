@@ -45,11 +45,19 @@ def stages():
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-def collect(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool):
+@click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
+@click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
+@click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
+def collect(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], 
+           expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int):
     """Collect posts from Bluesky. Posts are organized by their publication date."""
     
     parsed_date = parse_date(target_date)
-    console.print(f"🔍 Collecting posts using search '{search}'...")
+    mode_text = "threads" if threads else "posts"
+    console.print(f"🔍 Collecting {mode_text} using search '{search}'...")
+    
+    if threads:
+        console.print(f"   Thread collection enabled: depth={max_thread_depth}, parent_height={max_parent_height}")
     
     try:
         settings = get_settings()
@@ -78,7 +86,10 @@ def collect(target_date: Optional[str], max_posts: int, search: str, config_path
             settings=settings,
             search_definition=search_definition,
             max_posts=max_posts,
-            expand_urls=expand_urls
+            expand_urls=expand_urls,
+            collect_threads=threads,
+            max_thread_depth=max_thread_depth,
+            max_parent_height=max_parent_height
         )
         
         result = asyncio.run(collect_stage.run_collection(parsed_date))
@@ -236,10 +247,13 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
+@click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
+@click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
+@click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
 @click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool):
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool):
     """Run all stages in sequence. Posts organized by publication date."""
     
     parsed_date = parse_date(target_date)
@@ -248,7 +262,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 1: Collect
     console.print("\n[bold blue]Stage 1: Collect[/bold blue]")
     ctx = click.Context(collect)
-    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls)
+    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height)
     
     # Stage 2: Fetch
     console.print("\n[bold blue]Stage 2: Fetch[/bold blue]")

@@ -20,17 +20,22 @@ class CollectStage(InputStage):
     """Collects posts from Bluesky and stores as individual markdown files."""
     
     def __init__(self, settings: Settings, search_definition: Optional[SearchDefinition] = None, 
-                 max_posts: int = 100, expand_urls: bool = True, base_path: Path = Path("stages")):
+                 max_posts: int = 100, expand_urls: bool = True, collect_threads: bool = False,
+                 max_thread_depth: int = 6, max_parent_height: int = 80, base_path: Path = Path("stages")):
         super().__init__("collect", base_path)
         self.settings = settings
         self.search_definition = search_definition or SearchConfig.get_default_config().searches["mcp_mentions"]
         self.max_posts = max_posts
         self.expand_urls = expand_urls
+        self.collect_threads = collect_threads
+        self.max_thread_depth = max_thread_depth
+        self.max_parent_height = max_parent_height
         self.bluesky_client = BlueskyClient(settings)
     
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
         """Collect posts from Bluesky matching search criteria."""
-        logger.info(f"Collecting posts using '{self.search_definition.name}' search")
+        collection_mode = "threads" if self.collect_threads else "posts"
+        logger.info(f"Collecting {collection_mode} using '{self.search_definition.name}' search")
         
         if not self.settings.has_bluesky_credentials:
             logger.error("Bluesky credentials not configured")
@@ -38,16 +43,32 @@ class CollectStage(InputStage):
         
         try:
             async with self.bluesky_client as client:
-                posts = await client.get_posts_by_definition(
+                # First, get initial search results
+                search_posts = await client.get_posts_by_definition(
                     search_definition=self.search_definition,
                     max_posts=self.max_posts
                 )
+                
+                if not search_posts:
+                    logger.info("No posts found from search")
+                    return []
+                
+                # If thread collection is enabled, fetch complete threads
+                if self.collect_threads:
+                    logger.info(f"Fetching complete threads for {len(search_posts)} search results")
+                    posts = await client.get_threads_for_posts(
+                        search_posts, 
+                        depth=self.max_thread_depth,
+                        parent_height=self.max_parent_height
+                    )
+                else:
+                    posts = search_posts
                 
                 # Expand shortened URLs if enabled
                 if self.expand_urls and posts:
                     posts = await self._expand_post_urls(posts)
                 
-                logger.info(f"Collected {len(posts)} posts")
+                logger.info(f"Collected {len(posts)} total posts ({len(search_posts)} from search)")
                 return posts
                 
         except Exception as e:
@@ -121,6 +142,15 @@ class CollectStage(InputStage):
             "stage": "collected",
             "collected_at": datetime.utcnow().isoformat() + 'Z'
         }
+        
+        # Add thread metadata if available
+        if post.thread_root_uri is not None:
+            frontmatter["thread"] = {
+                "root_uri": post.thread_root_uri,
+                "position": post.thread_position,
+                "depth": post.thread_depth,
+                "parent_uri": post.parent_post_uri
+            }
         
         # Create content
         content = f"# Post Content\n\n{post.content}"

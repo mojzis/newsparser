@@ -1,6 +1,6 @@
 import pytest
 
-from src.bluesky.query_builder import LuceneQueryBuilder
+from src.bluesky.query_builders import LuceneQueryBuilder
 from src.config.searches import SearchDefinition
 
 
