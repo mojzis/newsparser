@@ -28,12 +28,14 @@ cli.add_command(stages)
 @click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
 @click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, export_parquet):
+@click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
+@click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
+def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, export_parquet, expand_references, max_reference_depth):
     """Collect posts using stage-based architecture."""
     from src.cli.stage_commands import collect as stage_collect
     ctx = click.Context(stage_collect)
     ctx.invoke(stage_collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, 
-               expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, export_parquet=export_parquet)
+               expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth)
 
 
 @cli.command()
@@ -83,11 +85,13 @@ def report(days_back, regenerate, output_date, bulk, debug):
 @click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet):
+@click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
+@click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
+def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth)
 
 
 @cli.command()

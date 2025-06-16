@@ -321,6 +321,43 @@ class BlueskyClient:
         logger.info(f"Collected {len(all_posts)} MCP-related posts")
         return all_posts
     
+    async def get_post_by_uri(self, uri: str) -> Optional[Any]:
+        """
+        Fetch a single post by its AT protocol URI.
+        
+        Args:
+            uri: AT protocol URI (e.g., at://did:plc:xyz/app.bsky.feed.post/abc123)
+                 or simplified format (at://handle/app.bsky.feed.post/abc123)
+        
+        Returns:
+            Post data from atproto API or None if not found
+        """
+        self._ensure_authenticated()
+        
+        try:
+            # Handle simplified URI format with handle instead of DID
+            if uri.startswith("at://") and not uri.startswith("at://did:"):
+                # Format: at://handle/app.bsky.feed.post/abc123
+                parts = uri.split("/")
+                if len(parts) >= 4:
+                    handle = parts[2]
+                    # Try to resolve handle to get proper URI
+                    # For now, let's try the get_posts method with this URI format
+                    pass
+            
+            # Use the get_posts method from atproto
+            response = await self.client.app.bsky.feed.get_posts(params={"uris": [uri]})
+            
+            if response.posts and len(response.posts) > 0:
+                return response.posts[0]
+            else:
+                logger.debug(f"No post found for URI: {uri}")
+                return None
+                
+        except Exception as e:
+            logger.warning(f"Failed to fetch post by URI {uri}: {e}")
+            return None
+    
     async def get_thread_by_uri(
         self, 
         uri: str, 

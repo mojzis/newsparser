@@ -6,6 +6,7 @@ from typing import Iterator, Optional
 import logging
 
 from src.bluesky.client import BlueskyClient
+from src.bluesky.url_utils import clean_bluesky_urls_from_links, extract_post_uri_from_url
 from src.config.searches import SearchDefinition, SearchConfig
 from src.config.settings import Settings
 from src.models.post import BlueskyPost
@@ -22,7 +23,7 @@ class CollectStage(InputStage):
     def __init__(self, settings: Settings, search_definition: Optional[SearchDefinition] = None, 
                  max_posts: int = 100, expand_urls: bool = True, collect_threads: bool = False,
                  max_thread_depth: int = 6, max_parent_height: int = 80, base_path: Path = Path("stages"),
-                 export_parquet: bool = True):
+                 export_parquet: bool = True, expand_references: bool = True, max_reference_depth: int = 2):
         super().__init__("collect", base_path)
         self.settings = settings
         self.search_definition = search_definition or SearchConfig.get_default_config().searches["mcp_mentions"]
@@ -32,6 +33,9 @@ class CollectStage(InputStage):
         self.max_thread_depth = max_thread_depth
         self.max_parent_height = max_parent_height
         self.export_parquet = export_parquet
+        self.expand_references = expand_references
+        self.max_reference_depth = max_reference_depth
+        self.processed_post_uris = set()  # Track processed posts to avoid duplication
         self.bluesky_client = BlueskyClient(settings)
     
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
@@ -69,6 +73,10 @@ class CollectStage(InputStage):
                 # Expand shortened URLs if enabled
                 if self.expand_urls and posts:
                     posts = await self._expand_post_urls(posts)
+                
+                # Expand Bluesky post references if enabled
+                if self.expand_references and posts:
+                    posts = await self._expand_post_references(posts, depth=0)
                 
                 logger.info(f"Collected {len(posts)} total posts ({len(search_posts)} from search)")
                 return posts
@@ -118,6 +126,103 @@ class CollectStage(InputStage):
             
         logger.info(f"URL expansion completed for {len(posts)} posts")
         return expanded_posts
+    
+    async def _expand_post_references(self, posts: list[BlueskyPost], depth: int) -> list[BlueskyPost]:
+        """
+        Expand Bluesky post references by fetching referenced posts.
+        
+        Args:
+            posts: List of posts to process
+            depth: Current recursion depth
+            
+        Returns:
+            Expanded list of posts including referenced posts
+        """
+        if depth >= self.max_reference_depth:
+            logger.debug(f"Reached maximum reference depth {self.max_reference_depth}")
+            return posts
+        
+        logger.info(f"Expanding Bluesky post references (depth {depth})...")
+        
+        all_posts = []
+        new_posts = []
+        
+        for post in posts:
+            # Skip if we've already processed this post
+            if post.id in self.processed_post_uris:
+                logger.debug(f"Skipping duplicate post: {post.id}")
+                continue
+            
+            # Mark this post as processed
+            self.processed_post_uris.add(post.id)
+            
+            # Separate Bluesky URLs from other URLs
+            original_links = [str(link) for link in post.links]
+            non_bluesky_urls, bluesky_urls = clean_bluesky_urls_from_links(original_links)
+            
+            # Update post to only have non-Bluesky URLs
+            if bluesky_urls:
+                from pydantic import HttpUrl
+                filtered_links = [HttpUrl(url) for url in non_bluesky_urls]
+                
+                # Create new post with filtered links
+                post_dict = post.model_dump()
+                post_dict['links'] = filtered_links
+                post = BlueskyPost(**post_dict)
+                
+                logger.info(f"Removed {len(bluesky_urls)} Bluesky reference(s) from post {post.id}")
+            
+            all_posts.append(post)
+            
+            # Fetch referenced posts
+            for bluesky_url in bluesky_urls:
+                try:
+                    referenced_post = await self._fetch_referenced_post(bluesky_url)
+                    if referenced_post and referenced_post.id not in self.processed_post_uris:
+                        new_posts.append(referenced_post)
+                        logger.info(f"Fetched referenced post: {referenced_post.id}")
+                except Exception as e:
+                    logger.warning(f"Failed to fetch referenced post from {bluesky_url}: {e}")
+        
+        # Recursively expand references in new posts
+        if new_posts:
+            logger.info(f"Found {len(new_posts)} new referenced posts, expanding recursively")
+            expanded_new = await self._expand_post_references(new_posts, depth + 1)
+            all_posts.extend(expanded_new)
+        
+        logger.info(f"Reference expansion completed: {len(all_posts)} total posts")
+        return all_posts
+    
+    async def _fetch_referenced_post(self, bluesky_url: str) -> Optional[BlueskyPost]:
+        """
+        Fetch a single referenced Bluesky post.
+        
+        Args:
+            bluesky_url: Bluesky post URL
+            
+        Returns:
+            BlueskyPost instance or None if fetch failed
+        """
+        try:
+            post_uri = extract_post_uri_from_url(bluesky_url)
+            if not post_uri:
+                logger.warning(f"Failed to extract URI from Bluesky URL: {bluesky_url}")
+                return None
+            
+            # Use the Bluesky client to fetch the post
+            post_data = await self.bluesky_client.get_post_by_uri(post_uri)
+            if not post_data:
+                logger.debug(f"No post found for URI: {post_uri}")
+                return None
+            
+            # Convert to our post model
+            referenced_post = self.bluesky_client._convert_post_to_model(post_data)
+            logger.debug(f"Successfully fetched referenced post: {referenced_post.id}")
+            return referenced_post
+            
+        except Exception as e:
+            logger.warning(f"Failed to fetch referenced post {bluesky_url}: {e}")
+            return None
     
     def post_to_markdown(self, post: BlueskyPost, target_date: date) -> MarkdownFile:
         """Convert a BlueskyPost to a MarkdownFile."""
