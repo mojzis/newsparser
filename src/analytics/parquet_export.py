@@ -46,20 +46,11 @@ async def export_stage_to_parquet(
         
         logger.info(f"Exporting {len(md_files)} {stage_name} records to Parquet for {target_date}")
         
-        # Load data into DataFrame
-        df = model_class.df_from_stage_dir(stage_name, days_back=1)
+        # Load data directly from the target date's files
+        df = model_class.df_from_files(md_files)
         
         if df.empty:
             logger.warning(f"No valid data found for {stage_name} stage on {target_date}")
-            return
-        
-        # Filter to only today's data
-        if '_file_path' in df.columns:
-            date_str = target_date.strftime("%Y-%m-%d")
-            df = df[df['_file_path'].str.contains(date_str)]
-        
-        if df.empty:
-            logger.debug(f"No data for target date {target_date} in {stage_name} stage")
             return
         
         # Create output path

@@ -20,7 +20,39 @@ class AnalyticsBase(BaseModel):
     @classmethod
     def from_frontmatter(cls: Type[T], frontmatter: Dict[str, Any]) -> T:
         """Create model instance from markdown frontmatter."""
-        return cls.model_validate(frontmatter)
+        # Handle nested frontmatter structures based on model type
+        data = frontmatter.copy()
+        
+        # For ArticleEvaluation: merge 'evaluation' nested data
+        if cls.__name__ == 'ArticleEvaluation' and 'evaluation' in frontmatter:
+            if isinstance(frontmatter['evaluation'], dict):
+                # Merge top-level fields with evaluation data, giving priority to evaluation
+                data = {**frontmatter, **frontmatter['evaluation']}
+                # Remove the nested evaluation key to avoid confusion
+                data.pop('evaluation', None)
+        
+        # For BlueskyPost: handle 'engagement' nested data and missing content
+        elif cls.__name__ == 'BlueskyPost':
+            # Handle nested engagement data
+            if 'engagement' in frontmatter and isinstance(frontmatter['engagement'], dict):
+                engagement_data = frontmatter['engagement']
+                data['engagement_metrics'] = engagement_data
+                
+            # Add a placeholder content if missing (content is in markdown body)
+            if 'content' not in data:
+                data['content'] = "Content stored in markdown body"
+        
+        # For FetchResult: extract domain from URL if missing
+        elif cls.__name__ == 'FetchResult':
+            if 'domain' not in data and 'url' in data:
+                try:
+                    from urllib.parse import urlparse
+                    parsed_url = urlparse(str(data['url']))
+                    data['domain'] = parsed_url.netloc
+                except Exception:
+                    data['domain'] = "unknown"
+        
+        return cls.model_validate(data)
     
     def to_pandas_dict(self) -> Dict[str, Any]:
         """
@@ -145,10 +177,20 @@ class AnalyticsBase(BaseModel):
         for col in df.select_dtypes(include=['object']).columns:
             if col.startswith('_'):  # Skip metadata columns
                 continue
-            num_unique = df[col].nunique()
-            num_total = len(df[col])
-            if num_unique / num_total < 0.5 and num_unique < 100:
-                df[col] = df[col].astype('category')
+            
+            # Skip columns that contain lists (unhashable types)
+            try:
+                # Check if any value in the column is a list
+                if df[col].apply(lambda x: isinstance(x, list)).any():
+                    continue
+                
+                num_unique = df[col].nunique()
+                num_total = len(df[col])
+                if num_unique / num_total < 0.5 and num_unique < 100:
+                    df[col] = df[col].astype('category')
+            except (TypeError, ValueError):
+                # Skip columns that cause issues with nunique()
+                continue
         
         # Ensure datetime columns are timezone-aware
         for col in df.select_dtypes(include=['datetime64']).columns:
