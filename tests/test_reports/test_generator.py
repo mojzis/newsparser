@@ -29,7 +29,9 @@ class TestReportGenerator:
                 author="user1.bsky.social",
                 timestamp="1:00 PM",
                 relevance_score=0.9,
-                domain="example.com"
+                domain="example.com",
+                content_type="article",
+                language="en"
             ),
             ReportArticle(
                 url="https://example.com/article2",
@@ -39,7 +41,9 @@ class TestReportGenerator:
                 author="user2.bsky.social",
                 timestamp="2:00 PM",
                 relevance_score=0.8,
-                domain="example.com"
+                domain="example.com",
+                content_type="blog post",
+                language="en"
             )
         ]
     
@@ -55,7 +59,7 @@ class TestReportGenerator:
         # Check file was created
         assert report_path.exists()
         assert report_path.name == "report.html"
-        assert "2024/12/06" in str(report_path)
+        assert "2024-12-06" in str(report_path)
         
         # Check content contains expected elements
         content = report_path.read_text()
@@ -101,7 +105,7 @@ class TestReportGenerator:
         
         assert "MCP Monitor" in html
         assert "December 6, 2024" in html
-        assert "No MCP-related articles found" in html
+        assert "No MCP-related resources found" in html
     
     def test_empty_articles(self, generator):
         """Test report generation with no articles."""
@@ -113,4 +117,4 @@ class TestReportGenerator:
         report_path = generator.generate_daily_report(report_day)
         content = report_path.read_text()
         
-        assert "No MCP-related articles found" in content
+        assert "No MCP-related resources found" in content
