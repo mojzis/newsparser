@@ -5,6 +5,7 @@ from typing import Any, Optional, Literal
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
 from src.utils.language_detection import LanguageType, detect_language_from_text
+from src.models.analytics import AnalyticsBase
 
 ThreadPosition = Literal["root", "reply", "nested_reply"]
 
@@ -15,7 +16,7 @@ class EngagementMetrics(BaseModel):
     replies: int = Field(ge=0, description="Number of replies to the post")
 
 
-class BlueskyPost(BaseModel):
+class BlueskyPost(AnalyticsBase):
     id: str = Field(..., description="Unique identifier for the post")
     author: str = Field(..., description="Author handle/username")
     content: str = Field(..., min_length=1, description="Post content text")

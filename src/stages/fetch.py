@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 class FetchStage(ProcessingStage):
     """Fetches full content from URLs found in posts."""
     
-    def __init__(self, base_path: Path = Path("stages")):
+    def __init__(self, base_path: Path = Path("stages"), export_parquet: bool = True):
         super().__init__("fetch", "collect", base_path)
+        self.export_parquet = export_parquet
         self.fetcher = ArticleFetcher()
         self.extractor = ContentExtractor()
     
@@ -310,4 +311,18 @@ class FetchStage(ProcessingStage):
         }
         
         logger.info(f"Fetch stage completed: {result}")
+        
+        # Export to Parquet if enabled
+        if self.export_parquet and new_urls_fetched > 0:
+            from src.analytics.parquet_export import export_stage_to_parquet
+            from src.models.fetch import FetchResult
+            
+            # Export for each date that had new URLs
+            for date_str in urls_by_date.keys():
+                try:
+                    export_date = date.fromisoformat(date_str)
+                    await export_stage_to_parquet("fetch", FetchResult, export_date, self.export_parquet)
+                except ValueError:
+                    logger.warning(f"Invalid date format for parquet export: {date_str}")
+        
         return result

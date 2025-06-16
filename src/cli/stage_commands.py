@@ -48,8 +48,9 @@ def stages():
 @click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
 @click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
 @click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
 def collect(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], 
-           expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int):
+           expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, export_parquet: bool):
     """Collect posts from Bluesky. Posts are organized by their publication date."""
     
     parsed_date = parse_date(target_date)
@@ -89,7 +90,8 @@ def collect(target_date: Optional[str], max_posts: int, search: str, config_path
             expand_urls=expand_urls,
             collect_threads=threads,
             max_thread_depth=max_thread_depth,
-            max_parent_height=max_parent_height
+            max_parent_height=max_parent_height,
+            export_parquet=export_parquet
         )
         
         result = asyncio.run(collect_stage.run_collection(parsed_date))
@@ -114,13 +116,14 @@ def collect(target_date: Optional[str], max_posts: int, search: str, config_path
 
 @stages.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
-def fetch(days_back: int):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def fetch(days_back: int, export_parquet: bool):
     """Fetch full content from URLs found in collected posts from the last N days."""
     
     console.print(f"🌐 Fetching content from posts in the last {days_back} days...")
     
     try:
-        fetch_stage = FetchStage()
+        fetch_stage = FetchStage(export_parquet=export_parquet)
         result = asyncio.run(fetch_stage.run_fetch(days_back))
         
         console.print(f"✅ Fetch completed:", style="green")
@@ -145,7 +148,8 @@ def fetch(days_back: int):
 @stages.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
-def evaluate(days_back: int, regenerate: bool):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def evaluate(days_back: int, regenerate: bool, export_parquet: bool):
     """Evaluate content relevance using Anthropic API for fetched content from the last N days."""
     
     if regenerate:
@@ -161,7 +165,7 @@ def evaluate(days_back: int, regenerate: bool):
             console.print("Set ANTHROPIC_API_KEY environment variable")
             sys.exit(1)
         
-        evaluate_stage = EvaluateStage(settings)
+        evaluate_stage = EvaluateStage(settings, export_parquet=export_parquet)
         result = asyncio.run(evaluate_stage.run_evaluate(days_back, regenerate=regenerate))
         
         console.print(f"✅ Evaluation completed:", style="green")
@@ -253,7 +257,8 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
 @click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool):
     """Run all stages in sequence. Posts organized by publication date."""
     
     parsed_date = parse_date(target_date)
@@ -262,17 +267,17 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 1: Collect
     console.print("\n[bold blue]Stage 1: Collect[/bold blue]")
     ctx = click.Context(collect)
-    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height)
+    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, export_parquet=export_parquet)
     
     # Stage 2: Fetch
     console.print("\n[bold blue]Stage 2: Fetch[/bold blue]")
     ctx = click.Context(fetch)
-    ctx.invoke(fetch, days_back=days_back)
+    ctx.invoke(fetch, days_back=days_back, export_parquet=export_parquet)
     
     # Stage 3: Evaluate
     console.print("\n[bold blue]Stage 3: Evaluate[/bold blue]")
     ctx = click.Context(evaluate)
-    ctx.invoke(evaluate, days_back=days_back, regenerate=regenerate_evaluations)
+    ctx.invoke(evaluate, days_back=days_back, regenerate=regenerate_evaluations, export_parquet=export_parquet)
     
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")

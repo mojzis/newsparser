@@ -35,6 +35,8 @@ make domain a link, too
 
 improve prompt for key topics, now its mostly mcp or ai ... we need to go deeper within that
 
+
+
 anthropic: store costs
 
 
@@ -146,3 +148,5 @@ types of content
 
 add some verification of the language check - it doesnt seem to work ? - use html tag first
 content type wrong too: youtube marked as article ... blog in url - its a blog :)
+
+I would like to improve the prompt to anthropic for key_topics in @src/evaluation/anthropic_client.py - currently its too often mcp or ai, I would like to get something that distinguishes the content within that scope. Can you please try a better way of formulating that ?

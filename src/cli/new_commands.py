@@ -27,31 +27,34 @@ cli.add_command(stages)
 @click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
 @click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
 @click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
-def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, export_parquet):
     """Collect posts using stage-based architecture."""
     from src.cli.stage_commands import collect as stage_collect
     ctx = click.Context(stage_collect)
     ctx.invoke(stage_collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, 
-               expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height)
+               expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, export_parquet=export_parquet)
 
 
 @cli.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
-def fetch(days_back):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def fetch(days_back, export_parquet):
     """Fetch content from URLs found in posts from the last N days."""
     from src.cli.stage_commands import fetch as stage_fetch
     ctx = click.Context(stage_fetch)
-    ctx.invoke(stage_fetch, days_back=days_back)
+    ctx.invoke(stage_fetch, days_back=days_back, export_parquet=export_parquet)
 
 
 @cli.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
-def evaluate(days_back, regenerate):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def evaluate(days_back, regenerate, export_parquet):
     """Evaluate content from fetched URLs in the last N days."""
     from src.cli.stage_commands import evaluate as stage_evaluate
     ctx = click.Context(stage_evaluate)
-    ctx.invoke(stage_evaluate, days_back=days_back, regenerate=regenerate)
+    ctx.invoke(stage_evaluate, days_back=days_back, regenerate=regenerate, export_parquet=export_parquet)
 
 
 @cli.command()
@@ -79,11 +82,12 @@ def report(days_back, regenerate, output_date, bulk, debug):
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs and unevaluated content (default: 7)")
 @click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
 @click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations):
+@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet)
 
 
 @cli.command()

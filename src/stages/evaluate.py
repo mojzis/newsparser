@@ -17,9 +17,10 @@ logger = logging.getLogger(__name__)
 class EvaluateStage(ProcessingStage):
     """Evaluates content relevance using Anthropic API."""
     
-    def __init__(self, settings: Settings, base_path: Path = Path("stages")):
+    def __init__(self, settings: Settings, base_path: Path = Path("stages"), export_parquet: bool = True):
         super().__init__("evaluate", "fetch", base_path)
         self.settings = settings
+        self.export_parquet = export_parquet
         self.evaluator = AnthropicEvaluator(settings)
     
     def should_process_item(self, input_path: Path, target_date: date) -> bool:
@@ -294,4 +295,18 @@ This content was evaluated for MCP relevance.
         }
         
         logger.info(f"Evaluate stage completed: {result}")
+        
+        # Export to Parquet if enabled
+        if self.export_parquet and new_evaluations > 0:
+            from src.analytics.parquet_export import export_stage_to_parquet
+            from src.models.evaluation import ArticleEvaluation
+            
+            # Export for each date that had new evaluations
+            for date_str in evaluations_by_date.keys():
+                try:
+                    export_date = date.fromisoformat(date_str)
+                    await export_stage_to_parquet("evaluate", ArticleEvaluation, export_date, self.export_parquet)
+                except ValueError:
+                    logger.warning(f"Invalid date format for parquet export: {date_str}")
+        
         return result

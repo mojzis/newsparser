@@ -21,7 +21,8 @@ class CollectStage(InputStage):
     
     def __init__(self, settings: Settings, search_definition: Optional[SearchDefinition] = None, 
                  max_posts: int = 100, expand_urls: bool = True, collect_threads: bool = False,
-                 max_thread_depth: int = 6, max_parent_height: int = 80, base_path: Path = Path("stages")):
+                 max_thread_depth: int = 6, max_parent_height: int = 80, base_path: Path = Path("stages"),
+                 export_parquet: bool = True):
         super().__init__("collect", base_path)
         self.settings = settings
         self.search_definition = search_definition or SearchConfig.get_default_config().searches["mcp_mentions"]
@@ -30,6 +31,7 @@ class CollectStage(InputStage):
         self.collect_threads = collect_threads
         self.max_thread_depth = max_thread_depth
         self.max_parent_height = max_parent_height
+        self.export_parquet = export_parquet
         self.bluesky_client = BlueskyClient(settings)
     
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
@@ -264,4 +266,13 @@ class CollectStage(InputStage):
         }
         
         logger.info(f"Collection completed: {result}")
+        
+        # Export to Parquet if enabled
+        if self.export_parquet and processed > 0:
+            from src.analytics.parquet_export import export_stage_to_parquet
+            from src.models.post import BlueskyPost
+            
+            for post_date in posts_by_date.keys():
+                await export_stage_to_parquet("collect", BlueskyPost, post_date, self.export_parquet)
+        
         return result

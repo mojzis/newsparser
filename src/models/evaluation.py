@@ -5,8 +5,10 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
+from src.models.analytics import AnalyticsBase
 
-class ArticleEvaluation(BaseModel):
+
+class ArticleEvaluation(AnalyticsBase):
     """Evaluation result for an article from Anthropic API."""
     
     url: HttpUrl = Field(..., description="Article URL")
