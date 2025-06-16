@@ -3,7 +3,7 @@
 ## Overview
 Implemented a generic framework for converting markdown frontmatter to Pydantic models, then to Pandas DataFrames, and finally to Parquet files for streamlined analytics.
 
-## Implementation Status: ✅ COMPLETE
+## Implementation Status: ✅ COMPLETE & TESTED
 
 ### ✅ 1. Base Analytics Model (`src/models/analytics.py`)
 Created `AnalyticsBase` class extending Pydantic's BaseModel with:
@@ -115,6 +115,8 @@ poetry run nsp run-all --search mcp_tag --max-posts 50 --no-export-parquet
 - ✅ Type-safe data loading with proper error handling
 - ✅ Consistent analytics across all stages
 - ✅ Support for schema evolution
+- ✅ Handles nested frontmatter structures correctly
+- ✅ Robust DataFrame optimization with list support
 
 ## Technical Details
 
@@ -148,6 +150,19 @@ Nested structures are automatically flattened:
 - Malformed frontmatter files are logged but don't break the export
 - Invalid date formats are handled gracefully
 - Empty DataFrames are handled correctly
+
+## Test Results
+- **Collect Stage**: Successfully exports post data with flattened engagement metrics
+  - Example: 19 records exported to `parquet/collect/2025-06-16.parquet` (14.3KB)
+  - Nested `engagement` → `engagement_metrics_likes`, `engagement_metrics_reposts`, etc.
+
+- **Evaluate Stage**: Successfully exports evaluation data with merged frontmatter
+  - Example: 3 records exported to `parquet/evaluate/2025-06-15.parquet` (15.4KB)
+  - Nested `evaluation` data merged to top level
+
+- **Fetch Stage**: Successfully exports fetch results with auto-generated domains
+  - Missing `domain` fields automatically extracted from URLs
+  - Error handling for malformed URLs
 
 ## Future Enhancements
 - Partitioned Parquet files by date for better query performance
