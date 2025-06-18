@@ -15,9 +15,11 @@ class ReportArticle(BaseModel):
     perex: str = Field(..., description="Witty summary for display")
     
     # Bluesky post info
+    post_id: str = Field(..., description="Post ID")
     bluesky_url: HttpUrl = Field(..., description="Link to original Bluesky post")
     author: str = Field(..., description="Bluesky author handle")
     timestamp: str = Field(..., description="Formatted timestamp")
+    created_at: datetime = Field(..., description="Raw creation datetime")
     
     # Metadata
     relevance_score: float = Field(..., ge=0.0, le=1.0, description="Relevance score")
@@ -58,9 +60,11 @@ class ReportArticle(BaseModel):
             url=evaluation["url"],
             title=evaluation.get("title", "Untitled"),
             perex=perex,
+            post_id=actual_post_id,
             bluesky_url=bluesky_url,
             author=author,
             timestamp=timestamp,
+            created_at=created_at,
             relevance_score=evaluation["relevance_score"],
             domain=evaluation["domain"],
             content_type=evaluation.get("content_type", "article"),
