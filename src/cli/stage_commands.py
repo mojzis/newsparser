@@ -41,11 +41,11 @@ def stages():
 
 @stages.command()
 @click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
-@click.option("--max-posts", default=200, help="Maximum posts to collect")
+@click.option("--max-posts", default=400, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-@click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
+@click.option("--threads/--no-threads", default=True, help="Collect entire threads instead of just individual posts")
 @click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
 @click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
@@ -200,7 +200,9 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool):
 @click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
 @click.option("--bulk/--single", default=False, help="Generate reports for all days with content in range (default: auto-detect)")
 @click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
-def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: bool, debug: bool):
+@click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
+@click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
+def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: bool, debug: bool, sitemap: bool, rss: bool):
     """Generate report from evaluated content in the last N days."""
     
     parsed_output_date = parse_date(output_date)
@@ -218,7 +220,7 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
         report_stage = ReportStage()
         
         if bulk:
-            result = asyncio.run(report_stage.run_bulk_report(days_back, regenerate, parsed_output_date, debug))
+            result = asyncio.run(report_stage.run_bulk_report(days_back, regenerate, parsed_output_date, debug, sitemap, rss))
             
             console.print(f"✅ Bulk report generation completed:", style="green")
             console.print(f"  • Reference date: {result['reference_date']}")
@@ -227,7 +229,7 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
             console.print(f"  • Total articles: {result['total_articles']}")
             console.print(f"  • Dates processed: {', '.join(result['dates_processed'])}")
         else:
-            result = asyncio.run(report_stage.run_report(days_back, regenerate, parsed_output_date, debug))
+            result = asyncio.run(report_stage.run_report(days_back, regenerate, parsed_output_date, debug, sitemap, rss))
             
             if result.get("status") == "already_exists":
                 console.print(f"ℹ️  Report already exists for {parsed_output_date}", style="yellow")
@@ -252,11 +254,11 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 
 @stages.command()
 @click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
-@click.option("--max-posts", default=200, help="Maximum posts to collect")
+@click.option("--max-posts", default=500, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-@click.option("--threads/--no-threads", default=False, help="Collect entire threads instead of just individual posts")
+@click.option("--threads/--no-threads", default=True, help="Collect entire threads instead of just individual posts")
 @click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
 @click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
 @click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
@@ -265,7 +267,9 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
 @click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
 @click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int):
+@click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
+@click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int, sitemap: bool, rss: bool):
     """Run all stages in sequence. Posts organized by publication date."""
     
     parsed_date = parse_date(target_date)
@@ -289,7 +293,7 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")
     ctx = click.Context(report)
-    ctx.invoke(report, days_back=days_back, regenerate=regenerate_reports, output_date=target_date)
+    ctx.invoke(report, days_back=days_back, regenerate=regenerate_reports, output_date=target_date, sitemap=sitemap, rss=rss)
     
     console.print(f"\n✅ All stages completed for {parsed_date}!", style="green")
 

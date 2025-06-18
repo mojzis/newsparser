@@ -374,7 +374,7 @@ class ReportStage(ProcessingStage):
         stage_dir = self.ensure_stage_dir(target_date)
         return stage_dir / "report_meta.md"
     
-    async def run_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None, debug: bool = False) -> dict:
+    async def run_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None, debug: bool = False, generate_sitemap: bool = True, generate_rss: bool = True) -> dict:
         """
         Run the report stage, scanning evaluated content from the last N days.
         
@@ -382,6 +382,9 @@ class ReportStage(ProcessingStage):
             days_back: Number of days to look back for evaluated content (default: 7)
             regenerate: Whether to regenerate existing reports (default True)
             output_date: Date to use for the report filename (defaults to today)
+            debug: Whether to include debug information
+            generate_sitemap: Whether to generate sitemap.xml (default True)
+            generate_rss: Whether to generate rss.xml (default True)
         
         Returns:
             Summary of report generation results
@@ -456,10 +459,9 @@ class ReportStage(ProcessingStage):
             daily_path = generator.generate_daily_report(report_day)
             html_content = True
             logger.info(f"Generated HTML report: {daily_path}")
-            
-            # Generate enhanced homepage with minimum 10 articles
-            day_sections = self.collect_homepage_articles(min_articles=10, debug=debug)
-            
+            # Generate enhanced homepage with minimum 7 articles
+            day_sections = self.collect_homepage_articles(min_articles=7, debug=debug)
+
             # Get archive dates by checking for recent evaluations (beyond the day sections)
             archive_links = []
             days_covered = {section.date for section in day_sections}
@@ -489,6 +491,27 @@ class ReportStage(ProcessingStage):
             homepage_path = generator.generate_homepage(homepage_data)
             homepage_content = True
             logger.info(f"Generated homepage: {homepage_path}")
+            
+            # Generate sitemap if requested
+            if generate_sitemap:
+                try:
+                    sitemap_path = generator.generate_sitemap()
+                    logger.info(f"Generated sitemap: {sitemap_path}")
+                except Exception as e:
+                    logger.error(f"Failed to generate sitemap: {e}")
+            
+            # Generate RSS feed if requested
+            if generate_rss:
+                try:
+                    # Collect all recent articles for RSS feed
+                    all_articles = []
+                    for section in day_sections:
+                        all_articles.extend(section.articles)
+                    
+                    rss_path = generator.generate_rss(all_articles)
+                    logger.info(f"Generated RSS feed: {rss_path}")
+                except Exception as e:
+                    logger.error(f"Failed to generate RSS feed: {e}")
             
         except Exception as e:
             logger.error(f"Failed to generate HTML reports: {e}")
@@ -533,7 +556,7 @@ class ReportStage(ProcessingStage):
         logger.info(f"Report stage completed: {result}")
         return result
     
-    async def run_bulk_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None, debug: bool = False) -> dict:
+    async def run_bulk_report(self, days_back: int = 7, regenerate: bool = True, output_date: Optional[date] = None, debug: bool = False, generate_sitemap: bool = True, generate_rss: bool = True) -> dict:
         """
         Generate reports for each day that has evaluated content in the last N days.
         
@@ -541,6 +564,9 @@ class ReportStage(ProcessingStage):
             days_back: Number of days to look back for evaluated content (default: 7)
             regenerate: Whether to regenerate existing reports (default True)
             output_date: Reference date to work backwards from (defaults to today)
+            debug: Whether to include debug information
+            generate_sitemap: Whether to generate sitemap.xml (default True)
+            generate_rss: Whether to generate rss.xml (default True)
         
         Returns:
             Summary of bulk report generation results
@@ -572,8 +598,8 @@ class ReportStage(ProcessingStage):
                     continue
                 
                 try:
-                    # Generate report for this specific date
-                    result = await self.run_report(0, regenerate, check_date, debug)  # days_back=0 to avoid recursion
+                    # Generate report for this specific date (without sitemap/RSS for individual reports)
+                    result = await self.run_report(0, regenerate, check_date, debug, generate_sitemap=False, generate_rss=False)  # days_back=0 to avoid recursion
                     
                     if result.get("report_generated"):
                         reports_generated += 1
@@ -623,6 +649,28 @@ class ReportStage(ProcessingStage):
                 generator = ReportGenerator()
                 homepage_path = generator.generate_homepage(homepage_data)
                 logger.info(f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}")
+                
+                # Generate sitemap if requested
+                if generate_sitemap:
+                    try:
+                        sitemap_path = generator.generate_sitemap()
+                        logger.info(f"✅ Generated sitemap: {sitemap_path}")
+                    except Exception as e:
+                        logger.error(f"❌ Failed to generate sitemap: {e}")
+                
+                # Generate RSS feed if requested
+                if generate_rss:
+                    try:
+                        # Collect all recent articles for RSS feed
+                        all_articles = []
+                        for section in day_sections:
+                            all_articles.extend(section.articles)
+                        
+                        rss_path = generator.generate_rss(all_articles)
+                        logger.info(f"✅ Generated RSS feed: {rss_path}")
+                    except Exception as e:
+                        logger.error(f"❌ Failed to generate RSS feed: {e}")
+                        
             except Exception as e:
                 logger.error(f"❌ Failed to update homepage: {e}")
         

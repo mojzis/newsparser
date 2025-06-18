@@ -65,11 +65,13 @@ def evaluate(days_back, regenerate, export_parquet):
 @click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
 @click.option("--bulk/--single", default=False, help="Generate reports for all days with content in range (default: auto-detect)")
 @click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
-def report(days_back, regenerate, output_date, bulk, debug):
+@click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
+@click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
+def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss):
     """Generate report from evaluated content in the last N days."""
     from src.cli.stage_commands import report as stage_report
     ctx = click.Context(stage_report)
-    ctx.invoke(stage_report, days_back=days_back, regenerate=regenerate, output_date=output_date, bulk=bulk, debug=debug)
+    ctx.invoke(stage_report, days_back=days_back, regenerate=regenerate, output_date=output_date, bulk=bulk, debug=debug, sitemap=sitemap, rss=rss)
 
 
 @cli.command()
@@ -87,11 +89,13 @@ def report(days_back, regenerate, output_date, bulk, debug):
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
 @click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
 @click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth):
+@click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
+@click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
+def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth, sitemap, rss):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth, sitemap=sitemap, rss=rss)
 
 
 @cli.command()
