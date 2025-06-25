@@ -1,12 +1,19 @@
 
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 
+content type - doesnt work ? blog is not titled as blog - review, fix ! also type of content should be product release announcement like https://www.algolia.com/about/news/algolia-introduces-context-aware-retrieval-for-the-agentic-era
+
+work on measuring quality
 
 data storage, how is it gonna work with github, where to store the md files ?
 
+ruff !
+
+parquet - maybe store it all every day ? (so parquet will be per day on which it was ran, typically goint 7 days back - this way we can track potential changes - maybe check that the text content doesnt go there to keep it smaller)
 
 hacker news and alike: https://lobste.rs/s/wvefir/s_mcp_stands_for_security - use the actual link ...
 
+classes - it looks like we have some duplication now ? we have a class for stooring and a class for loading ... could we maybe check that ?
 
 content tags ?
 

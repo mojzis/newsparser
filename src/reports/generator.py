@@ -63,7 +63,8 @@ class ReportGenerator:
         template = self.env.get_template("daily.html")
         html_content = template.render(
             date_formatted=report_day.date_formatted,
-            articles=report_day.articles
+            articles=report_day.articles,
+            active_menu='home'
         )
         
         # Write to file
@@ -92,7 +93,8 @@ class ReportGenerator:
             today=homepage_data.today,
             today_articles=homepage_data.today_articles,
             day_sections=homepage_data.day_sections,
-            archive_dates=homepage_data.archive_dates
+            archive_dates=homepage_data.archive_dates,
+            active_menu='home'
         )
         
         # Write to file

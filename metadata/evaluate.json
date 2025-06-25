@@ -1,0 +1,126 @@
+{
+  "name": "Evaluate Stage",
+  "description": "AI-powered evaluations of fetched articles",
+  "filePattern": "parquet/evaluate/by-run-date/{YYYY-MM-DD}_last_7_days.parquet",
+  "overview": "Anthropic API evaluation results analyzing articles for MCP relevance, with summaries and classification",
+  "columns": [
+    {
+      "name": "url",
+      "type": "string",
+      "category": "core",
+      "description": "The evaluated article URL"
+    },
+    {
+      "name": "is_mcp_related",
+      "type": "boolean",
+      "category": "evaluation",
+      "description": "Is article MCP-related"
+    },
+    {
+      "name": "relevance_score",
+      "type": "float",
+      "category": "evaluation",
+      "range": [0.0, 1.0],
+      "description": "Relevance score (0-1)"
+    },
+    {
+      "name": "summary",
+      "type": "string",
+      "category": "evaluation",
+      "maxLength": 500,
+      "description": "Brief article summary"
+    },
+    {
+      "name": "perex",
+      "type": "string",
+      "category": "evaluation",
+      "maxLength": 200,
+      "description": "Engaging display summary"
+    },
+    {
+      "name": "key_topics",
+      "type": "array<string>",
+      "category": "evaluation",
+      "description": "Key topics discussed"
+    },
+    {
+      "name": "content_type",
+      "type": "string",
+      "category": "classification",
+      "values": ["video", "newsletter", "article", "blog post", "product update", "invite"],
+      "description": "Type of content"
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "category": "classification",
+      "description": "Language code (en, es, fr, etc.)"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "category": "metadata",
+      "nullable": true,
+      "description": "Article title"
+    },
+    {
+      "name": "author",
+      "type": "string",
+      "category": "metadata",
+      "nullable": true,
+      "description": "Article author"
+    },
+    {
+      "name": "medium",
+      "type": "string",
+      "category": "metadata",
+      "nullable": true,
+      "description": "Publication medium"
+    },
+    {
+      "name": "domain",
+      "type": "string",
+      "category": "metadata",
+      "description": "Article domain"
+    },
+    {
+      "name": "published_date",
+      "type": "datetime",
+      "category": "metadata",
+      "nullable": true,
+      "description": "Publication date"
+    },
+    {
+      "name": "evaluated_at",
+      "type": "datetime",
+      "category": "processing",
+      "description": "When evaluated (UTC)"
+    },
+    {
+      "name": "word_count",
+      "type": "integer",
+      "category": "processing",
+      "description": "Article word count"
+    },
+    {
+      "name": "truncated",
+      "type": "boolean",
+      "category": "processing",
+      "description": "Was content truncated"
+    },
+    {
+      "name": "error",
+      "type": "string",
+      "category": "processing",
+      "nullable": true,
+      "description": "Error if evaluation failed"
+    }
+  ],
+  "categories": {
+    "core": "Essential evaluation data",
+    "evaluation": "AI evaluation results",
+    "classification": "Content classification",
+    "metadata": "Article metadata",
+    "processing": "Processing information"
+  }
+}

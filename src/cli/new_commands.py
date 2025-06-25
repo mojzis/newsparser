@@ -75,6 +75,14 @@ def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss):
 
 
 @cli.command()
+def publish():
+    """Publish DuckDB query interface to output directory."""
+    from src.cli.stage_commands import publish as stage_publish
+    ctx = click.Context(stage_publish)
+    ctx.invoke(stage_publish)
+
+
+@cli.command()
 @click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
 @click.option("--max-posts", default=100, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
@@ -91,11 +99,12 @@ def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss):
 @click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
 @click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth, sitemap, rss):
+@click.option("--publish/--no-publish", default=True, help="Publish DuckDB query interface (default: True)")
+def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth, sitemap, rss, publish):
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
-    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth, sitemap=sitemap, rss=rss)
+    ctx.invoke(stage_run_all, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, days_back=days_back, regenerate_reports=regenerate_reports, regenerate_evaluations=regenerate_evaluations, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth, sitemap=sitemap, rss=rss, publish=publish)
 
 
 @cli.command()

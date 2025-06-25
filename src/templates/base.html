@@ -5,22 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}MCP Monitor{% endblock %}</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            max-width: 800px; 
-            margin: 40px auto; 
-            padding: 0 20px;
             background: white;
-            color: #1a1a1a;
+            color: #333;
             line-height: 1.6;
         }
+        
+        .main-content {
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
+        
         a { 
             color: #0066cc; 
             text-decoration: none;
             transition: color 0.2s ease;
         }
-        a:visited { 
-            color: #6633cc; 
+        .main-content a:visited { 
+            color: #0066cc; 
         }
         a:hover {
             color: #0052a3;
@@ -90,7 +101,7 @@
         .nav-link {
             margin-top: 40px;
             padding-top: 24px;
-            border-top: 1px solid #e0e0e0;
+            /* border-top: 1px solid #e0e0e0; */
             color: #666;
             font-size: 14px;
         }
@@ -134,11 +145,82 @@
             color: #666;
         }
         
+        /* Navigation styles */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem 0;
+            margin-bottom: 0;
+        }
+        
+        .nav-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand a {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+        }
+        
+        .nav-item {
+            margin: 0;
+        }
+        
+        .nav-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .nav-link:hover {
+            background-color: #34495e;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
         /* Responsive improvements */
         @media (max-width: 600px) {
             body {
                 margin: 20px auto;
                 padding: 0 16px;
+            }
+            .navbar {
+                margin-bottom: 20px;
+            }
+            .nav-container {
+                padding: 0 16px;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .nav-menu {
+                gap: 1rem;
+            }
+            .nav-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 14px;
             }
             .header {
                 font-size: 24px;
@@ -155,6 +237,30 @@
     </style>
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/index.html">Bluesky MCP Monitor</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/index.html" class="nav-link{% if active_menu == 'home' %} active{% endif %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/query/duckdb.html" class="nav-link{% if active_menu == 'query' %} active{% endif %}">Query</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/content_stats.html" class="nav-link{% if active_menu == 'stats' %} active{% endif %}">Stats</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/about.html" class="nav-link{% if active_menu == 'about' %} active{% endif %}">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
 </body>
 </html>

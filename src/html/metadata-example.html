@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parquet Schema Viewer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .stage-selector {
+            margin: 20px 0;
+        }
+        .stage-button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: 2px solid #3498db;
+            background: white;
+            color: #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .stage-button:hover {
+            background: #3498db;
+            color: white;
+        }
+        .stage-button.active {
+            background: #2980b9;
+            color: white;
+            border-color: #2980b9;
+        }
+        .schema-info {
+            margin: 20px 0;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 5px;
+        }
+        .columns-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .columns-table th {
+            background: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .columns-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .columns-table tr:hover {
+            background: #f8f9fa;
+        }
+        .category {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .category-core { background: #e3f2fd; color: #1976d2; }
+        .category-extracted { background: #f3e5f5; color: #7b1fa2; }
+        .category-engagement { background: #e8f5e9; color: #388e3c; }
+        .category-thread { background: #fff3e0; color: #f57c00; }
+        .category-content { background: #fce4ec; color: #c2185b; }
+        .category-error { background: #ffebee; color: #d32f2f; }
+        .category-relationship { background: #e0f2f1; color: #00796b; }
+        .category-evaluation { background: #f3e5f5; color: #7b1fa2; }
+        .category-classification { background: #e8eaf6; color: #3f51b5; }
+        .category-metadata { background: #efebe9; color: #5d4037; }
+        .category-processing { background: #e0e0e0; color: #616161; }
+        .type {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .nullable {
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Parquet Schema Viewer</h1>
+        <p>Interactive documentation for the Bluesky MCP Monitor parquet files</p>
+        
+        <div class="stage-selector">
+            <button class="stage-button active" onclick="loadStage('collect')">Collect Stage</button>
+            <button class="stage-button" onclick="loadStage('fetch')">Fetch Stage</button>
+            <button class="stage-button" onclick="loadStage('evaluate')">Evaluate Stage</button>
+        </div>
+
+        <div id="schema-content"></div>
+    </div>
+
+    <script>
+        let schemas = {};
+        
+        // Load all schemas
+        async function loadSchemas() {
+            const stages = ['collect', 'fetch', 'evaluate'];
+            for (const stage of stages) {
+                try {
+                    const response = await fetch(`${stage}.json`);
+                    schemas[stage] = await response.json();
+                } catch (error) {
+                    console.error(`Failed to load ${stage}.json:`, error);
+                }
+            }
+            // Load initial stage
+            loadStage('collect');
+        }
+
+        function loadStage(stageName) {
+            // Update button states
+            document.querySelectorAll('.stage-button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(stageName)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            const schema = schemas[stageName];
+            if (!schema) {
+                document.getElementById('schema-content').innerHTML = '<p>Schema not loaded</p>';
+                return;
+            }
+
+            const content = `
+                <div class="schema-info">
+                    <h2>${schema.name}</h2>
+                    <p><strong>Description:</strong> ${schema.description}</p>
+                    <p><strong>File Pattern:</strong> <code>${schema.filePattern}</code></p>
+                    <p><strong>Overview:</strong> ${schema.overview}</p>
+                </div>
+
+                <h3>Column Definitions</h3>
+                <table class="columns-table">
+                    <thead>
+                        <tr>
+                            <th>Column Name</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${schema.columns.map(col => `
+                            <tr>
+                                <td><strong>${col.name}</strong> ${col.nullable ? '<span class="nullable">(nullable)</span>' : ''}</td>
+                                <td class="type">${col.type}</td>
+                                <td><span class="category category-${col.category}">${col.category}</span></td>
+                                <td>${col.description}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <h3>Categories</h3>
+                <ul>
+                    ${Object.entries(schema.categories).map(([key, value]) => 
+                        `<li><span class="category category-${key}">${key}</span>: ${value}</li>`
+                    ).join('')}
+                </ul>
+            `;
+
+            document.getElementById('schema-content').innerHTML = content;
+        }
+
+        // Load schemas when page loads
+        loadSchemas();
+    </script>
+</body>
+</html>

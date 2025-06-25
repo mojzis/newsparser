@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuckDB Parquet Query Tool - With R2 Support</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .panel h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .data-sources {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .data-source {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        .data-source h3 {
+            margin-bottom: 10px;
+            color: #34495e;
+        }
+        
+        .data-source.active {
+            border-color: #3498db;
+            background: #f8f9ff;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background: #2980b9;
+        }
+        
+        .r2-options {
+            margin-bottom: 15px;
+        }
+        
+        .r2-options label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .r2-options input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #229954;
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .loaded-files {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .file-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .file-badge.remote {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .query-section {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .query-sidebar {
+            flex: 0 0 300px;
+        }
+        
+        .query-main {
+            flex: 1;
+        }
+        
+        .example-queries {
+            margin-bottom: 15px;
+        }
+        
+        .example-queries select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .query-editor {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+            background: #f8f9fa;
+        }
+        
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .results-section {
+            overflow-x: auto;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        .results-table th {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        
+        .results-table td {
+            padding: 8px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .results-meta {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .data-sources {
+                flex-direction: column;
+            }
+            
+            .query-section {
+                flex-direction: column;
+            }
+            
+            .query-sidebar {
+                flex: 1;
+                width: 100%;
+            }
+        }
+        
+        /* Navigation styles */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem 0;
+            margin-bottom: 20px;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand a {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+        }
+        
+        .nav-item {
+            margin: 0;
+        }
+        
+        .nav-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .nav-link:hover {
+            background-color: #34495e;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/index.html">Bluesky MCP Monitor</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/index.html" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/query/duckdb.html" class="nav-link active">Query</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/content_stats.html" class="nav-link">Stats</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/about.html" class="nav-link">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="header">
+            <h1>DuckDB Parquet Query Tool</h1>
+            <div class="status" id="status">Initializing DuckDB...</div>
+        </div>
+
+        <div class="panel">
+            <h2>Data Sources</h2>
+            <div class="data-sources">
+                <div class="data-source" id="localSource">
+                    <h3>📁 Local Files</h3>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" multiple accept=".parquet" />
+                        <label for="fileInput" class="file-input-label">Choose Parquet Files</label>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">Upload parquet files from your computer</p>
+                </div>
+                
+                <div class="data-source" id="r2Source">
+                    <h3>☁️ R2 Storage</h3>
+                    <div class="r2-options">
+                        <label for="r2BaseUrl">R2 Base URL:</label>
+                        <input type="text" id="r2BaseUrl" placeholder="https://your-bucket.r2.dev" />
+                    </div>
+                    <div class="r2-options">
+                        <label for="r2Date">Date (YYYY-MM-DD):</label>
+                        <input type="date" id="r2Date" />
+                    </div>
+                    <button id="loadFromR2" class="btn btn-primary">Load from R2</button>
+                    <p style="font-size: 14px; color: #666; margin-top: 10px;">Load parquet files directly from R2 storage</p>
+                </div>
+            </div>
+            
+            <div class="loaded-files" id="loadedFiles"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Query Editor</h2>
+            <div class="query-section">
+                <div class="query-sidebar">
+                    <div class="example-queries">
+                        <label for="exampleQueries">Example Queries:</label>
+                        <select id="exampleQueries">
+                            <option value="">-- Select an example --</option>
+                            <optgroup label="Basic Queries">
+                                <option value="SHOW TABLES;">Show all tables</option>
+                                <option value="SELECT * FROM collect LIMIT 10;">First 10 posts</option>
+                                <option value="SELECT * FROM fetch WHERE fetch_status = 'error' LIMIT 10;">Failed fetches</option>
+                                <option value="SELECT * FROM evaluate WHERE is_mcp_related = true LIMIT 10;">MCP-related content</option>
+                            </optgroup>
+                            <optgroup label="Collect Analysis">
+                                <option value="SELECT author, COUNT(*) as post_count FROM collect GROUP BY author ORDER BY post_count DESC LIMIT 20;">Top posters</option>
+                                <option value="SELECT DATE(created_at) as date, COUNT(*) as posts FROM collect GROUP BY date ORDER BY date;">Posts per day</option>
+                                <option value="SELECT unnest(tags) as tag, COUNT(*) as count FROM collect GROUP BY tag ORDER BY count DESC LIMIT 20;">Popular hashtags</option>
+                            </optgroup>
+                            <optgroup label="Fetch Analysis">
+                                <option value="SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetch WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;">Top domains</option>
+                                <option value="SELECT error_type, COUNT(*) as count FROM fetch WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;">Error breakdown</option>
+                            </optgroup>
+                            <optgroup label="Evaluate Analysis">
+                                <option value="SELECT content_type, COUNT(*) as count FROM evaluate GROUP BY content_type ORDER BY count DESC;">Content types</option>
+                                <option value="SELECT language, COUNT(*) as count FROM evaluate GROUP BY language ORDER BY count DESC;">Languages</option>
+                                <option value="SELECT title, relevance_score, perex FROM evaluate WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;">Top MCP content</option>
+                            </optgroup>
+                            <optgroup label="Cross-Stage Analysis">
+                                <option value="SELECT c.author, COUNT(DISTINCT e.url) as mcp_articles FROM collect c JOIN fetch f ON f.url = ANY(c.links) JOIN evaluate e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY c.author ORDER BY mcp_articles DESC LIMIT 20;">Authors sharing MCP content</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <h3 style="font-size: 16px; margin-bottom: 10px;">Quick Stats</h3>
+                        <div id="quickStats" style="font-size: 14px; color: #666;">
+                            Load files to see stats
+                        </div>
+                    </div>
+                </div>
+                <div class="query-main">
+                    <textarea id="queryEditor" class="query-editor" placeholder="Enter your SQL query here...">SELECT * FROM collect LIMIT 10;</textarea>
+                    <div class="controls">
+                        <button id="runQuery" class="btn btn-primary" disabled>Run Query</button>
+                        <button id="clearQuery" class="btn btn-secondary">Clear</button>
+                        <button id="exportResults" class="btn btn-secondary" disabled>Export CSV</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Results</h2>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Executing query...</p>
+            </div>
+            <div class="error" id="error"></div>
+            <div class="results-section" id="resultsSection"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as duckdb from 'https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@latest/+esm';
+        
+        let db = null;
+        let conn = null;
+        const loadedTables = new Map(); // Map table name to source type
+        
+        // UI Elements
+        const status = document.getElementById('status');
+        const fileInput = document.getElementById('fileInput');
+        const loadedFiles = document.getElementById('loadedFiles');
+        const r2BaseUrl = document.getElementById('r2BaseUrl');
+        const r2Date = document.getElementById('r2Date');
+        const loadFromR2 = document.getElementById('loadFromR2');
+        const exampleQueries = document.getElementById('exampleQueries');
+        const queryEditor = document.getElementById('queryEditor');
+        const runQuery = document.getElementById('runQuery');
+        const clearQuery = document.getElementById('clearQuery');
+        const exportResults = document.getElementById('exportResults');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const resultsSection = document.getElementById('resultsSection');
+        const quickStats = document.getElementById('quickStats');
+        
+        // Set default date to today
+        r2Date.value = new Date().toISOString().split('T')[0];
+        
+        // Initialize DuckDB
+        async function initializeDuckDB() {
+            try {
+                const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
+                const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
+                
+                const worker_url = URL.createObjectURL(
+                    new Blob([`importScripts("${bundle.mainWorker}");`], {
+                        type: 'text/javascript'
+                    })
+                );
+                
+                const worker = new Worker(worker_url);
+                const logger = new duckdb.ConsoleLogger();
+                db = new duckdb.AsyncDuckDB(logger, worker);
+                await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+                URL.revokeObjectURL(worker_url);
+                
+                conn = await db.connect();
+                
+                status.textContent = 'DuckDB ready - Load files from local or R2 to start querying';
+                runQuery.disabled = false;
+            } catch (err) {
+                console.error('Failed to initialize DuckDB:', err);
+                status.textContent = 'Failed to initialize DuckDB';
+                showError(err.message);
+            }
+        }
+        
+        // Local file handling
+        fileInput.addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files);
+            for (const file of files) {
+                await loadParquetFile(file, 'local');
+            }
+            await updateQuickStats();
+        });
+        
+        // R2 file loading
+        loadFromR2.addEventListener('click', async () => {
+            const baseUrl = r2BaseUrl.value.trim();
+            const dateValue = r2Date.value;
+            
+            if (!baseUrl || !dateValue) {
+                showError('Please enter both R2 base URL and date');
+                return;
+            }
+            
+            await loadFromR2Storage(baseUrl, dateValue);
+        });
+        
+        async function loadFromR2Storage(baseUrl, dateValue) {
+            const stages = ['collect', 'fetch', 'evaluate'];
+            let successCount = 0;
+            
+            loading.classList.add('active');
+            error.classList.remove('active');
+            
+            for (const stage of stages) {
+                try {
+                    const r2Url = `${baseUrl}/parquet/${stage}/by-run-date/${dateValue}_last_7_days.parquet`;
+                    
+                    // Test if file exists by trying to read metadata
+                    await conn.query(`SELECT COUNT(*) FROM read_parquet('${r2Url}') LIMIT 1`);
+                    
+                    // If successful, create table
+                    await conn.query(`DROP TABLE IF EXISTS ${stage}`);
+                    await conn.query(`CREATE TABLE ${stage} AS SELECT * FROM read_parquet('${r2Url}')`);
+                    
+                    loadedTables.set(stage, 'r2');
+                    successCount++;
+                    
+                    console.log(`Successfully loaded ${stage} from R2`);
+                    
+                } catch (err) {
+                    console.warn(`Failed to load ${stage} from R2:`, err.message);
+                    // Continue with other stages
+                }
+            }
+            
+            loading.classList.remove('active');
+            
+            if (successCount > 0) {
+                updateLoadedFilesUI();
+                await updateQuickStats();
+                status.textContent = `Loaded ${successCount} tables from R2 (${dateValue})`;
+            } else {
+                showError('Failed to load any files from R2. Check the URL and date.');
+            }
+        }
+        
+        async function loadParquetFile(file, sourceType = 'local') {
+            try {
+                loading.classList.add('active');
+                error.classList.remove('active');
+                
+                // Determine table name from filename
+                let tableName = 'data';
+                if (file.name.includes('collect')) tableName = 'collect';
+                else if (file.name.includes('fetch')) tableName = 'fetch';
+                else if (file.name.includes('evaluate')) tableName = 'evaluate';
+                
+                // Read file
+                const buffer = new Uint8Array(await file.arrayBuffer());
+                
+                // Register file with DuckDB
+                await db.registerFileBuffer(file.name, buffer);
+                
+                // Create table from parquet file
+                await conn.query(`DROP TABLE IF EXISTS ${tableName}`);
+                await conn.query(`CREATE TABLE ${tableName} AS SELECT * FROM read_parquet('${file.name}')`);
+                
+                loadedTables.set(tableName, sourceType);
+                updateLoadedFilesUI();
+                
+                status.textContent = `Loaded ${file.name} as table '${tableName}'`;
+            } catch (err) {
+                console.error('Failed to load file:', err);
+                showError(`Failed to load ${file.name}: ${err.message}`);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+        
+        function updateLoadedFilesUI() {
+            loadedFiles.innerHTML = Array.from(loadedTables.entries())
+                .map(([table, source]) => {
+                    const className = source === 'r2' ? 'file-badge remote' : 'file-badge';
+                    const icon = source === 'r2' ? '☁️' : '📁';
+                    return `<span class="${className}">${icon} ${table}</span>`;
+                })
+                .join('');
+        }
+        
+        async function updateQuickStats() {
+            if (loadedTables.size === 0) return;
+            
+            let stats = [];
+            
+            for (const [table, source] of loadedTables.entries()) {
+                try {
+                    const result = await conn.query(`SELECT COUNT(*) as count FROM ${table}`);
+                    const count = result.toArray()[0].count;
+                    const icon = source === 'r2' ? '☁️' : '📁';
+                    stats.push(`${icon} ${table}: ${count.toLocaleString()} rows`);
+                } catch (err) {
+                    console.error(`Failed to get stats for ${table}:`, err);
+                }
+            }
+            
+            quickStats.innerHTML = stats.join('<br>');
+        }
+        
+        // Query execution
+        runQuery.addEventListener('click', executeQuery);
+        
+        queryEditor.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                executeQuery();
+            }
+        });
+        
+        async function executeQuery() {
+            const query = queryEditor.value.trim();
+            if (!query) return;
+            
+            loading.classList.add('active');
+            error.classList.remove('active');
+            resultsSection.innerHTML = '';
+            exportResults.disabled = true;
+            
+            const startTime = performance.now();
+            
+            try {
+                const result = await conn.query(query);
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                
+                displayResults(result, duration);
+                exportResults.disabled = false;
+            } catch (err) {
+                console.error('Query error:', err);
+                showError(err.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+        
+        function displayResults(result, duration) {
+            const data = result.toArray();
+            const columns = result.schema.fields.map(f => f.name);
+            
+            if (data.length === 0) {
+                resultsSection.innerHTML = '<p>Query returned no results</p>';
+                return;
+            }
+            
+            // Create table
+            let html = '<table class="results-table"><thead><tr>';
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (value === null || value === undefined) {
+                        value = '<em>null</em>';
+                    } else if (typeof value === 'object') {
+                        value = JSON.stringify(value);
+                    } else if (typeof value === 'string' && value.length > 100) {
+                        value = value.substring(0, 100) + '...';
+                    }
+                    html += `<td>${value}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            html += `<div class="results-meta">Returned ${data.length} rows in ${duration}ms</div>`;
+            
+            resultsSection.innerHTML = html;
+            
+            // Store result for export
+            resultsSection.dataset.result = JSON.stringify({columns, data});
+        }
+        
+        // Export functionality
+        exportResults.addEventListener('click', () => {
+            const resultData = resultsSection.dataset.result;
+            if (!resultData) return;
+            
+            const {columns, data} = JSON.parse(resultData);
+            let csv = columns.join(',') + '\n';
+            
+            data.forEach(row => {
+                const values = columns.map(col => {
+                    const value = row[col];
+                    if (value === null || value === undefined) return '';
+                    if (typeof value === 'string' && value.includes(',')) {
+                        return `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csv += values.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'query_results.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        
+        // Example queries
+        exampleQueries.addEventListener('change', (e) => {
+            if (e.target.value) {
+                queryEditor.value = e.target.value;
+            }
+        });
+        
+        // Clear query
+        clearQuery.addEventListener('click', () => {
+            queryEditor.value = '';
+            exampleQueries.value = '';
+        });
+        
+        // Error handling
+        function showError(message) {
+            error.textContent = message;
+            error.classList.add('active');
+        }
+        
+        // Initialize on load
+        initializeDuckDB();
+    </script>
+</body>
+</html>

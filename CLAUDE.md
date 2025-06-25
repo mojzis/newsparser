@@ -195,6 +195,7 @@ rg "pattern" src/       # Search in specific directory
   - Legacy: Daily Parquet files organized as `data/YYYY/MM/DD/posts.parquet`
   - New: Individual markdown files in `stages/{stage_name}/YYYY-MM-DD/*.md`
 - **Reports**: HTML reports stored as `reports/YYYY/MM/DD/report.html`
+- **Notebooks**: Marimo notebooks for analytics and statistics in `notebooks/` directory
 
 ### Stage-Based Directory Structure
 

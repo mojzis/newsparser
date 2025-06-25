@@ -377,7 +377,8 @@ class CollectStage(InputStage):
             from src.analytics.parquet_export import export_stage_to_parquet
             from src.models.post import BlueskyPost
             
-            for post_date in posts_by_date.keys():
-                await export_stage_to_parquet("collect", BlueskyPost, post_date, self.export_parquet)
+            # Export all collected data as a single parquet file with 7 days of history
+            run_date = date.today()
+            await export_stage_to_parquet("collect", BlueskyPost, run_date, self.export_parquet, days_back=7, settings=self.settings)
         
         return result

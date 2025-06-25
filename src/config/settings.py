@@ -61,6 +61,16 @@ class Settings(BaseSettings):
     def has_anthropic_credentials(self) -> bool:
         """Check if Anthropic API key is configured."""
         return self.anthropic_api_key is not None
+    
+    @property
+    def has_r2_credentials(self) -> bool:
+        """Check if R2 credentials are configured."""
+        return (
+            self.r2_access_key_id is not None and
+            self.r2_secret_access_key is not None and
+            self.r2_bucket_name is not None and
+            self.r2_endpoint_url is not None
+        )
 
 
 def get_settings() -> Settings:

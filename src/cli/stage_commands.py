@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 import click
+import markdown
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -253,6 +254,162 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 
 
 @stages.command()
+def render_stats():
+    """Generate statistics pages from marimo notebooks."""
+    import subprocess
+    import tempfile
+    import shutil
+    import re
+    
+    # Notebooks to render
+    notebooks = [
+        {
+            "file": Path("notebooks/content_stats.py"),
+            "output": "content_stats.html",
+            "title": "Content Stats",
+            "active_menu": "stats"
+        },
+        {
+            "file": Path("notebooks/stats.py"),
+            "output": "project_stats.html", 
+            "title": "Project Stats",
+            "active_menu": "stats"
+        }
+    ]
+    
+    # Create output directory
+    output_dir = Path("output")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    for notebook_config in notebooks:
+        notebook_file = notebook_config["file"]
+        output_filename = notebook_config["output"]
+        
+        # Check if notebook exists
+        if not notebook_file.exists():
+            console.print(f"❌ Notebook file not found: {notebook_file}", style="red")
+            continue
+        
+        try:
+            # Export marimo notebook to HTML
+            output_file = output_dir / output_filename
+            
+            # Run marimo export command
+            result = subprocess.run([
+                "marimo", "export", "html", str(notebook_file), 
+                "--output", str(output_file), "--no-include-code",
+            ], capture_output=True, text=True, timeout=60)
+            
+            if result.returncode != 0:
+                console.print(f"❌ Failed to export {notebook_file}: {result.stderr}", style="red")
+                continue
+            
+            # Post-process the HTML to add navigation
+            with open(output_file, 'r', encoding='utf-8') as f:
+                html_content = f.read()
+            
+            # Navigation HTML with active menu highlighting
+            nav_html = f'''
+    <nav class="navbar" style="background-color: #2c3e50; padding: 1rem 0; margin-bottom: 20px;">
+        <div class="nav-container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div class="nav-brand">
+                <a href="/index.html" style="color: white; font-size: 1.2rem; font-weight: 600; text-decoration: none; letter-spacing: -0.3px;">Bluesky MCP Monitor</a>
+            </div>
+            <ul class="nav-menu" style="display: flex; list-style: none; margin: 0; padding: 0; gap: 2rem;">
+                <li class="nav-item" style="margin: 0;">
+                    <a href="/index.html" class="nav-link" style="color: #bdc3c7; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">Home</a>
+                </li>
+                <li class="nav-item" style="margin: 0;">
+                    <a href="/query/duckdb.html" class="nav-link" style="color: #bdc3c7; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">Query</a>
+                </li>
+                <li class="nav-item" style="margin: 0;">
+                    <a href="/content_stats.html" class="nav-link" style="{'background-color: #3498db; color: white;' if notebook_config['active_menu'] == 'stats' else 'color: #bdc3c7;'} text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">Stats</a>
+                </li>
+                <li class="nav-item" style="margin: 0;">
+                    <a href="/about.html" class="nav-link" style="color: #bdc3c7; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>'''
+            
+            # Insert navigation after the <body> tag
+            html_content = re.sub(r'(<body[^>]*>)', r'\1' + nav_html, html_content)
+            
+            # Write the modified HTML back
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(html_content)
+            
+            file_size = output_file.stat().st_size
+            console.print(f"✅ Generated {notebook_config['title']} at {output_file}")
+            console.print(f"📊 File size: {file_size:,} bytes")
+            
+        except subprocess.TimeoutExpired:
+            console.print(f"❌ {notebook_file} export timed out", style="red")
+            continue
+        except Exception as e:
+            console.print(f"❌ Failed to generate {notebook_file}: {e}", style="red")
+            continue
+    
+    console.print(f"🌐 Access content stats at: output/content_stats.html")
+    console.print(f"🌐 Access project stats at: output/project_stats.html")
+
+
+@stages.command()
+def render_about():
+    """Render about page from markdown file."""
+    from jinja2 import Environment, FileSystemLoader
+    
+    # Source markdown file
+    source_file = Path("lyrics/about.md")
+    
+    # Check if source exists
+    if not source_file.exists():
+        console.print(f"❌ Source file not found: {source_file}", style="red")
+        sys.exit(1)
+    
+    # Read markdown content
+    try:
+        with open(source_file, 'r', encoding='utf-8') as f:
+            markdown_content = f.read()
+    except Exception as e:
+        console.print(f"❌ Failed to read markdown file: {e}", style="red")
+        sys.exit(1)
+    
+    # Convert markdown to HTML
+    html_content = markdown.markdown(markdown_content)
+    
+    # Set up Jinja2 environment
+    template_dirs = [Path("src/templates"), Path("src/html")]
+    env = Environment(loader=FileSystemLoader([str(d) for d in template_dirs]))
+    
+    try:
+        # Load the about template
+        template = env.get_template("about-template.html")
+        
+        # Render with content - need to replace the {content} placeholder manually since it's not a Jinja2 variable
+        template_str = template.render(active_menu='about')
+        final_html = template_str.replace("{content}", html_content)
+        
+        # Create output directory
+        output_dir = Path("output")
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Write final HTML
+        output_file = output_dir / "about.html"
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(final_html)
+        
+        file_size = output_file.stat().st_size
+        console.print(f"✅ Rendered about page to {output_file}")
+        console.print(f"📊 File size: {file_size:,} bytes")
+        console.print(f"🌐 Access at: output/about.html")
+        
+    except Exception as e:
+        console.print(f"❌ Failed to render about page: {e}", style="red")
+        sys.exit(1)
+
+
+@stages.command()
 @click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
 @click.option("--max-posts", default=500, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
@@ -269,8 +426,12 @@ def report(days_back: int, regenerate: bool, output_date: Optional[str], bulk: b
 @click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
 @click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int, sitemap: bool, rss: bool):
+@click.option("--publish/--no-publish", default=True, help="Publish DuckDB query interface (default: True)")
+def run_all(target_date: Optional[str], max_posts: int, search: str, config_path: Optional[str], expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int, sitemap: bool, rss: bool, publish: bool):
     """Run all stages in sequence. Posts organized by publication date."""
+    
+    # Store reference to publish command before parameter shadows it
+    publish_cmd = globals()['publish']
     
     parsed_date = parse_date(target_date)
     console.print(f"🚀 Running all stages...")
@@ -294,6 +455,20 @@ def run_all(target_date: Optional[str], max_posts: int, search: str, config_path
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")
     ctx = click.Context(report)
     ctx.invoke(report, days_back=days_back, regenerate=regenerate_reports, output_date=target_date, sitemap=sitemap, rss=rss)
+    
+    # Stage 5: Render Stats
+    console.print("\n[bold blue]Stage 5: Render Stats[/bold blue]")
+    render_stats.callback()
+    
+    # Stage 6: Render About
+    console.print("\n[bold blue]Stage 6: Render About[/bold blue]")
+    render_about.callback()
+    
+    # Stage 7: Publish (optional)
+    if publish:
+        console.print("\n[bold blue]Stage 7: Publish[/bold blue]")
+        # Call publish function directly since it's in the same module
+        publish_cmd.callback()
     
     console.print(f"\n✅ All stages completed for {parsed_date}!", style="green")
 
@@ -404,6 +579,40 @@ def clean(stage_name: str, target_date: Optional[str], confirm: bool):
         pass  # Directory not empty
     
     console.print(f"✅ Cleaned {len(files)} files from {stage_name} stage", style="green")
+
+
+@stages.command()
+def publish():
+    """Publish DuckDB query interface to output directory."""
+    import shutil
+    
+    # Source file path
+    source_file = Path("src/html/duckdb-query-tool-r2.html")
+    
+    # Check if source exists
+    if not source_file.exists():
+        console.print(f"❌ Source file not found: {source_file}", style="red")
+        sys.exit(1)
+    
+    # Create output directory structure
+    output_dir = Path("output/query")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Target file path
+    target_file = output_dir / "duckdb.html"
+    
+    try:
+        # Copy the file
+        shutil.copy2(source_file, target_file)
+        
+        file_size = target_file.stat().st_size
+        console.print(f"✅ Published query interface to {target_file}")
+        console.print(f"📊 File size: {file_size:,} bytes")
+        console.print(f"🌐 Access at: output/query/duckdb.html")
+        
+    except Exception as e:
+        console.print(f"❌ Failed to publish query interface: {e}", style="red")
+        sys.exit(1)
 
 
 @stages.command()

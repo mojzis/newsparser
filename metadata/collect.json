@@ -1,0 +1,103 @@
+{
+  "name": "Collect Stage",
+  "description": "Bluesky posts that match configured search criteria",
+  "filePattern": "parquet/collect/by-run-date/{YYYY-MM-DD}_last_7_days.parquet",
+  "overview": "Social media posts from Bluesky mentioning MCP or other search terms, with content, metadata, and engagement metrics",
+  "columns": [
+    {
+      "name": "id",
+      "type": "string",
+      "category": "core",
+      "description": "Unique post identifier (AT Protocol URI)"
+    },
+    {
+      "name": "author",
+      "type": "string",
+      "category": "core",
+      "description": "Author handle (e.g., user.bsky.social)"
+    },
+    {
+      "name": "content",
+      "type": "string",
+      "category": "core",
+      "description": "Full text content of the post"
+    },
+    {
+      "name": "created_at",
+      "type": "datetime",
+      "category": "core",
+      "description": "When the post was created (UTC)"
+    },
+    {
+      "name": "links",
+      "type": "array<string>",
+      "category": "extracted",
+      "description": "URLs found in the post"
+    },
+    {
+      "name": "tags",
+      "type": "array<string>",
+      "category": "extracted",
+      "description": "Hashtags (lowercase, without #)"
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "category": "extracted",
+      "description": "Language type (latin, cjk, arabic, etc.)"
+    },
+    {
+      "name": "engagement_metrics_likes",
+      "type": "integer",
+      "category": "engagement",
+      "description": "Number of likes"
+    },
+    {
+      "name": "engagement_metrics_reposts",
+      "type": "integer",
+      "category": "engagement",
+      "description": "Number of reposts"
+    },
+    {
+      "name": "engagement_metrics_replies",
+      "type": "integer",
+      "category": "engagement",
+      "description": "Number of replies"
+    },
+    {
+      "name": "thread_root_uri",
+      "type": "string",
+      "category": "thread",
+      "nullable": true,
+      "description": "URI of thread root post"
+    },
+    {
+      "name": "thread_position",
+      "type": "string",
+      "category": "thread",
+      "nullable": true,
+      "values": ["root", "reply", "nested_reply"],
+      "description": "Position within thread"
+    },
+    {
+      "name": "parent_post_uri",
+      "type": "string",
+      "category": "thread",
+      "nullable": true,
+      "description": "URI of parent post"
+    },
+    {
+      "name": "thread_depth",
+      "type": "integer",
+      "category": "thread",
+      "nullable": true,
+      "description": "Nesting level (0=root)"
+    }
+  ],
+  "categories": {
+    "core": "Essential post information",
+    "extracted": "Data extracted from post content",
+    "engagement": "Social engagement metrics",
+    "thread": "Thread relationship data"
+  }
+}

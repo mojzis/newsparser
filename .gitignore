@@ -119,8 +119,14 @@ logs/
 data/
 reports/
 /stages/
+/parquet/
+/workimg/
+
 *.parquet
 *.json.gz
 
 # Generated output
 output/
+
+# Local Netlify folder
+.netlify

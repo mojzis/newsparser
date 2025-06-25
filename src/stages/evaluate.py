@@ -301,12 +301,8 @@ This content was evaluated for MCP relevance.
             from src.analytics.parquet_export import export_stage_to_parquet
             from src.models.evaluation import ArticleEvaluation
             
-            # Export for each date that had new evaluations
-            for date_str in evaluations_by_date.keys():
-                try:
-                    export_date = date.fromisoformat(date_str)
-                    await export_stage_to_parquet("evaluate", ArticleEvaluation, export_date, self.export_parquet)
-                except ValueError:
-                    logger.warning(f"Invalid date format for parquet export: {date_str}")
+            # Export all evaluated data as a single parquet file with 7 days of history
+            run_date = date.today()
+            await export_stage_to_parquet("evaluate", ArticleEvaluation, run_date, self.export_parquet, days_back=7, settings=self.settings)
         
         return result
