@@ -1,44 +1,62 @@
 # Bluesky MCP Monitor
 
-A daily service that monitors Bluesky for Model Context Protocol (MCP) mentions, analyzes content quality using AI, and generates comprehensive reports.
+A service that monitors Bluesky for Model Context Protocol (MCP) mentions, evaluates linked content, and generates daily reports.
 
 ## Overview
 
-The Bluesky MCP Monitor is an automated system designed to track conversations and developments around the Model Context Protocol (MCP) on the Bluesky social network. The system provides valuable insights into community engagement, content quality, and emerging trends in the MCP ecosystem.
+The Bluesky MCP Monitor tracks posts and discussions about the Model Context Protocol (MCP) on Bluesky. It collects posts, fetches linked articles, and uses the Anthropic API to assess their relevance to MCP topics.
 
 ## How It Works
 
-The monitor operates through a multi-stage processing pipeline:
+The monitor processes data through four stages:
 
-1. **Collect**: Searches Bluesky for posts containing MCP-related keywords and hashtags
-2. **Fetch**: Extracts and retrieves content from URLs found in collected posts
-3. **Evaluate**: Uses advanced AI to analyze article quality, relevance, and categorization
-4. **Report**: Generates HTML reports and automatically posts summaries back to Bluesky
+1. **Collect**: Searches Bluesky for posts containing MCP-related keywords
+2. **Fetch**: Downloads content from URLs found in posts
+3. **Evaluate**: Uses the Anthropic API to check if articles are MCP-related
+4. **Report**: Creates HTML summaries and posts updates to Bluesky
+
+## Data Flow
+
+```
+Bluesky API → Collect Stage → Fetch Stage → Evaluate Stage → Report Stage
+     ↓            ↓              ↓              ↓              ↓
+  Posts.md    Articles.md   Evaluations.md  report.html   Bluesky Post
+```
 
 ## Key Features
 
-- **Intelligent Content Analysis**: AI-powered evaluation of articles for relevance and quality
-- **Automated URL Processing**: Expands shortened URLs and fetches full article content
-- **Historical Data Storage**: Maintains 7-day rolling archives in efficient Parquet format
-- **Interactive Analytics**: Web-based DuckDB query interface for data exploration
-- **Cloud Storage**: Seamless integration with Cloudflare R2 for scalable data storage
-- **Daily Automation**: Fully automated daily execution with comprehensive error handling
+- **Content Evaluation**: Uses prompts with the Anthropic API to determine MCP relevance
+- **URL Processing**: Follows redirects and expands shortened URLs
+- **Data Storage**: Saves data as Parquet files on Cloudflare R2
+- **Query Interface**: Provides a DuckDB web interface for data exploration
+- **Daily Reports**: Runs automatically each day to generate summaries
+- **Error Handling**: Continues processing even when individual URLs fail
 
 ## Data Pipeline
 
-The system processes data through fault-tolerant stages, storing intermediate results as individual markdown files for reliability. Each stage can be run independently or as part of a complete pipeline, making the system robust and maintainable.
+Each stage stores its output as markdown files before moving to the next stage. This allows stages to be re-run independently if needed. Failed URLs or evaluations don't stop the pipeline - they're logged and processing continues.
+
+## Architecture
+
+The system consists of:
+
+- **Data Collection**: Python scripts using the AT Protocol SDK to query Bluesky
+- **Content Fetching**: HTTP client with retry logic and timeout handling  
+- **Evaluation**: Simple prompts sent to the Anthropic API
+- **Storage**: Parquet files uploaded to Cloudflare R2
+- **Reporting**: Static HTML generation with basic charts
 
 ## Use Cases
 
-- Track MCP adoption and community growth
-- Identify high-quality content and thought leaders
-- Monitor emerging trends and discussions
-- Analyze engagement patterns and content distribution
-- Research community sentiment and feedback
+- Find posts mentioning MCP tools and servers
+- See which articles get shared in MCP discussions
+- Track how many posts mention MCP each day
+- Browse historical MCP-related content
+- Query the data with SQL for custom analysis
 
-Built with Python, leveraging the Anthropic API for content evaluation and modern data tools for storage and analysis.
+Built with Python, using standard libraries where possible and the Anthropic API for content checks.
 
 ## System Statistics
 
-- **[Content Analytics](/content_stats.html)**: Explore post languages, authors, article types, and trending topics
-- **[Project Statistics](/project_stats.html)**: View technical metrics, file counts, and system performance data
+- **[Content Analytics](/content_stats.html)**: View post counts, languages, and article types
+- **[Project Statistics](/project_stats.html)**: See file counts and processing metrics

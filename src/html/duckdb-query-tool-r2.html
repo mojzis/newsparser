@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DuckDB Parquet Query Tool - With R2 Support</title>
+    <title>MCP Monitor Data Query Tool</title>
     <style>
         * {
             box-sizing: border-box;
@@ -77,32 +77,6 @@
         .data-source.active {
             border-color: #3498db;
             background: #f8f9ff;
-        }
-        
-        .file-input-wrapper {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-        
-        .file-input-wrapper input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
-        
-        .file-input-label {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #3498db;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .file-input-label:hover {
-            background: #2980b9;
         }
         
         .r2-options {
@@ -388,34 +362,28 @@
     
     <div class="container">
         <div class="header">
-            <h1>DuckDB Parquet Query Tool</h1>
+            <h1>MCP Monitor Data Query Tool</h1>
             <div class="status" id="status">Initializing DuckDB...</div>
         </div>
 
         <div class="panel">
             <h2>Data Sources</h2>
             <div class="data-sources">
-                <div class="data-source" id="localSource">
-                    <h3>📁 Local Files</h3>
-                    <div class="file-input-wrapper">
-                        <input type="file" id="fileInput" multiple accept=".parquet" />
-                        <label for="fileInput" class="file-input-label">Choose Parquet Files</label>
-                    </div>
-                    <p style="font-size: 14px; color: #666;">Upload parquet files from your computer</p>
-                </div>
-                
-                <div class="data-source" id="r2Source">
-                    <h3>☁️ R2 Storage</h3>
-                    <div class="r2-options">
-                        <label for="r2BaseUrl">R2 Base URL:</label>
-                        <input type="text" id="r2BaseUrl" placeholder="https://your-bucket.r2.dev" />
-                    </div>
+                <div class="data-source active" id="r2Source">
+                    <h3>☁️ R2 Storage (MCP Monitor Data)</h3>
                     <div class="r2-options">
                         <label for="r2Date">Date (YYYY-MM-DD):</label>
                         <input type="date" id="r2Date" />
                     </div>
                     <button id="loadFromR2" class="btn btn-primary">Load from R2</button>
-                    <p style="font-size: 14px; color: #666; margin-top: 10px;">Load parquet files directly from R2 storage</p>
+                    <p style="font-size: 14px; color: #666; margin-top: 10px;">Load parquet files from MCP Monitor R2 storage</p>
+                    <div id="corsNotice" style="display: none; margin-top: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; font-size: 13px;">
+                        <strong>CORS Configuration Required:</strong><br>
+                        To enable browser access to R2 data, add this CORS policy to your R2 bucket:<br>
+                        <code style="font-size: 11px; display: block; margin-top: 5px; padding: 5px; background: #f8f9fa;">
+                        [{"AllowedOrigins": ["*"], "AllowedMethods": ["GET", "HEAD"], "AllowedHeaders": ["*"]}]
+                        </code>
+                    </div>
                 </div>
             </div>
             
@@ -432,26 +400,26 @@
                             <option value="">-- Select an example --</option>
                             <optgroup label="Basic Queries">
                                 <option value="SHOW TABLES;">Show all tables</option>
-                                <option value="SELECT * FROM collect LIMIT 10;">First 10 posts</option>
-                                <option value="SELECT * FROM fetch WHERE fetch_status = 'error' LIMIT 10;">Failed fetches</option>
-                                <option value="SELECT * FROM evaluate WHERE is_mcp_related = true LIMIT 10;">MCP-related content</option>
+                                <option value="SELECT id, author, CAST(created_at AS VARCHAR) as created_at, content, engagement_metrics_likes, engagement_metrics_reposts, engagement_metrics_replies, language FROM posts LIMIT 10;">First 10 posts</option>
+                                <option value="SELECT url, fetch_status, error_type, title, CAST(fetched_at AS VARCHAR) as fetched_at FROM fetched WHERE fetch_status = 'error' LIMIT 10;">Failed fetches</option>
+                                <option value="SELECT url, title, content_type, is_mcp_related, relevance_score, CAST(evaluated_at AS VARCHAR) as evaluated_at FROM evaluated WHERE is_mcp_related = true LIMIT 10;">MCP-related content</option>
                             </optgroup>
-                            <optgroup label="Collect Analysis">
-                                <option value="SELECT author, COUNT(*) as post_count FROM collect GROUP BY author ORDER BY post_count DESC LIMIT 20;">Top posters</option>
-                                <option value="SELECT DATE(created_at) as date, COUNT(*) as posts FROM collect GROUP BY date ORDER BY date;">Posts per day</option>
-                                <option value="SELECT unnest(tags) as tag, COUNT(*) as count FROM collect GROUP BY tag ORDER BY count DESC LIMIT 20;">Popular hashtags</option>
+                            <optgroup label="Posts Analysis">
+                                <option value="SELECT author, COUNT(*) as post_count FROM posts GROUP BY author ORDER BY post_count DESC LIMIT 20;">Top posters</option>
+                                <option value="SELECT CAST(DATE(created_at) AS VARCHAR) as date, COUNT(*) as posts FROM posts GROUP BY DATE(created_at) ORDER BY DATE(created_at);">Posts per day</option>
+                                <option value="SELECT tag, COUNT(*) as count FROM (SELECT UNNEST(tags) as tag FROM posts) GROUP BY tag ORDER BY count DESC LIMIT 20;">Popular hashtags</option>
                             </optgroup>
-                            <optgroup label="Fetch Analysis">
-                                <option value="SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetch WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;">Top domains</option>
-                                <option value="SELECT error_type, COUNT(*) as count FROM fetch WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;">Error breakdown</option>
+                            <optgroup label="Fetched Content Analysis">
+                                <option value="SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetched WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;">Top domains</option>
+                                <option value="SELECT error_type, COUNT(*) as count FROM fetched WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;">Error breakdown</option>
                             </optgroup>
-                            <optgroup label="Evaluate Analysis">
-                                <option value="SELECT content_type, COUNT(*) as count FROM evaluate GROUP BY content_type ORDER BY count DESC;">Content types</option>
-                                <option value="SELECT language, COUNT(*) as count FROM evaluate GROUP BY language ORDER BY count DESC;">Languages</option>
-                                <option value="SELECT title, relevance_score, perex FROM evaluate WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;">Top MCP content</option>
+                            <optgroup label="Evaluation Analysis">
+                                <option value="SELECT content_type, COUNT(*) as count FROM evaluated GROUP BY content_type ORDER BY count DESC;">Content types</option>
+                                <option value="SELECT language, COUNT(*) as count FROM evaluated GROUP BY language ORDER BY count DESC;">Languages</option>
+                                <option value="SELECT title, relevance_score, perex FROM evaluated WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;">Top MCP content</option>
                             </optgroup>
                             <optgroup label="Cross-Stage Analysis">
-                                <option value="SELECT c.author, COUNT(DISTINCT e.url) as mcp_articles FROM collect c JOIN fetch f ON f.url = ANY(c.links) JOIN evaluate e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY c.author ORDER BY mcp_articles DESC LIMIT 20;">Authors sharing MCP content</option>
+                                <option value="SELECT p.author, COUNT(DISTINCT e.url) as mcp_articles FROM posts p JOIN fetched f ON f.url = ANY(p.links) JOIN evaluated e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY p.author ORDER BY mcp_articles DESC LIMIT 20;">Authors sharing MCP content</option>
                             </optgroup>
                         </select>
                     </div>
@@ -463,7 +431,7 @@
                     </div>
                 </div>
                 <div class="query-main">
-                    <textarea id="queryEditor" class="query-editor" placeholder="Enter your SQL query here...">SELECT * FROM collect LIMIT 10;</textarea>
+                    <textarea id="queryEditor" class="query-editor" placeholder="Enter your SQL query here...">SELECT * FROM posts LIMIT 10;</textarea>
                     <div class="controls">
                         <button id="runQuery" class="btn btn-primary" disabled>Run Query</button>
                         <button id="clearQuery" class="btn btn-secondary">Clear</button>
@@ -493,9 +461,7 @@
         
         // UI Elements
         const status = document.getElementById('status');
-        const fileInput = document.getElementById('fileInput');
         const loadedFiles = document.getElementById('loadedFiles');
-        const r2BaseUrl = document.getElementById('r2BaseUrl');
         const r2Date = document.getElementById('r2Date');
         const loadFromR2 = document.getElementById('loadFromR2');
         const exampleQueries = document.getElementById('exampleQueries');
@@ -507,6 +473,9 @@
         const error = document.getElementById('error');
         const resultsSection = document.getElementById('resultsSection');
         const quickStats = document.getElementById('quickStats');
+        
+        // Hardcoded R2 configuration - using Cloudflare public domain
+        const R2_BASE_URL = 'https://pub-c65f29456180434f9303260f185ff074.r2.dev';
         
         // Set default date to today
         r2Date.value = new Date().toISOString().split('T')[0];
@@ -531,7 +500,7 @@
                 
                 conn = await db.connect();
                 
-                status.textContent = 'DuckDB ready - Load files from local or R2 to start querying';
+                status.textContent = 'DuckDB ready - Load files from R2 to start querying';
                 runQuery.disabled = false;
             } catch (err) {
                 console.error('Failed to initialize DuckDB:', err);
@@ -540,54 +509,54 @@
             }
         }
         
-        // Local file handling
-        fileInput.addEventListener('change', async (event) => {
-            const files = Array.from(event.target.files);
-            for (const file of files) {
-                await loadParquetFile(file, 'local');
-            }
-            await updateQuickStats();
-        });
-        
         // R2 file loading
         loadFromR2.addEventListener('click', async () => {
-            const baseUrl = r2BaseUrl.value.trim();
             const dateValue = r2Date.value;
             
-            if (!baseUrl || !dateValue) {
-                showError('Please enter both R2 base URL and date');
+            if (!dateValue) {
+                showError('Please select a date');
                 return;
             }
             
-            await loadFromR2Storage(baseUrl, dateValue);
+            await loadFromR2Storage(dateValue);
         });
         
-        async function loadFromR2Storage(baseUrl, dateValue) {
-            const stages = ['collect', 'fetch', 'evaluate'];
+        async function loadFromR2Storage(dateValue) {
+            // Map stage names to table names (avoiding SQL keywords)
+            const stages = [
+                {stage: 'collect', table: 'posts'},
+                {stage: 'fetch', table: 'fetched'},
+                {stage: 'evaluate', table: 'evaluated'}
+            ];
             let successCount = 0;
             
             loading.classList.add('active');
             error.classList.remove('active');
             
-            for (const stage of stages) {
+            for (const {stage, table} of stages) {
                 try {
-                    const r2Url = `${baseUrl}/parquet/${stage}/by-run-date/${dateValue}_last_7_days.parquet`;
+                    const r2Url = `${R2_BASE_URL}/parquet/${stage}/by-run-date/${dateValue}_last_7_days.parquet`;
                     
                     // Test if file exists by trying to read metadata
                     await conn.query(`SELECT COUNT(*) FROM read_parquet('${r2Url}') LIMIT 1`);
                     
-                    // If successful, create table
-                    await conn.query(`DROP TABLE IF EXISTS ${stage}`);
-                    await conn.query(`CREATE TABLE ${stage} AS SELECT * FROM read_parquet('${r2Url}')`);
+                    // If successful, create table with safe name
+                    await conn.query(`DROP TABLE IF EXISTS ${table}`);
+                    await conn.query(`CREATE TABLE ${table} AS SELECT * FROM read_parquet('${r2Url}')`);
                     
-                    loadedTables.set(stage, 'r2');
+                    loadedTables.set(table, 'r2');
                     successCount++;
                     
-                    console.log(`Successfully loaded ${stage} from R2`);
+                    console.log(`Successfully loaded ${stage} as table '${table}' from R2`);
                     
                 } catch (err) {
                     console.warn(`Failed to load ${stage} from R2:`, err.message);
-                    // Continue with other stages
+                    if (err.message.includes('CORS') || err.message.includes('Access-Control-Allow-Origin')) {
+                        document.getElementById('corsNotice').style.display = 'block';
+                        showError('CORS error: The R2 bucket needs CORS configuration to allow browser access.');
+                        return;
+                    }
+                    // Continue with other stages for other errors
                 }
             }
             
@@ -596,51 +565,17 @@
             if (successCount > 0) {
                 updateLoadedFilesUI();
                 await updateQuickStats();
-                status.textContent = `Loaded ${successCount} tables from R2 (${dateValue})`;
+                status.textContent = `Loaded ${successCount} tables from R2 (${dateValue}) - Tables: posts, fetched, evaluated`;
             } else {
-                showError('Failed to load any files from R2. Check the URL and date.');
+                showError('Failed to load any files from R2. Check the date and ensure data exists for that period.');
             }
         }
         
-        async function loadParquetFile(file, sourceType = 'local') {
-            try {
-                loading.classList.add('active');
-                error.classList.remove('active');
-                
-                // Determine table name from filename
-                let tableName = 'data';
-                if (file.name.includes('collect')) tableName = 'collect';
-                else if (file.name.includes('fetch')) tableName = 'fetch';
-                else if (file.name.includes('evaluate')) tableName = 'evaluate';
-                
-                // Read file
-                const buffer = new Uint8Array(await file.arrayBuffer());
-                
-                // Register file with DuckDB
-                await db.registerFileBuffer(file.name, buffer);
-                
-                // Create table from parquet file
-                await conn.query(`DROP TABLE IF EXISTS ${tableName}`);
-                await conn.query(`CREATE TABLE ${tableName} AS SELECT * FROM read_parquet('${file.name}')`);
-                
-                loadedTables.set(tableName, sourceType);
-                updateLoadedFilesUI();
-                
-                status.textContent = `Loaded ${file.name} as table '${tableName}'`;
-            } catch (err) {
-                console.error('Failed to load file:', err);
-                showError(`Failed to load ${file.name}: ${err.message}`);
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
         
         function updateLoadedFilesUI() {
             loadedFiles.innerHTML = Array.from(loadedTables.entries())
                 .map(([table, source]) => {
-                    const className = source === 'r2' ? 'file-badge remote' : 'file-badge';
-                    const icon = source === 'r2' ? '☁️' : '📁';
-                    return `<span class="${className}">${icon} ${table}</span>`;
+                    return `<span class="file-badge remote">☁️ ${table}</span>`;
                 })
                 .join('');
         }
@@ -721,6 +656,8 @@
                     let value = row[col];
                     if (value === null || value === undefined) {
                         value = '<em>null</em>';
+                    } else if (typeof value === 'bigint') {
+                        value = value.toString();
                     } else if (typeof value === 'object') {
                         value = JSON.stringify(value);
                     } else if (typeof value === 'string' && value.length > 100) {
@@ -736,8 +673,10 @@
             
             resultsSection.innerHTML = html;
             
-            // Store result for export
-            resultsSection.dataset.result = JSON.stringify({columns, data});
+            // Store result for export with BigInt handling
+            resultsSection.dataset.result = JSON.stringify({columns, data}, (key, value) => 
+                typeof value === 'bigint' ? value.toString() : value
+            );
         }
         
         // Export functionality

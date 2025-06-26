@@ -120,7 +120,7 @@
             const stages = ['collect', 'fetch', 'evaluate'];
             for (const stage of stages) {
                 try {
-                    const response = await fetch(`${stage}.json`);
+                    const response = await fetch(`../metadata/${stage}.json`);
                     schemas[stage] = await response.json();
                 } catch (error) {
                     console.error(`Failed to load ${stage}.json:`, error);

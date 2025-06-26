@@ -367,34 +367,28 @@ def render_about():
         console.print(f"❌ Source file not found: {source_file}", style="red")
         sys.exit(1)
     
-    # Read markdown content
     try:
+        # Read markdown content
         with open(source_file, 'r', encoding='utf-8') as f:
             markdown_content = f.read()
-    except Exception as e:
-        console.print(f"❌ Failed to read markdown file: {e}", style="red")
-        sys.exit(1)
-    
-    # Convert markdown to HTML
-    html_content = markdown.markdown(markdown_content)
-    
-    # Set up Jinja2 environment
-    template_dirs = [Path("src/templates"), Path("src/html")]
-    env = Environment(loader=FileSystemLoader([str(d) for d in template_dirs]))
-    
-    try:
-        # Load the about template
-        template = env.get_template("about-template.html")
         
-        # Render with content - need to replace the {content} placeholder manually since it's not a Jinja2 variable
+        # Convert markdown to HTML
+        html_content = markdown.markdown(markdown_content)
+        
+        # Set up Jinja2 environment
+        env = Environment(loader=FileSystemLoader("src/templates"))
+        
+        # Load the about template
+        template = env.get_template("about.html")
+        
+        # Render with content
         template_str = template.render(active_menu='about')
         final_html = template_str.replace("{content}", html_content)
         
-        # Create output directory
+        # Create output directory and write file
         output_dir = Path("output")
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Write final HTML
         output_file = output_dir / "about.html"
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(final_html)
@@ -402,7 +396,6 @@ def render_about():
         file_size = output_file.stat().st_size
         console.print(f"✅ Rendered about page to {output_file}")
         console.print(f"📊 File size: {file_size:,} bytes")
-        console.print(f"🌐 Access at: output/about.html")
         
     except Exception as e:
         console.print(f"❌ Failed to render about page: {e}", style="red")
@@ -583,10 +576,10 @@ def clean(stage_name: str, target_date: Optional[str], confirm: bool):
 
 @stages.command()
 def publish():
-    """Publish DuckDB query interface to output directory."""
+    """Publish DuckDB query interface and metadata to output directory."""
     import shutil
     
-    # Source file path
+    # Source file path for query interface
     source_file = Path("src/html/duckdb-query-tool-r2.html")
     
     # Check if source exists
@@ -595,23 +588,53 @@ def publish():
         sys.exit(1)
     
     # Create output directory structure
-    output_dir = Path("output/query")
-    output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = Path("output")
+    query_dir = output_dir / "query"
+    metadata_dir = output_dir / "metadata"
     
-    # Target file path
-    target_file = output_dir / "duckdb.html"
+    query_dir.mkdir(parents=True, exist_ok=True)
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Publish query interface
+    target_file = query_dir / "duckdb.html"
     
     try:
-        # Copy the file
+        # Copy the query interface
         shutil.copy2(source_file, target_file)
         
         file_size = target_file.stat().st_size
         console.print(f"✅ Published query interface to {target_file}")
         console.print(f"📊 File size: {file_size:,} bytes")
-        console.print(f"🌐 Access at: output/query/duckdb.html")
+        
+        # Copy metadata directory
+        source_metadata_dir = Path("metadata")
+        if source_metadata_dir.exists():
+            # Copy all files from metadata directory
+            for item in source_metadata_dir.iterdir():
+                if item.is_file():
+                    target_metadata_file = metadata_dir / item.name
+                    shutil.copy2(item, target_metadata_file)
+                    console.print(f"✅ Published metadata file: {target_metadata_file}")
+            
+            console.print(f"📁 Metadata published to: {metadata_dir}")
+        else:
+            console.print(f"⚠️  Metadata directory not found: {source_metadata_dir}", style="yellow")
+        
+        # Copy metadata browser HTML to query directory  
+        metadata_browser_source = Path("src/html/metadata-example.html")
+        if metadata_browser_source.exists():
+            metadata_browser_target = query_dir / "metadata.html"
+            shutil.copy2(metadata_browser_source, metadata_browser_target)
+            console.print(f"✅ Published metadata browser: {metadata_browser_target}")
+        else:
+            console.print(f"⚠️  Metadata browser not found: {metadata_browser_source}", style="yellow")
+        
+        console.print(f"🌐 Access query interface at: output/query/duckdb.html")
+        console.print(f"📄 Metadata available at: output/metadata/")
+        console.print(f"📊 Metadata browser at: output/query/metadata.html")
         
     except Exception as e:
-        console.print(f"❌ Failed to publish query interface: {e}", style="red")
+        console.print(f"❌ Failed to publish: {e}", style="red")
         sys.exit(1)
 
 
