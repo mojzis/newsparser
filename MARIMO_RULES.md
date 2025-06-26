@@ -1,63 +1,201 @@
-# MARIMO_RULES.md
+# Marimo Notebook Development Guidelines
 
-Guidelines for writing marimo notebooks in this project.
+This document provides essential guidelines for developing marimo notebooks effectively.
 
-## CRITICAL RULES - MUST FOLLOW
+## Core Display Pattern
 
-1. **Display calls MUST be the last expression**: The output of a marimo cell is determined by the LAST expression in the cell
-   - Bad: `if condition: mo.md("text")` (conditional is last expression, not mo.md)
-   - Bad: `mo.md("text"); some_variable = 5` (assignment is last expression)
-   - Good: `mo.md("text")` (mo.md is last expression)
-   - Good: Separate computation and display into different cells
+**CRITICAL RULE**: In marimo, `mo.md()` and other display functions must be the **last statement** before the `return` statement, **OUTSIDE any control blocks**.
 
-2. **No conditional output**: NEVER wrap mo.md(), mo.ui.table(), etc. in conditionals
-   - Bad: `if not df.empty: mo.md("content")`
-   - Good: `mo.md(f"Content: {len(df)} rows")` (assume data exists)
-
-3. **Assume data exists**: Don't check for empty dataframes - let it fail with exception if data missing
-   - Bad: `if not df.empty: analysis = df.describe()`
-   - Good: `analysis = df.describe()` (if df is empty, we have bigger problems)
-
-4. **Unique cell variables**: Every variable must have a unique name across all cells
-   - Don't reuse variable names like `df` 
-   - Use descriptive names like `evaluated_content`, `mcp_articles`, etc.
-   - Don't repeat import statements
-
-5. **One display call per cell**: Only one marimo display call per cell
-   - Bad: Two `mo.md()` calls in one cell
-   - Good: Combine into single call or split into separate cells
-
-
-## Example Patterns
-
-### Loading data
+### ❌ WRONG Pattern
 ```python
 @app.cell
-def _(Path, pd, yaml):
-    def load_evaluated_content(days_back: int = 7) -> pd.DataFrame:
-        # implementation
-        return df
-    
-    return (load_evaluated_content,)
-```
-
-### Displaying tables
-```python
-@app.cell
-def _(evaluated_content, mo):
-    mo.ui.table(
-        evaluated_content,
-        selection=None,
-        pagination=True,
-        page_size=30
-    )
+def _(mo):
+    try:
+        result = some_computation()
+        mo.md("✅ Success!")  # WRONG: Inside try block
+    except Exception as e:
+        mo.md(f"❌ Error: {e}")  # WRONG: Inside except block
     return
 ```
 
-### Filtering data
+### ❌ WRONG Pattern 
 ```python
 @app.cell
-def _(evaluated_content):
-    mcp_articles = evaluated_content[evaluated_content['is_mcp_related']].copy()
-    return (mcp_articles,)
+def _(mo):
+    if condition:
+        mo.md("Condition is true")  # WRONG: Inside if block
+    else:
+        mo.md("Condition is false")  # WRONG: Inside else block
+    return
 ```
+
+### ✅ CORRECT Pattern
+```python
+@app.cell
+def _(mo):
+    # Do computation inside control blocks
+    try:
+        result = some_computation()
+        message = "✅ Success!"
+    except Exception as e:
+        message = f"❌ Error: {e}"
+    
+    # Display OUTSIDE control blocks, BEFORE return
+    mo.md(message)
+    return
+```
+
+### ✅ CORRECT Pattern for Conditionals
+```python
+@app.cell
+def _(mo):
+    # Prepare content based on condition
+    if condition:
+        content = "Condition is true"
+    else:
+        content = "Condition is false"
+    
+    # Display OUTSIDE if/else, BEFORE return
+    mo.md(content)
+    return
+```
+
+## Key Principles
+
+### 1. Control Blocks vs Display
+- **Control blocks** include: `try/except`, `if/else`, `for` loops, `while` loops, function definitions, `with` statements
+- **Display functions** include: `mo.md()`, `mo.ui.table()`, `mo.as_html()`, etc.
+- **Rule**: Display functions must be OUTSIDE control blocks
+
+### 2. Cell Structure
+```python
+@app.cell
+def _(dependencies):
+    # 1. Variable preparation
+    # 2. Control flow (try/except, if/else, loops)
+    # 3. Content preparation
+    # 4. Display call (mo.md, mo.ui.table, etc.) - OUTSIDE control blocks
+    # 5. Return statement (for variable passing between cells)
+    return variables_for_other_cells
+```
+
+### 3. Return Statement Purpose
+- The `return` statement is for **passing variables between cells**
+- It's an **internal marimo mechanism**, not user-visible
+- The **last expression before `return`** is what gets displayed
+
+### 4. Dynamic Content Generation
+```python
+@app.cell
+def _(mo, data):
+    # Generate dynamic content
+    items = []
+    for item in data:
+        if item.is_valid:
+            items.append(f"✅ {item.name}")
+        else:
+            items.append(f"❌ {item.name}")
+    
+    # Create final content
+    content = f"""
+    ## Results
+    {chr(10).join(items)}
+    """
+    
+    # Display OUTSIDE the loop, BEFORE return
+    mo.md(content)
+    return
+```
+
+## Common Mistakes to Avoid
+
+### 1. Display Inside Try/Except
+```python
+# ❌ WRONG
+try:
+    result = compute()
+    mo.md("Success")  # Won't display!
+except:
+    mo.md("Failed")   # Won't display!
+
+# ✅ CORRECT
+try:
+    result = compute()
+    status = "Success"
+except:
+    status = "Failed"
+mo.md(status)
+```
+
+### 2. Display Inside Loops
+```python
+# ❌ WRONG
+for item in items:
+    mo.md(f"Processing {item}")  # Only last one might display
+
+# ✅ CORRECT
+messages = []
+for item in items:
+    messages.append(f"Processing {item}")
+mo.md("\n".join(messages))
+```
+
+### 3. Display Inside Functions
+```python
+# ❌ WRONG
+def process_data():
+    mo.md("Processing...")  # Won't display
+    return result
+
+# ✅ CORRECT
+def process_data():
+    return "Processing complete"
+
+status = process_data()
+mo.md(status)
+```
+
+## Advanced Patterns
+
+### Conditional UI Elements
+```python
+@app.cell
+def _(mo, condition):
+    if condition:
+        element = mo.ui.slider(0, 100)
+    else:
+        element = mo.md("Slider not available")
+    
+    # Display the chosen element
+    element
+    return
+```
+
+### Error Handling with Rich Display
+```python
+@app.cell
+def _(mo, conn):
+    try:
+        df = conn.execute("SELECT * FROM table").df()
+        display_element = mo.ui.table(df)
+    except Exception as e:
+        display_element = mo.md(f"""
+        ## Database Error
+        
+        **Error**: {str(e)}
+        
+        Please check your connection and try again.
+        """)
+    
+    # Display the appropriate element
+    display_element
+    return
+```
+
+## Remember
+- **Last statement rule**: Display functions must be the last statement before `return`
+- **Outside control blocks**: Never put display functions inside `try`, `if`, `for`, `while`, `with`, or function definitions
+- **Prepare then display**: Do computation in control blocks, prepare content, then display outside
+- **Return for variables**: Use `return` only to pass variables to other cells
+
+Following these patterns ensures your marimo notebooks display content correctly and maintain proper reactive behavior.

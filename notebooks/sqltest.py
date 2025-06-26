@@ -12,13 +12,12 @@ def _():
     from datetime import date
     import pandas as pd
 
-    return Path, duckdb, mo
+    return Path, duckdb, mo, pd
 
 
 @app.cell
 def _(mo):
-    mo.md("""# SQL Query Test for DuckDB R2""")
-    return
+    mo.md("# SQL Query Test for DuckDB R2")
 
 
 @app.cell
@@ -85,219 +84,112 @@ def _(Path, conn, latest_date):
 
 @app.cell
 def _(mo):
-    mo.md("""## Testing Basic Queries""")
-    return
+    mo.md("## Testing All Queries")
 
 
 @app.cell
 def _(conn, mo):
-    # Test: Show all tables
-    query1 = "SHOW TABLES;"
-    try:
-        result1 = conn.execute(query1).fetchall()
-        mo.md(f"✅ Query 1 Success: `{query1}`\n\nTables: {[r[0] for r in result1]}")
-    except Exception as e:
-        mo.md(f"❌ Query 1 Failed: `{query1}`\n\nError: {e}")
-    return
+    # Define all test queries
+    queries = [
+        ("Show all tables", "SHOW TABLES;"),
+        ("First 10 posts", "SELECT id, author, CAST(created_at AS VARCHAR) as created_at, content, engagement_metrics_likes, engagement_metrics_reposts, engagement_metrics_replies, language FROM posts LIMIT 10;"),
+        ("Failed fetches", "SELECT url, fetch_status, error_type, title, CAST(fetched_at AS VARCHAR) as fetched_at FROM fetched WHERE fetch_status = 'error' LIMIT 10;"),
+        ("MCP-related content", "SELECT url, title, content_type, is_mcp_related, relevance_score, CAST(evaluated_at AS VARCHAR) as evaluated_at FROM evaluated WHERE is_mcp_related = true LIMIT 10;"),
+        ("Top posters", "SELECT author, COUNT(*) as post_count FROM posts GROUP BY author ORDER BY post_count DESC LIMIT 20;"),
+        ("Posts per day", "SELECT CAST(DATE(created_at) AS VARCHAR) as date, COUNT(*) as posts FROM posts GROUP BY DATE(created_at) ORDER BY DATE(created_at);"),
+        ("Popular hashtags", "SELECT tag, COUNT(*) as count FROM (SELECT UNNEST(tags) as tag FROM posts) GROUP BY tag ORDER BY count DESC LIMIT 20;"),
+        ("Top domains", "SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetched WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;"),
+        ("Error breakdown", "SELECT error_type, COUNT(*) as count FROM fetched WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;"),
+        ("Content types", "SELECT content_type, COUNT(*) as count FROM evaluated GROUP BY content_type ORDER BY count DESC;"),
+        ("Languages", "SELECT language, COUNT(*) as count FROM evaluated GROUP BY language ORDER BY count DESC;"),
+        ("Top MCP content", "SELECT title, relevance_score, perex FROM evaluated WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;"),
+        ("Authors sharing MCP content", "SELECT p.author, COUNT(DISTINCT e.url) as mcp_articles FROM posts p JOIN fetched f ON f.url = ANY(p.links) JOIN evaluated e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY p.author ORDER BY mcp_articles DESC LIMIT 20;")
+    ]
+    
+    # Test all queries and collect results
+    results = []
+    
+    for i, (name, query) in enumerate(queries, 1):
+        try:
+            result = conn.execute(query).fetchall()
+            if len(result) > 0:
+                results.append(f"✅ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: {len(result)} rows returned\n")
+            else:
+                results.append(f"⚪ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: 0 rows returned\n")
+        except Exception as e:
+            results.append(f"❌ **Query {i}: {name}**\n   - Query: `{query}`\n   - Error: {str(e)}\n")
+    
+    # Prepare summary
+    total_queries = len(queries)
+    successful_queries = len([r for r in results if r.startswith("✅") or r.startswith("⚪")])
+    failed_queries = total_queries - successful_queries
+    
+    summary = f"""## Query Test Results
 
+**Summary**: {successful_queries}/{total_queries} queries successful, {failed_queries} failed
 
-@app.cell
-def _(conn, mo):
-    # Test: First 10 posts (avoiding timestamp serialization issues) 
-    query2 = "SELECT id, author, CAST(created_at AS VARCHAR) as created_at, content, engagement_metrics_likes, engagement_metrics_reposts, engagement_metrics_replies, language FROM posts LIMIT 10;"
-    try:
-        result2 = conn.execute(query2).df()
-        mo.md(f"✅ Query 2 Success: `{query2}`\n\nReturned {len(result2)} rows")
-    except Exception as e:
-        mo.md(f"❌ Query 2 Failed: `{query2}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Failed fetches 
-    query3 = "SELECT url, fetch_status, error_type, title, CAST(fetched_at AS VARCHAR) as fetched_at FROM fetched WHERE fetch_status = 'error' LIMIT 10;"
-    try:
-        result3 = conn.execute(query3).df()
-        mo.md(f"✅ Query 3 Success: `{query3}`\n\nReturned {len(result3)} rows")
-    except Exception as e:
-        mo.md(f"❌ Query 3 Failed: `{query3}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: MCP-related content
-    query4 = "SELECT url, title, content_type, is_mcp_related, relevance_score, CAST(evaluated_at AS VARCHAR) as evaluated_at FROM evaluated WHERE is_mcp_related = true LIMIT 10;"
-    try:
-        result4 = conn.execute(query4).df()
-        mo.md(f"✅ Query 4 Success: `{query4}`\n\nReturned {len(result4)} rows")
-    except Exception as e:
-        mo.md(f"❌ Query 4 Failed: `{query4}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""## Testing Posts Analysis Queries""")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Top posters
-    query5 = "SELECT author, COUNT(*) as post_count FROM posts GROUP BY author ORDER BY post_count DESC LIMIT 20;"
-    try:
-        result5 = conn.execute(query5).df()
-        mo.ui.table(result5, label="Top Posters")
-    except Exception as e:
-        mo.md(f"❌ Query 5 Failed: `{query5}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Posts per day 
-    query6 = "SELECT CAST(DATE(created_at) AS VARCHAR) as date, COUNT(*) as posts FROM posts GROUP BY DATE(created_at) ORDER BY DATE(created_at);"
-    try:
-        result6 = conn.execute(query6).df()
-        mo.md(f"✅ Query 6 Success: `{query6}`\n\nReturned {len(result6)} rows")
-    except Exception as e:
-        mo.md(f"❌ Query 6 Failed: `{query6}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Popular hashtags
-    query7 = "SELECT unnest(tags) as tag, COUNT(*) as count FROM posts GROUP BY tag ORDER BY count DESC LIMIT 20;"
-    try:
-        result7 = conn.execute(query7).df()
-        mo.ui.table(result7, label="Popular Hashtags")
-    except Exception as e:
-        mo.md(f"❌ Query 7 Failed: `{query7}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""## Testing Fetched Content Analysis Queries""")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Top domains
-    query8 = "SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetched WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;"
-    try:
-        result8 = conn.execute(query8).df()
-        mo.ui.table(result8, label="Top Domains")
-    except Exception as e:
-        mo.md(f"❌ Query 8 Failed: `{query8}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Error breakdown
-    query9 = "SELECT error_type, COUNT(*) as count FROM fetched WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;"
-    try:
-        result9 = conn.execute(query9).df()
-        mo.ui.table(result9, label="Error Breakdown")
-    except Exception as e:
-        mo.md(f"❌ Query 9 Failed: `{query9}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""## Testing Evaluation Analysis Queries""")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Content types
-    query10 = "SELECT content_type, COUNT(*) as count FROM evaluated GROUP BY content_type ORDER BY count DESC;"
-    try:
-        result10 = conn.execute(query10).df()
-        mo.ui.table(result10, label="Content Types")
-    except Exception as e:
-        mo.md(f"❌ Query 10 Failed: `{query10}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Languages
-    query11 = "SELECT language, COUNT(*) as count FROM evaluated GROUP BY language ORDER BY count DESC;"
-    try:
-        result11 = conn.execute(query11).df()
-        mo.ui.table(result11, label="Languages")
-    except Exception as e:
-        mo.md(f"❌ Query 11 Failed: `{query11}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Top MCP content (no timestamps to avoid BigInt issue)
-    query12 = "SELECT title, relevance_score, perex FROM evaluated WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;"
-    try:
-        result12 = conn.execute(query12).df()
-        mo.ui.table(result12, label="Top MCP Content")
-    except Exception as e:
-        mo.md(f"❌ Query 12 Failed: `{query12}`\n\nError: {e}")
-    return
-
-
-@app.cell
-def _(mo):
-    mo.md("""## Testing Cross-Stage Analysis Query""")
-    return
-
-
-@app.cell
-def _(conn, mo):
-    # Test: Authors sharing MCP content
-    query13 = "SELECT p.author, COUNT(DISTINCT e.url) as mcp_articles FROM posts p JOIN fetched f ON f.url = ANY(p.links) JOIN evaluated e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY p.author ORDER BY mcp_articles DESC LIMIT 20;"
-    try:
-        result13 = conn.execute(query13).df()
-        mo.ui.table(result13, label="Authors Sharing MCP Content")
-    except Exception as e:
-        mo.md(f"❌ Query 13 Failed: `{query13}`\n\nError: {e}")
-    return
-
-
-
-@app.cell
-def _(mo):
-    mo.md("## Schema Inspection")
+{chr(10).join(results)}"""
+    
+    # CORRECT PATTERN: mo.md() OUTSIDE control blocks, BEFORE return
+    mo.md(summary)
     return
 
 
 @app.cell
 def _(conn, mo, tables_loaded):
-    # Inspect schema of each table to understand the structure
+    # Schema inspection
     schema_info = []
-
-    for table_name_iter, _ in tables_loaded:
-        try:
-            # Get column information
-            columns_info = conn.execute(f"DESCRIBE {table_name_iter}").fetchall()
-            schema_info.append(f"\n### Table: {table_name_iter}\n")
-            for col in columns_info:
-                schema_info.append(f"- {col[0]}: {col[1]}")
-        except Exception as e:
-            schema_info.append(f"\n### Table: {table_name_iter}\n- Error: {e}")
-
-    mo.md("## Table Schemas\n" + "\n".join(schema_info))
+    
+    try:
+        for table_name_iter, _ in tables_loaded:
+            try:
+                # Get column information
+                columns_info = conn.execute(f"DESCRIBE {table_name_iter}").fetchall()
+                schema_info.append(f"### Table: {table_name_iter}")
+                for col in columns_info:
+                    schema_info.append(f"- **{col[0]}**: {col[1]}")
+                schema_info.append("")  # Empty line between tables
+            except Exception as e:
+                schema_info.append(f"### Table: {table_name_iter}")
+                schema_info.append(f"- Error: {e}")
+                schema_info.append("")
+        
+        content = "## Table Schemas\n\n" + "\n".join(schema_info)
+    except Exception as e:
+        content = f"## Table Schemas\n\nError inspecting schemas: {e}"
+    
+    # CORRECT PATTERN: mo.md() OUTSIDE try/except, BEFORE return
+    mo.md(content)
     return
 
 
-@app.cell
-def _(mo):
-    mo.md("## Summary: All queries tested successfully")
+@app.cell  
+def _(conn, mo):
+    # Show some sample data from each table
+    sample_data = []
+    tables = ["posts", "fetched", "evaluated"]
+    
+    try:
+        for table in tables:
+            try:
+                # Get first 3 rows as sample
+                result = conn.execute(f"SELECT * FROM {table} LIMIT 3").df()
+                sample_data.append(f"### Sample data from {table} ({len(result)} rows shown)")
+                sample_data.append("```")
+                sample_data.append(result.to_string())
+                sample_data.append("```")
+                sample_data.append("")
+            except Exception as e:
+                sample_data.append(f"### Sample data from {table}")
+                sample_data.append(f"Error: {e}")
+                sample_data.append("")
+        
+        content = "## Sample Data\n\n" + "\n".join(sample_data)
+    except Exception as e:
+        content = f"## Sample Data\n\nError getting sample data: {e}"
+    
+    # CORRECT PATTERN: mo.md() OUTSIDE try/except, BEFORE return
+    mo.md(content)
     return
 
 
