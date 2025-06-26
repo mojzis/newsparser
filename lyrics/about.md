@@ -17,11 +17,12 @@ The monitor processes data through four stages:
 
 ## Data Flow
 
-```
-Bluesky API → Collect Stage → Fetch Stage → Evaluate Stage → Report Stage
-     ↓            ↓              ↓              ↓              ↓
-  Posts.md    Articles.md   Evaluations.md  report.html   Bluesky Post
-```
+The system processes data through a pipeline where each stage saves its output before the next stage begins:
+
+1. **Bluesky API** → **Collect Stage** → `posts.md` files
+2. **Collect Stage** → **Fetch Stage** → `articles.md` files  
+3. **Fetch Stage** → **Evaluate Stage** → `evaluations.md` files
+4. **Evaluate Stage** → **Report Stage** → `report.html` + Bluesky post
 
 ## Key Features
 
