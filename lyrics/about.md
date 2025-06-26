@@ -17,12 +17,31 @@ The monitor processes data through four stages:
 
 ## Data Flow
 
-The system processes data through a pipeline where each stage saves its output before the next stage begins:
+```mermaid
+graph LR
+    A[Bluesky API] --> B[Collect Stage]
+    B --> C[posts.md files]
+    C --> D[Fetch Stage]
+    D --> E[articles.md files]
+    E --> F[Evaluate Stage]
+    F --> G[evaluations.md files]
+    G --> H[Report Stage]
+    H --> I[report.html]
+    H --> J[Bluesky Post]
+    
+    style A fill:#3498db,stroke:#2c3e50,color:#fff
+    style B fill:#2ecc71,stroke:#27ae60,color:#fff
+    style D fill:#e74c3c,stroke:#c0392b,color:#fff
+    style F fill:#f39c12,stroke:#d68910,color:#fff
+    style H fill:#9b59b6,stroke:#8e44ad,color:#fff
+    style C fill:#ecf0f1,stroke:#bdc3c7
+    style E fill:#ecf0f1,stroke:#bdc3c7
+    style G fill:#ecf0f1,stroke:#bdc3c7
+    style I fill:#ecf0f1,stroke:#bdc3c7
+    style J fill:#3498db,stroke:#2c3e50,color:#fff
+```
 
-1. **Bluesky API** → **Collect Stage** → `posts.md` files
-2. **Collect Stage** → **Fetch Stage** → `articles.md` files  
-3. **Fetch Stage** → **Evaluate Stage** → `evaluations.md` files
-4. **Evaluate Stage** → **Report Stage** → `report.html` + Bluesky post
+Each stage processes data independently, making the pipeline fault-tolerant and easy to debug.
 
 ## Key Features
 

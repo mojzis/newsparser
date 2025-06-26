@@ -234,7 +234,32 @@
                 margin: 36px 0 20px 0;
             }
         }
+        
+        /* Mermaid diagram styling */
+        .mermaid {
+            text-align: center;
+            margin: 30px 0;
+            background: #fafafa;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#2c3e50',
+                lineColor: '#34495e',
+                secondaryColor: '#ecf0f1',
+                tertiaryColor: '#f8f9fa'
+            }
+        });
+    </script>
 </head>
 <body>
     <nav class="navbar">

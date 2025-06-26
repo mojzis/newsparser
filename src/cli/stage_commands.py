@@ -372,6 +372,15 @@ def render_about():
         with open(source_file, 'r', encoding='utf-8') as f:
             markdown_content = f.read()
         
+        # Process Mermaid blocks before markdown conversion
+        import re
+        def replace_mermaid(match):
+            mermaid_code = match.group(1)
+            return f'<div class="mermaid">\n{mermaid_code}\n</div>'
+        
+        # Replace ```mermaid blocks with <div class="mermaid">
+        markdown_content = re.sub(r'```mermaid\n(.*?)\n```', replace_mermaid, markdown_content, flags=re.DOTALL)
+        
         # Convert markdown to HTML
         html_content = markdown.markdown(markdown_content)
         
