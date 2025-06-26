@@ -192,6 +192,43 @@ def _(mo, conn):
     return
 ```
 
+## 🚨 RED FLAGS - NEVER DO THIS
+
+### ❌ These patterns are ALWAYS WRONG:
+```python
+if condition:
+    mo.md("text")  # WRONG - display inside if
+
+try:
+    result = compute()
+    mo.ui.table(df)  # WRONG - display inside try
+except:
+    mo.md("error")  # WRONG - display inside except
+
+for item in items:
+    mo.md(f"item: {item}")  # WRONG - display inside loop
+```
+
+### ✅ Correct pattern is ALWAYS:
+```python
+# 1. Prepare content inside control blocks
+if condition:
+    content = "success message"
+else:
+    content = "error message"
+
+# 2. Display OUTSIDE control blocks
+mo.md(content)
+```
+
+## Checklist Before Writing ANY Cell
+
+Before writing a marimo cell, ask yourself:
+1. ❓ Am I putting `mo.md()`, `mo.ui.table()`, or ANY display function inside `if`, `try`, `for`, `while`, or `with`?
+2. ❓ If YES → STOP! Prepare content inside, display outside
+3. ❓ Is my display function the LAST statement before `return`?
+4. ❓ If NO → Move it to be the last statement
+
 ## Remember
 - **Last statement rule**: Display functions must be the last statement before `return`
 - **Outside control blocks**: Never put display functions inside `try`, `if`, `for`, `while`, `with`, or function definitions
