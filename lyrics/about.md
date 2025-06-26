@@ -18,16 +18,29 @@ The monitor processes data through four stages:
 ## Data Flow
 
 ```mermaid
-graph LR
-    A[Bluesky API] --> B[Collect Stage]
-    B --> C[posts.md files]
-    C --> D[Fetch Stage]
-    D --> E[articles.md files]
-    E --> F[Evaluate Stage]
-    F --> G[evaluations.md files]
-    G --> H[Report Stage]
-    H --> I[report.html]
-    H --> J[Bluesky Post]
+graph TB
+    subgraph "Processing Stages"
+        A[Bluesky API] --> B[Collect Stage]
+        B --> D[Fetch Stage]
+        D --> F[Evaluate Stage]
+        F --> H[Report Stage]
+    end
+    
+    subgraph "Data Outputs"
+        B --> C[posts.md files]
+        C --> CP[posts.parquet]
+        D --> E[articles.md files]
+        E --> EP[fetched.parquet]
+        F --> G[evaluations.md files]
+        G --> GP[evaluated.parquet]
+        H --> I[report.html]
+    end
+    
+    subgraph "Storage"
+        CP --> R2A[Cloudflare R2]
+        EP --> R2B[Cloudflare R2]
+        GP --> R2C[Cloudflare R2]
+    end
     
     style A fill:#3498db,stroke:#2c3e50,color:#fff
     style B fill:#2ecc71,stroke:#27ae60,color:#fff
@@ -38,7 +51,12 @@ graph LR
     style E fill:#ecf0f1,stroke:#bdc3c7
     style G fill:#ecf0f1,stroke:#bdc3c7
     style I fill:#ecf0f1,stroke:#bdc3c7
-    style J fill:#3498db,stroke:#2c3e50,color:#fff
+    style CP fill:#f1c40f,stroke:#f39c12,color:#fff
+    style EP fill:#f1c40f,stroke:#f39c12,color:#fff
+    style GP fill:#f1c40f,stroke:#f39c12,color:#fff
+    style R2A fill:#e67e22,stroke:#d35400,color:#fff
+    style R2B fill:#e67e22,stroke:#d35400,color:#fff
+    style R2C fill:#e67e22,stroke:#d35400,color:#fff
 ```
 
 Each stage processes data independently, making the pipeline fault-tolerant and easy to debug.
