@@ -35,6 +35,13 @@ class ArticleEvaluation(AnalyticsBase):
     truncated: bool = Field(default=False, description="Whether content was truncated")
     error: Optional[str] = Field(None, description="Error message if evaluation failed")
     
+    # Configuration metadata (for tracking experiments)
+    prompt_version: str = Field(..., description="Version of prompt used")
+    prompt_name: str = Field(..., description="Name of prompt template")
+    model_id: str = Field(..., description="Model identifier used")
+    model_version: str = Field(..., description="Model version")
+    config_branch: str = Field(..., description="Configuration branch used")
+    
     model_config = {
         "json_encoders": {
             datetime: lambda v: v.isoformat(),

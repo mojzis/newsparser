@@ -4,6 +4,8 @@ import click
 from rich.console import Console
 
 from src.cli.stage_commands import stages
+from src.cli.config_commands import config
+from src.config.config_manager import get_config_manager
 
 console = Console()
 
@@ -11,11 +13,22 @@ console = Console()
 @click.group()
 def cli():
     """Bluesky MCP Monitor - Stage-based Processing"""
-    pass
+    # Validate configuration on startup
+    try:
+        config_manager = get_config_manager()
+        if not config_manager.validate_config():
+            console.print("[red]Configuration validation failed. Please check your config files.[/red]")
+            raise click.Abort()
+    except Exception as e:
+        console.print(f"[red]Configuration error: {e}[/red]")
+        raise click.Abort()
 
 
 # Add the stage-based commands as the primary interface
 cli.add_command(stages)
+
+# Add configuration management commands
+cli.add_command(config)
 
 # Add convenient top-level aliases for the most common operations
 @cli.command()

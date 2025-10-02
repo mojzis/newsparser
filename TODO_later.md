@@ -1,3 +1,11 @@
+I have several plans that will affect the codebase, I would like to share all of it with you, but please lets be very careful about jumping into development - lets think hard, write a plan (store it into the plans dir) , review the plan together and then implement phase by phase.
+plans:
+- i would like to deploy this to github and let it run there on a daily basis. for that I would like to make sue that ewverything that resembles configuration is taken aside - promopts, paths, search strings ...
+- i would like to make it easier to experiment with improving the prompts - please set the prompt config aside and add prompt version to it and also the generated data.
+- eventually, this could become a library that would allow ppl to define a search and build a website like this. (not a task for now, just wanted to share the context so that we could adapt the plan accordingly)
+
+
+
 
 content search experiment - fetch a 1000 posts mentioning just mcp, store them locally into a parquet file, go through them and suggest possible other searches (tags ...)
 

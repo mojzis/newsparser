@@ -7,15 +7,12 @@ from anthropic import Anthropic
 from pydantic import HttpUrl
 
 from src.config.settings import Settings
+from src.config.config_manager import get_config_manager
 from src.content.models import ExtractedContent
 from src.models.evaluation import ArticleEvaluation
 from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
-
-# Content limits
-MAX_WORDS = 5000  # Maximum words to send to API
-MAX_CHARS = 30000  # Maximum characters to send to API
 
 
 class AnthropicEvaluator:
@@ -25,6 +22,11 @@ class AnthropicEvaluator:
         """Initialize evaluator with API settings."""
         self.settings = settings
         self.client = Anthropic(api_key=settings.anthropic_api_key)
+        self.config_manager = get_config_manager()
+        
+        # Load model and prompt configurations
+        self.model_config = self.config_manager.get_model_config()
+        self.prompt_config = self.config_manager.get_prompt_config()
         
     def evaluate_article(
         self, 
@@ -47,28 +49,31 @@ class AnthropicEvaluator:
             truncated = False
             
             word_count = len(article_text.split())
-            if word_count > MAX_WORDS or len(article_text) > MAX_CHARS:
+            max_words = self.model_config.content_limits["max_words"]
+            max_chars = self.model_config.content_limits["max_chars"]
+            
+            if word_count > max_words or len(article_text) > max_chars:
                 # Truncate to word limit
-                words = article_text.split()[:MAX_WORDS]
+                words = article_text.split()[:max_words]
                 article_text = ' '.join(words)
-                if len(article_text) > MAX_CHARS:
-                    article_text = article_text[:MAX_CHARS]
+                if len(article_text) > max_chars:
+                    article_text = article_text[:max_chars]
                 truncated = True
                 logger.info(f"Truncated content from {word_count} to {len(article_text.split())} words")
             
-            # Create prompt with hints from content extraction
+            # Create prompt with hints from content extraction using configuration
             prompt = self._create_evaluation_prompt(
-                article_text, 
-                content.title,
+                content=article_text,
+                title=content.title,
                 detected_language=content.language,
                 detected_content_type=content.content_type
             )
             
-            # Call Anthropic API
+            # Call Anthropic API using model configuration
             response = self.client.messages.create(
-                model="claude-3-haiku-20240307",  # Using Haiku for cost efficiency
-                max_tokens=500,
-                temperature=0,
+                model=self.model_config.model_id,
+                max_tokens=self.model_config.config["max_tokens"],
+                temperature=self.model_config.config["temperature"],
                 messages=[
                     {"role": "user", "content": prompt}
                 ]
@@ -77,7 +82,7 @@ class AnthropicEvaluator:
             # Parse response
             result = self._parse_response(response.content[0].text)
             
-            # Create evaluation
+            # Create evaluation with configuration metadata
             return ArticleEvaluation(
                 url=str(url),
                 is_mcp_related=result["is_mcp_related"],
@@ -93,7 +98,12 @@ class AnthropicEvaluator:
                 domain=content.domain,
                 evaluated_at=content.extraction_timestamp,
                 word_count=word_count,
-                truncated=truncated
+                truncated=truncated,
+                prompt_version=self.prompt_config.version,
+                prompt_name=self.prompt_config.name,
+                model_id=self.model_config.model_id,
+                model_version=self.model_config.version,
+                config_branch=self.config_manager.branch
             )
             
         except Exception as e:
@@ -112,17 +122,23 @@ class AnthropicEvaluator:
                 domain=content.domain,
                 evaluated_at=content.extraction_timestamp,
                 word_count=len(content.content_markdown.split()),
-                error=str(e)
+                error=str(e),
+                prompt_version="unknown",
+                prompt_name="unknown",
+                model_id="unknown",
+                model_version="unknown",
+                config_branch="unknown"
             )
     
     def _create_evaluation_prompt(
-        self, 
-        content: str, 
-        title: Optional[str],
+        self,
+        content: str,
+        title: Optional[str] = None,
         detected_language: Optional[str] = None,
         detected_content_type: Optional[str] = None
     ) -> str:
-        """Create evaluation prompt for Anthropic."""
+        """Create evaluation prompt for article content using configuration."""
+        # Add title if available
         title_part = f"\nTitle: {title}" if title else ""
         
         # Add hints if available
@@ -134,24 +150,15 @@ class AnthropicEvaluator:
         
         hints_part = "\n" + "\n".join(hints) if hints else ""
         
-        return f"""Analyze this article for relevance to Model Context Protocol (MCP).
-
-MCP is a protocol for AI tool integration that allows language models to access external tools and data sources.
-
-Article:{title_part}{hints_part}
-Content:
-{content}
-
-Evaluate and respond with JSON containing:
-1. is_mcp_related (boolean): Is this article about MCP, AI tool integration, or related topics?
-2. relevance_score (0.0-1.0): How relevant is this to MCP? 0=unrelated, 1=directly about MCP
-3. summary (string, max 200 chars): Write as the author would - direct, engaging content without meta-language like "This article" or "The piece describes"
-4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative, avoid exclamation marks
-5. key_topics (array of strings): Extract 2-5 specific technical topics, tools, services, or implementation details. Focus on concrete technologies, not abstract concepts. Examples of GOOD topics: "Claude API", "OpenAI GPT-4", "TypeScript SDK", "PostgreSQL integration", "Slack bot", "GitHub Actions", "Visual Studio Code extension", "WebSocket transport", "JSON-RPC protocol", "Docker containers", "AWS Lambda", "React components". Examples of BAD topics to avoid: "AI", "MCP", "integration", "development", "tools", "technology"
-6. content_type (string): One of: "video", "newsletter", "article", "blog post", "product update", "invite" (hint provided above if detected)
-7. language (string): ISO 639-1 language code (e.g., "en" for English, "es" for Spanish, "fr" for French, "ja" for Japanese) (hint provided above if detected)
-
-Respond only with valid JSON, no other text."""
+        # Use prompt template from configuration
+        template = self.prompt_config.template
+        
+        # Format the template with variables
+        return template.format(
+            title_part=title_part,
+            hints_part=hints_part,
+            content=content
+        )
     
     def _parse_response(self, response_text: str) -> dict:
         """Parse JSON response from Anthropic."""

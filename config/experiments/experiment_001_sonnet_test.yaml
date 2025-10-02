@@ -1,0 +1,18 @@
+version: "1.0"
+metadata:
+  name: "sonnet_test"
+  description: "Test Claude Sonnet for better evaluation quality"
+
+# Override specific settings
+processing:
+  default_model_config: "mcp_evaluator_sonnet"
+  # Keep everything else from base config
+  
+experiment:
+  sample_rate: 0.1  # Use 10% of data for this experiment
+  metrics_to_track:
+    - "relevance_score"
+    - "cost_per_evaluation"
+    - "processing_time"
+    - "json_parse_success_rate"
+  comparison_baseline: "base"

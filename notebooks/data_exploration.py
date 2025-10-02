@@ -51,10 +51,13 @@ def _(BlueskyDataCollector, get_settings, mo):
     collector = BlueskyDataCollector(settings)
 
     # Check credentials
+    _out = ""
     if not settings.has_bluesky_credentials:
-        mo.md("⚠️ **Warning**: Bluesky credentials not configured. Data collection will not work.")
+        _out = "⚠️ **Warning**: Bluesky credentials not configured. Data collection will not work."
     else:
-        mo.md("✅ **Settings loaded**: Ready to explore data")
+        _out = "✅ **Settings loaded**: Ready to explore data"
+
+    mo.md(_out)
     return collector, settings
 
 
@@ -72,11 +75,13 @@ def _(collector, mo, target_date_input):
     selected_date = target_date_input.value
 
     data_exists = collector.check_stored_data(selected_date)
-
+    _out = ""
     if data_exists:
-        mo.md(f"✅ **Data found** for {selected_date}")
+        _out = f"✅ **Data found** for {selected_date}"
     else:
-        mo.md(f"❌ **No data found** for {selected_date}. Try collecting data first or select a different date.")
+        _out = f"❌ **No data found** for {selected_date}. Try collecting data first or select a different date."
+
+    mo.md(_out)
     return data_exists, selected_date
 
 

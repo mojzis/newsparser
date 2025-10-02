@@ -1,0 +1,23 @@
+version: "1.0"
+metadata:
+  name: "newsparser"
+  description: "Bluesky MCP Monitor"
+
+paths:
+  stages_base: "stages"
+  templates: "src/templates"
+  data_legacy: "data"
+  reports: "reports"
+  
+processing:
+  fetch_lookback_days: 10
+  min_relevance_score: 0.3
+  max_concurrent_requests: 10
+  default_model_config: "mcp_evaluator_v1"
+  default_prompt_config: "mcp_evaluation_v1"
+  enable_experiments: true
+  
+ui:
+  site_title: "MCP Monitor"
+  site_tagline: "Daily digest of Model Context Protocol mentions"
+  theme: "default"
