@@ -1,11 +1,13 @@
 """Tests for ReportStage's collection-aware path routing."""
 
+import asyncio
 import tempfile
 from datetime import date
 from pathlib import Path
 
 import pytest
 
+from src.config.config_manager import UIConfig
 from src.stages.markdown import MarkdownFile
 from src.stages.report import ReportStage
 
@@ -113,3 +115,37 @@ class TestReportStagePaths:
         articles = stage.collect_mcp_articles(target_date)
 
         assert articles == []
+
+    def test_run_report_uses_collection_ui_branding(self, workdir):
+        base_path = workdir / "stages" / "duckdb"
+        output_base = workdir / "output" / "duckdb"
+        target_date = date(2026, 1, 5)
+        url = "https://example.com/article"
+
+        self._write_post(base_path, target_date, post_id="post1")
+        self._write_fetch(base_path, target_date, url)
+        self._write_evaluation(base_path, target_date, url, post_id="post1")
+
+        stage = ReportStage(
+            base_path=base_path,
+            output_base=output_base,
+            ui=UIConfig(
+                site_title="DuckDB News",
+                site_tagline="Daily digest of DuckDB mentions",
+            ),
+        )
+
+        asyncio.run(
+            stage.run_report(
+                days_back=0,
+                output_date=target_date,
+                generate_sitemap=False,
+                generate_rss=False,
+            )
+        )
+
+        report_path = output_base / "reports" / "2026-01-05" / "report.html"
+        content = report_path.read_text()
+
+        assert "DuckDB News" in content
+        assert "MCP Monitor" not in content

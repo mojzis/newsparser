@@ -7,6 +7,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from src.config.config_manager import UIConfig
 from src.models.report import (
     ArchiveLink,
     DaySection,
@@ -39,9 +40,11 @@ class ReportStage(ProcessingStage):
         template_dir: Path | None = None,
         base_path: Path = Path("stages"),
         output_base: Path = Path("output"),
+        ui: UIConfig | None = None,
     ) -> None:
         super().__init__("report", "evaluate", base_path)
         self.output_base = output_base
+        self.ui = ui or UIConfig()
 
         # Set up templates
         if template_dir is None:
@@ -556,7 +559,11 @@ class ReportStage(ProcessingStage):
         report_day = ReportDay.create(output_date, articles)
 
         # Generate HTML report using ReportGenerator for consistency
-        generator = ReportGenerator(output_dir=self.output_base)
+        generator = ReportGenerator(
+            output_dir=self.output_base,
+            site_title=self.ui.site_title,
+            site_tagline=self.ui.site_tagline,
+        )
         html_content = None
         homepage_content = None
 
@@ -792,7 +799,11 @@ class ReportStage(ProcessingStage):
                 )
 
                 # Generate homepage
-                generator = ReportGenerator(output_dir=self.output_base)
+                generator = ReportGenerator(
+                    output_dir=self.output_base,
+                    site_title=self.ui.site_title,
+                    site_tagline=self.ui.site_tagline,
+                )
                 homepage_path = generator.generate_homepage(homepage_data)
                 logger.info(
                     f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}"

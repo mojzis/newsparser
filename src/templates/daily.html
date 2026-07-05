@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}MCP Monitor - {{ date_formatted }}{% endblock %}
+{% block title %}{{ site_title | default('MCP Monitor') }} - {{ date_formatted }}{% endblock %}
 {% block content %}
 <div class="header">
-    <a href="/">MCP Monitor</a> - {{ date_formatted }}
+    <a href="/">{{ site_title | default('MCP Monitor') }}</a> - {{ date_formatted }}
 </div>
 
 {% if articles %}

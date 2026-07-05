@@ -364,7 +364,9 @@ def report(
 
     try:
         report_stage = ReportStage(
-            base_path=collection.stages_base, output_base=collection.output_base
+            base_path=collection.stages_base,
+            output_base=collection.output_base,
+            ui=collection.ui,
         )
 
         if bulk:
