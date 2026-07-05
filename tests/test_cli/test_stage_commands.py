@@ -68,6 +68,11 @@ class TestCollectDefaultSearch:
         runner = CliRunner()
         result = runner.invoke(collect, ["--collection", "duckdb"])
 
-        # It should resolve and print duckdb's default_search before failing later
-        # on missing Bluesky/R2 credentials (no creds are configured in tests).
+        # Ordering dependency: this assertion relies on collect() resolving and
+        # printing the search key *before* it checks Bluesky credentials (no creds
+        # are configured in tests, so the command exits non-zero right after this
+        # print). If that ordering in stage_commands.collect() ever changes so the
+        # credential check runs first, this assertion will stop being reached and
+        # the test will fail without indicating a real regression in search
+        # resolution.
         assert "using search 'duckdb_mentions'" in result.output

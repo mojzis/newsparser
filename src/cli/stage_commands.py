@@ -114,11 +114,10 @@ def collect(
     """Collect posts from Bluesky. Posts are organized by their publication date."""
 
     parsed_date = parse_date(target_date)
+    collection = load_collection_or_exit(collection_name)
+    search_key = search or collection.default_search
 
     try:
-        collection = load_collection(collection_name)
-        search_key = search or collection.default_search
-
         mode_text = "threads" if threads else "posts"
         console.print(f"🔍 Collecting {mode_text} using search '{search_key}'...")
 
@@ -203,9 +202,9 @@ def fetch(days_back: int, export_parquet: bool, collection_name: str) -> None:
     """Fetch full content from URLs found in collected posts from the last N days."""
 
     console.print(f"🌐 Fetching content from posts in the last {days_back} days...")
+    collection = load_collection_or_exit(collection_name)
 
     try:
-        collection = load_collection(collection_name)
         fetch_stage = FetchStage(
             export_parquet=export_parquet, base_path=collection.stages_base
         )
@@ -259,8 +258,9 @@ def evaluate(
     else:
         console.print(f"🤖 Evaluating new content from the last {days_back} days...")
 
+    collection = load_collection_or_exit(collection_name)
+
     try:
-        collection = load_collection(collection_name)
         settings = get_settings()
 
         if not settings.anthropic_api_key:
@@ -360,8 +360,9 @@ def report(
             f"📊 Generating single report from content in the last {days_back} days..."
         )
 
+    collection = load_collection_or_exit(collection_name)
+
     try:
-        collection = load_collection(collection_name)
         report_stage = ReportStage(
             base_path=collection.stages_base, output_base=collection.output_base
         )
