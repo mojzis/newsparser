@@ -19,9 +19,12 @@ help = "Run tests"
 
 [tool.poe.tasks._check-parallel]
 shell = """
-  ruff check . &
-  ty check src/ &
-  wait
+  ruff check . & p1=$!
+  ty check src/ & p2=$!
+  rc=0
+  wait $p1 || rc=1
+  wait $p2 || rc=1
+  exit $rc
 """
 interpreter = "bash"
 
