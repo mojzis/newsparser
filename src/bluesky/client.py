@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Any, Self
+from typing import Any, Self, cast
 
 from atproto import AsyncClient, models
 from atproto.exceptions import AtProtocolError
@@ -148,9 +148,10 @@ class BlueskyClient:
             Tuple of (posts list, next_cursor)
         """
         self._ensure_authenticated()
+        assert self.client is not None
 
         try:
-            params = {
+            params: dict[str, str | int] = {
                 "q": query,
                 "limit": limit,
                 "sort": sort,
@@ -159,7 +160,9 @@ class BlueskyClient:
             if cursor:
                 params["cursor"] = cursor
 
-            response = await self.client.app.bsky.feed.search_posts(params=params)
+            response = await self.client.app.bsky.feed.search_posts(
+                params=cast("models.AppBskyFeedSearchPosts.ParamsDict", params)
+            )
 
             posts = []
             for post_data in response.posts:
@@ -170,7 +173,7 @@ class BlueskyClient:
                     # Try to get URI for logging, but handle different post structures
                     try:
                         if hasattr(post_data, "post"):
-                            uri = post_data.post.uri
+                            uri = cast("Any", post_data).post.uri
                         elif hasattr(post_data, "uri"):
                             uri = post_data.uri
                         else:
@@ -338,6 +341,7 @@ class BlueskyClient:
             Post data from atproto API or None if not found
         """
         self._ensure_authenticated()
+        assert self.client is not None
 
         try:
             # Use the get_posts method from atproto
@@ -367,6 +371,7 @@ class BlueskyClient:
             Thread response from atproto, or None if failed
         """
         self._ensure_authenticated()
+        assert self.client is not None
 
         try:
             params = models.AppBskyFeedGetPostThread.Params(
@@ -401,6 +406,7 @@ class BlueskyClient:
         from src.bluesky.thread_collector import ThreadCollector
 
         self._ensure_authenticated()
+        assert self.client is not None
 
         try:
             collector = ThreadCollector(self.client)

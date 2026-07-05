@@ -228,7 +228,7 @@ class URLExpander:
         # Handle any exceptions
         results = []
         for i, result in enumerate(expanded):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 logger.warning(f"Failed to expand URL {urls[i]}: {result}")
                 results.append(urls[i])  # Use original URL
             else:

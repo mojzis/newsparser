@@ -71,7 +71,7 @@ class URLRegistry:
             return False
         # Add new entry - use original URL for storage
         new_entry = URLEntry(
-            url=url,
+            url=HttpUrl(str(url)),
             first_seen=now,
             first_post_id=post_id,
             first_post_author=author,

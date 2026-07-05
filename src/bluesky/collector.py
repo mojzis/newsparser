@@ -2,6 +2,7 @@ import json
 import tempfile
 from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 
@@ -375,8 +376,10 @@ class BlueskyDataCollector:
                         )
                         return posts
 
+                return []
+
             # Fall back to JSON for backward compatibility
-            elif self.r2_client.file_exists(json_path):
+            if self.r2_client.file_exists(json_path):
                 logger.info(f"Reading posts from JSON (legacy): {json_path}")
 
                 # Download from R2
@@ -406,9 +409,8 @@ class BlueskyDataCollector:
                 logger.info(f"Retrieved {len(posts)} posts from JSON for {target_date}")
                 return posts
 
-            else:
-                logger.warning(f"No stored posts found for {target_date}")
-                return []
+            logger.warning(f"No stored posts found for {target_date}")
+            return []
 
         except Exception:
             logger.exception("Error retrieving stored posts")
@@ -463,7 +465,7 @@ class BlueskyDataCollector:
                         future = executor.submit(
                             asyncio.run, self.get_stored_posts(target_date)
                         )
-                        return future.result()
+                        return cast("list[BlueskyPost]", future.result())
             except RuntimeError:
                 # No event loop running, we can use asyncio.run directly
                 return asyncio.run(self.get_stored_posts(target_date))

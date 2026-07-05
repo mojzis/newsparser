@@ -396,7 +396,7 @@ def render_stats() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for notebook_config in notebooks:
-        notebook_file = notebook_config["file"]
+        notebook_file = Path(notebook_config["file"])
         output_filename = notebook_config["output"]
 
         # Check if notebook exists
@@ -409,8 +409,8 @@ def render_stats() -> None:
             output_file = output_dir / output_filename
 
             # Run marimo export command
-            result = subprocess.run(
-                [  # noqa: S603, S607  fixed trusted command from venv PATH
+            result = subprocess.run(  # noqa: S603  fixed trusted command from venv PATH
+                [  # noqa: S607  partial executable path "marimo" resolved from PATH
                     "marimo",
                     "export",
                     "html",
@@ -685,10 +685,12 @@ def run_all(
 
     # Stage 5: Render Stats
     console.print("\n[bold blue]Stage 5: Render Stats[/bold blue]")
+    assert render_stats.callback is not None
     render_stats.callback()
 
     # Stage 6: Render About
     console.print("\n[bold blue]Stage 6: Render About[/bold blue]")
+    assert render_about.callback is not None
     render_about.callback()
 
     # Stage 7: Publish (optional)
@@ -931,8 +933,8 @@ def present(port: int, host: str) -> None:
         browser_thread.start()
 
         # Start the server
-        subprocess.run(
-            [  # noqa: S603  fixed command, sys.executable + local args
+        subprocess.run(  # noqa: S603  fixed command, sys.executable + local args
+            [
                 sys.executable,
                 "-m",
                 "http.server",

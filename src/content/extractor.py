@@ -64,20 +64,14 @@ class ContentExtractor:
 
         # Remove navigation, sidebar, footer elements
         for element in soup.find_all(
-            attrs={
-                "class": re.compile(
-                    r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE
-                )
-            }
+            class_=re.compile(
+                r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE
+            )
         ):
             element.decompose()
 
         for element in soup.find_all(
-            attrs={
-                "id": re.compile(
-                    r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE
-                )
-            }
+            id=re.compile(r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE)
         ):
             element.decompose()
 
@@ -111,7 +105,8 @@ class ContentExtractor:
             element = soup.select_one(selector)
             if element:
                 if element.name == "meta":
-                    author = element.get("content", "").strip()
+                    content = element.get("content", "")
+                    author = content.strip() if isinstance(content, str) else ""
                 else:
                     author = element.get_text().strip()
 
@@ -141,7 +136,8 @@ class ContentExtractor:
             element = soup.select_one(selector)
             if element:
                 if element.name == "meta":
-                    medium = element.get("content", "").strip()
+                    content = element.get("content", "")
+                    medium = content.strip() if isinstance(content, str) else ""
                 else:
                     medium = element.get_text().strip()
 
@@ -170,7 +166,8 @@ class ContentExtractor:
             element = soup.select_one(selector)
             if element:
                 if element.name == "meta":
-                    title = element.get("content", "").strip()
+                    content = element.get("content", "")
+                    title = content.strip() if isinstance(content, str) else ""
                 else:
                     title = element.get_text().strip()
 
@@ -190,19 +187,19 @@ class ContentExtractor:
         if html_tag and html_tag.get("lang"):
             lang = html_tag.get("lang")
             # Extract ISO 639-1 code (e.g., "en" from "en-US")
-            return lang.split("-")[0].lower() if lang else None
+            return lang.split("-")[0].lower() if isinstance(lang, str) else None
 
         # Check meta tags for content-language
         lang_meta = soup.find("meta", attrs={"http-equiv": "content-language"})
         if lang_meta and lang_meta.get("content"):
             content = lang_meta.get("content")
-            return content.split("-")[0].lower() if content else None
+            return content.split("-")[0].lower() if isinstance(content, str) else None
 
         # Check Open Graph locale
         og_locale = soup.find("meta", property="og:locale")
         if og_locale and og_locale.get("content"):
             content = og_locale.get("content")
-            return content.split("_")[0].lower() if content else None
+            return content.split("_")[0].lower() if isinstance(content, str) else None
 
         return None
 
@@ -370,11 +367,7 @@ class ContentExtractor:
                     "main_tags": len(soup.find_all("main")),
                     "content_classes": len(
                         soup.find_all(
-                            attrs={
-                                "class": re.compile(
-                                    r"content|article|post", re.IGNORECASE
-                                )
-                            }
+                            class_=re.compile(r"content|article|post", re.IGNORECASE)
                         )
                     ),
                 }

@@ -3,6 +3,7 @@
 import json
 
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 from pydantic import HttpUrl
 
 from src.config.config_manager import get_config_manager
@@ -77,11 +78,14 @@ class AnthropicEvaluator:
             )
 
             # Parse response
-            result = self._parse_response(response.content[0].text)
+            block = response.content[0]
+            if not isinstance(block, TextBlock):
+                raise TypeError(f"Unexpected response block type: {type(block)}")
+            result = self._parse_response(block.text)
 
             # Create evaluation with configuration metadata
             return ArticleEvaluation(
-                url=str(url),
+                url=HttpUrl(str(url)),
                 is_mcp_related=result["is_mcp_related"],
                 relevance_score=result["relevance_score"],
                 summary=result["summary"],
@@ -108,7 +112,7 @@ class AnthropicEvaluator:
 
             # Return evaluation with error
             return ArticleEvaluation(
-                url=str(url),
+                url=HttpUrl(str(url)),
                 is_mcp_related=False,
                 relevance_score=0.0,
                 summary="Evaluation failed",

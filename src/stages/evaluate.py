@@ -64,12 +64,6 @@ class EvaluateStage(ProcessingStage):
             content_markdown=content_markdown,
             word_count=frontmatter.get("word_count", 0),
             domain=frontmatter.get("domain", ""),
-            published_date=datetime.fromisoformat(
-                frontmatter["published_date"].rstrip("Z")
-            )
-            if frontmatter.get("published_date")
-            else None,
-            extract_timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
     async def process_item(self, input_path: Path, target_date: date) -> Path | None:

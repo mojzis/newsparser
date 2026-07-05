@@ -63,7 +63,7 @@ class ReportArticle(BaseModel):
             title=evaluation.get("title", "Untitled"),
             perex=perex,
             post_id=actual_post_id,
-            bluesky_url=bluesky_url,
+            bluesky_url=HttpUrl(bluesky_url),
             author=author,
             timestamp=timestamp,
             created_at=created_at,
