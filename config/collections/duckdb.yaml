@@ -1,0 +1,29 @@
+name: duckdb
+
+topic:
+  name: "DuckDB"
+  description: "DuckDB is an in-process analytical SQL database designed for fast, embedded OLAP workloads."
+  min_relevance_score: 0.3
+
+ui:
+  site_title: "DuckDB News"
+  site_tagline: "Daily digest of DuckDB mentions"
+  theme: "default"
+
+evaluation:
+  prompt_config: "mcp_evaluation_v1"
+  model_config: "mcp_evaluator_v1"
+
+default_search: duckdb_mentions
+
+searches:
+  searches:
+    duckdb_mentions:
+      name: "DuckDB Mentions"
+      description: "Posts mentioning DuckDB"
+      include_terms:
+        - "duckdb"
+        - "duck db"
+      exclude_terms: []
+      sort: "latest"
+      enabled: true
