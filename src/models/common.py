@@ -1,6 +1,5 @@
 from datetime import date
 from enum import Enum
-from typing import TypeAlias
 
 type DatePath = str  # Format: "YYYY/MM/DD"
 FileType = Enum("FileType", ["PARQUET", "HTML", "JSON"])

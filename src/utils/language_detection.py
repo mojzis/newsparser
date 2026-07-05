@@ -6,7 +6,7 @@ to identify posts containing significant amounts of non-Latin characters.
 """
 
 import unicodedata
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 
 class LanguageType(StrEnum):

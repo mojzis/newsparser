@@ -64,7 +64,7 @@ class BlueskyPost(AnalyticsBase):
     @classmethod
     def detect_language_if_not_provided(cls, data: Any) -> Any:
         """Detect language from content if language field is not provided."""
-        if isinstance(data, dict):
+        if isinstance(data, dict):  # noqa: SIM102  kept nested for readability
             # Only detect language if not explicitly provided
             if "language" not in data and "content" in data:
                 content = data["content"]

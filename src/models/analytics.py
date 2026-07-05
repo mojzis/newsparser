@@ -42,7 +42,7 @@ class AnalyticsBase(BaseModel):
                 data["content"] = "Content stored in markdown body"
 
         # For FetchResult: extract domain from URL if missing
-        elif cls.__name__ == "FetchResult":
+        elif cls.__name__ == "FetchResult":  # noqa: SIM102  kept nested for readability
             if "domain" not in data and "url" in data:
                 try:
                     from urllib.parse import urlparse

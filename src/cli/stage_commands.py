@@ -1,6 +1,7 @@
 """Stage-based CLI commands for the refactored architecture."""
 
 import asyncio
+import contextlib
 import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -569,10 +570,8 @@ def clean(stage_name: str, target_date: str | None, confirm: bool) -> None:
         file_path.unlink()
 
     # Remove directory if empty
-    try:
+    with contextlib.suppress(OSError):  # Directory not empty
         stage_dir.rmdir()
-    except OSError:
-        pass  # Directory not empty
 
     console.print(f"✅ Cleaned {len(files)} files from {stage_name} stage", style="green")
 

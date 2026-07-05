@@ -114,7 +114,7 @@ class FileManager:
 
             # Check if path starts with valid base
             valid_bases = [FileManager.DATA_BASE_PATH, FileManager.REPORTS_BASE_PATH]
-            if not any(path.startswith(base) for base in valid_bases):
+            if not any(path.startswith(base) for base in valid_bases):  # noqa: SIM103  explicit; extension point below
                 return False
 
             # Additional validation could be added here

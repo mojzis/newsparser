@@ -90,13 +90,8 @@ class BlueskyClient:
         Returns:
             BlueskyPost model instance
         """
-        # Handle different post data structures
-        if hasattr(post_data, "post"):
-            # FeedViewPost structure
-            post = post_data.post
-        else:
-            # Direct PostView structure
-            post = post_data
+        # FeedViewPost has a nested .post; PostView is used directly
+        post = post_data.post if hasattr(post_data, "post") else post_data
 
         # Extract engagement metrics
         engagement = EngagementMetrics(
