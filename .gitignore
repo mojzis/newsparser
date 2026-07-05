@@ -117,7 +117,7 @@ logs/
 
 # Data files (project specific)
 data/
-reports/
+/reports/
 /stages/
 /parquet/
 /workimg/
