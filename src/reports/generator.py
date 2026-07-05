@@ -165,7 +165,7 @@ class ReportGenerator:
             ET.SubElement(url_elem, "priority").text = "0.8"
 
         # Pretty print the XML
-        xml_str = minidom.parseString(ET.tostring(urlset)).toprettyxml(indent="  ")
+        xml_str = minidom.parseString(ET.tostring(urlset)).toprettyxml(indent="  ")  # noqa: S318  parses our own generated XML, not untrusted input
 
         # Write to file
         sitemap_path = self.output_dir / "sitemap.xml"
@@ -228,7 +228,7 @@ class ReportGenerator:
                 ET.SubElement(item, "category").text = article.content_type
 
         # Pretty print the XML
-        xml_str = minidom.parseString(ET.tostring(rss)).toprettyxml(indent="  ")
+        xml_str = minidom.parseString(ET.tostring(rss)).toprettyxml(indent="  ")  # noqa: S318  parses our own generated XML, not untrusted input
 
         # Write to file
         rss_path = self.output_dir / "rss.xml"

@@ -289,7 +289,7 @@ def render_stats():
             output_file = output_dir / output_filename
 
             # Run marimo export command
-            result = subprocess.run([
+            result = subprocess.run([  # noqa: S603, S607  fixed trusted command from venv PATH
                 "marimo", "export", "html", str(notebook_file),
                 "--output", str(output_file), "--no-include-code",
             ], capture_output=True, text=True, timeout=60)
@@ -351,7 +351,7 @@ def render_stats():
 @stages.command()
 def render_about():
     """Render about page from markdown file."""
-    from jinja2 import Environment, FileSystemLoader
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
 
     # Source markdown file
     source_file = Path("lyrics/about.md")
@@ -379,7 +379,7 @@ def render_about():
         html_content = markdown.markdown(markdown_content)
 
         # Set up Jinja2 environment
-        env = Environment(loader=FileSystemLoader("src/templates"))
+        env = Environment(loader=FileSystemLoader("src/templates"), autoescape=select_autoescape())
 
         # Load the about template
         template = env.get_template("about.html")
@@ -676,7 +676,7 @@ def present(port: int, host: str):
         browser_thread.start()
 
         # Start the server
-        subprocess.run([
+        subprocess.run([  # noqa: S603  fixed command, sys.executable + local args
             sys.executable, "-m", "http.server", str(port),
             "--bind", host
         ])

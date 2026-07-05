@@ -82,7 +82,7 @@ class ArticleFetcher:
                 parsed.netloc,
                 not parsed.netloc.startswith("localhost"),
                 not parsed.netloc.startswith("127.0.0.1"),
-                not parsed.netloc.startswith("0.0.0.0"),
+                not parsed.netloc.startswith("0.0.0.0"),  # noqa: S104  SSRF guard, not a bind address
             ])
         except Exception:
             return False

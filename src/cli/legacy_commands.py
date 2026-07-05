@@ -176,7 +176,7 @@ def notebook():
     import subprocess
 
     try:
-        subprocess.run(["marimo", "edit", str(notebook_path)], check=True)
+        subprocess.run(["marimo", "edit", str(notebook_path)], check=True)  # noqa: S603, S607  fixed trusted command from venv PATH
     except subprocess.CalledProcessError as e:
         console.print(f"❌ Failed to launch notebook: {e}", style="red")
     except FileNotFoundError:
