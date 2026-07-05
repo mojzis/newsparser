@@ -8,7 +8,7 @@ description: Deep Python code quality review. Auto-invoke when finishing a task,
 
 Review the changes for design quality — what automated tools miss. Report findings as 🔴 Must Fix, 🟡 Should Fix, 🟢 Suggestion.
 
-First, confirm `uv run ruff check .`, `uv run ty check src/`, and `uv run pytest` pass. Fix those before proceeding.
+First, confirm `uv run poe check` passes (ruff, ty, tests). Fix those before proceeding.
 
 ---
 
