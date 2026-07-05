@@ -3,9 +3,12 @@
 import logging
 from datetime import date
 from pathlib import Path
-from typing import Optional, TypeVar
+from typing import TYPE_CHECKING, Optional, TypeVar
 
 from src.models.analytics import AnalyticsBase
+
+if TYPE_CHECKING:
+    from src.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 

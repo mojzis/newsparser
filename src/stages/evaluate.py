@@ -124,7 +124,6 @@ This content was evaluated for MCP relevance.
 """
 
             # Create new evaluation file
-            from src.utils.markdown_file import MarkdownFile
             eval_md = MarkdownFile(evaluation_frontmatter, evaluation_content)
 
             # Save to output path

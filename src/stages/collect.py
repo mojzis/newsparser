@@ -121,7 +121,7 @@ class CollectStage(InputStage):
                     expanded_posts.append(expanded_post)
 
                     # Log expansions
-                    for orig, expanded in zip(original_urls, expanded_urls):
+                    for orig, expanded in zip(original_urls, expanded_urls, strict=True):
                         if orig != expanded:
                             logger.info(f"Expanded URL: {orig} -> {expanded}")
                 else:
@@ -164,6 +164,7 @@ class CollectStage(InputStage):
             non_bluesky_urls, bluesky_urls = clean_bluesky_urls_from_links(original_links)
 
             # Update post to only have non-Bluesky URLs
+            resulting_post = post
             if bluesky_urls:
                 from pydantic import HttpUrl
                 filtered_links = [HttpUrl(url) for url in non_bluesky_urls]
@@ -171,11 +172,11 @@ class CollectStage(InputStage):
                 # Create new post with filtered links
                 post_dict = post.model_dump()
                 post_dict["links"] = filtered_links
-                post = BlueskyPost(**post_dict)
+                resulting_post = BlueskyPost(**post_dict)
 
-                logger.info(f"Removed {len(bluesky_urls)} Bluesky reference(s) from post {post.id}")
+                logger.info(f"Removed {len(bluesky_urls)} Bluesky reference(s) from post {resulting_post.id}")
 
-            all_posts.append(post)
+            all_posts.append(resulting_post)
 
             # Fetch referenced posts
             for bluesky_url in bluesky_urls:
@@ -229,13 +230,6 @@ class CollectStage(InputStage):
 
     def post_to_markdown(self, post: BlueskyPost, target_date: date) -> MarkdownFile:
         """Convert a BlueskyPost to a MarkdownFile."""
-        # Extract post ID from AT protocol URI
-        post_id = post.id
-        if post_id.startswith("at://"):
-            short_id = post_id.split("/")[-1]
-        else:
-            short_id = post_id
-
         # Create frontmatter
         frontmatter = {
             "id": post.id,

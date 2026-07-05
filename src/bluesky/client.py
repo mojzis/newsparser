@@ -335,15 +335,6 @@ class BlueskyClient:
         self._ensure_authenticated()
 
         try:
-            # Handle simplified URI format with handle instead of DID
-            if uri.startswith("at://") and not uri.startswith("at://did:"):
-                # Format: at://handle/app.bsky.feed.post/abc123
-                parts = uri.split("/")
-                if len(parts) >= 4:
-                    handle = parts[2]
-                    # Try to resolve handle to get proper URI
-                    # For now, let's try the get_posts method with this URI format
-
             # Use the get_posts method from atproto
             response = await self.client.app.bsky.feed.get_posts(params={"uris": [uri]})
 

@@ -113,9 +113,6 @@ class ArticleFetcher:
                 error_message=f"Invalid or unsafe URL: {url_str}",
             )
 
-        parsed_url = urlparse(url_str)
-        domain = parsed_url.netloc
-
         for attempt in range(self.max_retries + 1):
             try:
                 logger.debug(f"Fetching {url_str} (attempt {attempt + 1})")

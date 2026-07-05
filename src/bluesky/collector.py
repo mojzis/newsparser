@@ -414,7 +414,7 @@ class BlueskyDataCollector:
         try:
             # Check if we're in an event loop
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # We're in an event loop, use nest_asyncio if available
                 try:
                     import nest_asyncio
