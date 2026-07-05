@@ -11,6 +11,10 @@ When working on this project, please maintain a neutral, professional tone:
 - Use simple confirmations like "done" or "completed" rather than celebratory language
 - Provide technical details when relevant, but keep explanations brief
 
+## Code Review
+
+When you finish a coding task in this repo, run the `python-review` skill over the changed Python before reporting done.
+
 ## MVP Development Principles
 
 **IMPORTANT: This project follows MVP/startup methodology. Keep everything super simple:**
