@@ -217,9 +217,12 @@ class TestBlueskyDataCollectorCollectAndStore:
     @pytest.mark.asyncio
     async def test_collect_and_store_default_date(self, collector, sample_posts):
         """Test collect and store with default date."""
-        with patch.object(
-            collector, "collect_daily_posts", return_value=sample_posts
-        ) as mock_collect, patch.object(collector, "store_posts", return_value=True):
+        with (
+            patch.object(
+                collector, "collect_daily_posts", return_value=sample_posts
+            ) as mock_collect,
+            patch.object(collector, "store_posts", return_value=True),
+        ):
             with patch("src.bluesky.collector.datetime") as mock_datetime:
                 mock_datetime.now.return_value.date.return_value = date(2024, 1, 15)
 

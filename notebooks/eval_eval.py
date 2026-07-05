@@ -24,18 +24,18 @@ def _(BlueskyPost):
 @app.cell
 def _(mo, posts):
     tag_stats = (
-        posts[["_file_name","tags"]]
+        posts[["_file_name", "tags"]]
         .explode("tags")
-        .groupby("tags",as_index=False)
-        .agg(num_rows=("_file_name","nunique"))
+        .groupby("tags", as_index=False)
+        .agg(num_rows=("_file_name", "nunique"))
         .sort_values("num_rows", ascending=False)
-                )
-    mo.ui.table(tag_stats,page_size=30)
+    )
+    mo.ui.table(tag_stats, page_size=30)
 
 
 @app.cell
 def _(ArticleEvaluation):
-    evals= ArticleEvaluation.df_from_stage_dir("evaluate", days_back=3)
+    evals = ArticleEvaluation.df_from_stage_dir("evaluate", days_back=3)
     evals
     return (evals,)
 
@@ -43,6 +43,7 @@ def _(ArticleEvaluation):
 @app.cell
 def _():
     import pandas as pd
+
     parq = pd.read_parquet("parquet/collect/2025-06-16.parquet")
     return (parq,)
 
@@ -55,14 +56,13 @@ def _(parq):
 @app.cell
 def _(evals, mo):
     kt = (
-        evals.loc[lambda x: x["is_mcp_related"]]
-        [["key_topics","_file_name"]]
+        evals.loc[lambda x: x["is_mcp_related"]][["key_topics", "_file_name"]]
         .explode("key_topics")
-        .groupby("key_topics",as_index=False)
-        .agg(num_rows = ("_file_name","nunique"))
-        .sort_values("num_rows",ascending=False)
+        .groupby("key_topics", as_index=False)
+        .agg(num_rows=("_file_name", "nunique"))
+        .sort_values("num_rows", ascending=False)
     )
-    mo.ui.table(kt,page_size=30)
+    mo.ui.table(kt, page_size=30)
 
 
 if __name__ == "__main__":

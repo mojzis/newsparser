@@ -37,7 +37,11 @@ def list_searches(config_path: str | None) -> None:
             if len(search_def.include_terms) > 2:
                 include_terms += f" (+{len(search_def.include_terms) - 2} more)"
 
-            exclude_terms = ", ".join(search_def.exclude_terms[:2]) if search_def.exclude_terms else "None"
+            exclude_terms = (
+                ", ".join(search_def.exclude_terms[:2])
+                if search_def.exclude_terms
+                else "None"
+            )
             if len(search_def.exclude_terms) > 2:
                 exclude_terms += f" (+{len(search_def.exclude_terms) - 2} more)"
 
@@ -50,7 +54,7 @@ def list_searches(config_path: str | None) -> None:
                 enabled_icon,
                 search_def.sort,
                 include_terms,
-                exclude_terms
+                exclude_terms,
             )
 
         console.print(table)
@@ -83,10 +87,16 @@ def validate_config(config_path: str | None) -> None:
                     is_valid, error_msg = builder.validate_query(query)
 
                     if is_valid:
-                        console.print(f"✅ '{key}': Query builds successfully ({search_def.query_syntax} syntax)", style="green")
+                        console.print(
+                            f"✅ '{key}': Query builds successfully ({search_def.query_syntax} syntax)",
+                            style="green",
+                        )
                         console.print(f"   Query: {query}", style="dim")
                     else:
-                        console.print(f"❌ '{key}': Query validation failed: {error_msg}", style="red")
+                        console.print(
+                            f"❌ '{key}': Query validation failed: {error_msg}",
+                            style="red",
+                        )
                 except Exception as e:
                     console.print(f"❌ '{key}': Query build failed: {e}", style="red")
 
@@ -136,16 +146,24 @@ def compare_syntaxes(config_path: str | None, query: str | None) -> None:
                 if len(search_def.include_terms) > 3:
                     include_str += f" (+{len(search_def.include_terms) - 3})"
 
-                exclude_str = ", ".join(search_def.exclude_terms[:3]) if search_def.exclude_terms else "None"
+                exclude_str = (
+                    ", ".join(search_def.exclude_terms[:3])
+                    if search_def.exclude_terms
+                    else "None"
+                )
                 if len(search_def.exclude_terms) > 3:
                     exclude_str += f" (+{len(search_def.exclude_terms) - 3})"
 
                 table.add_row(
                     key,
-                    native_query[:40] + "..." if len(native_query) > 40 else native_query,
-                    lucene_query[:40] + "..." if len(lucene_query) > 40 else lucene_query,
+                    native_query[:40] + "..."
+                    if len(native_query) > 40
+                    else native_query,
+                    lucene_query[:40] + "..."
+                    if len(lucene_query) > 40
+                    else lucene_query,
                     include_str,
-                    exclude_str
+                    exclude_str,
                 )
 
             except Exception as e:
@@ -154,7 +172,9 @@ def compare_syntaxes(config_path: str | None, query: str | None) -> None:
         console.print(table)
 
         # Show note about complex expressions
-        console.print("\n[yellow]Note: Complex boolean expressions in exclude terms are skipped in native syntax[/yellow]")
+        console.print(
+            "\n[yellow]Note: Complex boolean expressions in exclude terms are skipped in native syntax[/yellow]"
+        )
 
     except Exception as e:
         console.print(f"❌ Comparison failed: {e}", style="red")

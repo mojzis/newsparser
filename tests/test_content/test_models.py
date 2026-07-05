@@ -1,4 +1,5 @@
 """Tests for content processing models."""
+
 from datetime import datetime
 
 import pytest

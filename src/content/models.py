@@ -1,4 +1,5 @@
 """Data models for content processing."""
+
 from datetime import UTC, datetime
 from typing import Any
 
@@ -13,12 +14,16 @@ class ExtractedContent(BaseModel):
     content_markdown: str = Field(..., description="Article content in Markdown format")
     word_count: int = Field(ge=0, description="Number of words in content")
     language: str | None = Field(default=None, description="Detected language")
-    content_type: str | None = Field(default=None, description="Detected content type (video, article, blog post, etc.)")
+    content_type: str | None = Field(
+        default=None,
+        description="Detected content type (video, article, blog post, etc.)",
+    )
     domain: str = Field(..., description="Domain of the URL")
     author: str | None = Field(default=None, description="Article author if available")
     medium: str | None = Field(default=None, description="Publication/source name")
-    extraction_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
-
+    extraction_timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(UTC).replace(tzinfo=None)
+    )
 
 
 class ArticleContent(BaseModel):
@@ -28,8 +33,9 @@ class ArticleContent(BaseModel):
     html: str
     status_code: int
     headers: dict[str, Any] = Field(default_factory=dict)
-    fetch_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
-
+    fetch_timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(UTC).replace(tzinfo=None)
+    )
 
 
 class ContentError(BaseModel):
@@ -38,4 +44,6 @@ class ContentError(BaseModel):
     url: HttpUrl
     error_type: str = Field(..., description="Type of error (fetch, extraction, etc.)")
     error_message: str = Field(..., description="Detailed error message")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(UTC).replace(tzinfo=None)
+    )

@@ -160,9 +160,12 @@ class TestBlueskyClientContextManager:
     @pytest.mark.asyncio
     async def test_async_context_manager_success(self, bluesky_client):
         """Test async context manager with successful auth."""
-        with patch.object(
-            bluesky_client, "authenticate", return_value=True
-        ) as mock_auth, patch.object(bluesky_client, "close") as mock_close:
+        with (
+            patch.object(
+                bluesky_client, "authenticate", return_value=True
+            ) as mock_auth,
+            patch.object(bluesky_client, "close") as mock_close,
+        ):
             async with bluesky_client as client:
                 assert client == bluesky_client
 
@@ -190,9 +193,7 @@ class TestBlueskyClientPostConversion:
         assert result.id == "at://did:plc:example/app.bsky.feed.post/123"
         assert result.author == "user.bsky.social"
         assert result.content == "Check out this MCP tool: https://example.com"
-        assert result.created_at == datetime(
-            2024, 1, 15, 10, 30, 0, tzinfo=UTC
-        )
+        assert result.created_at == datetime(2024, 1, 15, 10, 30, 0, tzinfo=UTC)
         assert len(result.links) == 1
         assert str(result.links[0]) == "https://example.com/"
         assert result.engagement_metrics.likes == 5

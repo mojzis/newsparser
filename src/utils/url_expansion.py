@@ -11,11 +11,33 @@ logger = logging.getLogger(__name__)
 
 # Common URL shortener domains
 SHORTENER_DOMAINS = {
-    "bit.ly", "bitly.com", "tinyurl.com", "t.co", "goo.gl", "ow.ly",
-    "short.link", "tiny.cc", "is.gd", "buff.ly", "ift.tt", "dlvr.it",
-    "fb.me", "amzn.to", "youtu.be", "linkedin.com/posts", "lnkd.in",
-    "rebrand.ly", "cutt.ly", "bl.ink", "short.lnk", "v.gd", "x.co",
-    "po.st", "shor.by", "switchy.io", "smallseotools.com"
+    "bit.ly",
+    "bitly.com",
+    "tinyurl.com",
+    "t.co",
+    "goo.gl",
+    "ow.ly",
+    "short.link",
+    "tiny.cc",
+    "is.gd",
+    "buff.ly",
+    "ift.tt",
+    "dlvr.it",
+    "fb.me",
+    "amzn.to",
+    "youtu.be",
+    "linkedin.com/posts",
+    "lnkd.in",
+    "rebrand.ly",
+    "cutt.ly",
+    "bl.ink",
+    "short.lnk",
+    "v.gd",
+    "x.co",
+    "po.st",
+    "shor.by",
+    "switchy.io",
+    "smallseotools.com",
 }
 
 
@@ -26,7 +48,7 @@ class URLExpander:
         self,
         timeout: float = 10.0,
         max_redirects: int = 10,
-        user_agent: str = "Mozilla/5.0 (compatible; URLExpander/1.0)"
+        user_agent: str = "Mozilla/5.0 (compatible; URLExpander/1.0)",
     ) -> None:
         """
         Initialize URL expander.
@@ -48,7 +70,7 @@ class URLExpander:
             timeout=httpx.Timeout(timeout),
             headers={"User-Agent": user_agent},
             follow_redirects=False,  # We'll handle redirects manually
-            limits=httpx.Limits(max_keepalive_connections=10, max_connections=20)
+            limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
         )
 
     async def close(self) -> None:
@@ -59,7 +81,9 @@ class URLExpander:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: object, exc_val: object, exc_tb: object
+    ) -> None:
         """Async context manager exit."""
         await self.close()
 
@@ -161,7 +185,7 @@ class URLExpander:
                 try:
                     response = await self.client.get(
                         current_url,
-                        headers={"Range": "bytes=0-0"}  # Minimal request
+                        headers={"Range": "bytes=0-0"},  # Minimal request
                     )
                     # Same redirect logic as above
                     if response.status_code in (301, 302, 303, 307, 308):
@@ -178,7 +202,9 @@ class URLExpander:
                 break
 
         if redirect_count >= self.max_redirects:
-            logger.warning(f"Maximum redirects ({self.max_redirects}) reached for {url}")
+            logger.warning(
+                f"Maximum redirects ({self.max_redirects}) reached for {url}"
+            )
 
         return current_url
 

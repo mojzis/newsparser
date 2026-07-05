@@ -1,4 +1,5 @@
 """Tests for article fetcher."""
+
 from unittest.mock import AsyncMock, Mock
 
 import httpx
@@ -52,7 +53,9 @@ class TestArticleFetcher:
         # Mock httpx response
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.text = "<html><head><title>Test</title></head><body>Content</body></html>"
+        mock_response.text = (
+            "<html><head><title>Test</title></head><body>Content</body></html>"
+        )
         mock_response.headers = {"content-type": "text/html"}
         mock_response.reason_phrase = "OK"
 

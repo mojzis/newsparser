@@ -21,7 +21,7 @@ class TestURLEntry:
             first_post_id="123",
             first_post_author="@user.bsky.social",
             times_seen=1,
-            last_updated=now
+            last_updated=now,
         )
 
         assert str(entry.url) == "https://example.com/article"
@@ -40,7 +40,7 @@ class TestURLEntry:
             first_seen=now,
             first_post_id="123",
             first_post_author="@user.bsky.social",
-            last_updated=now
+            last_updated=now,
         )
 
         assert entry.published_date is None
@@ -57,7 +57,7 @@ class TestURLEntry:
                 first_seen=now,
                 first_post_id="123",
                 first_post_author="@user",
-                last_updated=now
+                last_updated=now,
             )
 
         # Missing required fields
@@ -72,7 +72,7 @@ class TestURLEntry:
                 first_post_id="123",
                 first_post_author="@user",
                 times_seen=0,  # Must be >= 1
-                last_updated=now
+                last_updated=now,
             )
 
     def test_url_entry_serialization(self):
@@ -83,7 +83,7 @@ class TestURLEntry:
             first_seen=now,
             first_post_id="123",
             first_post_author="@user",
-            last_updated=now
+            last_updated=now,
         )
 
         # Test dict serialization

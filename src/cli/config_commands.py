@@ -26,6 +26,7 @@ def validate(branch: str) -> None:
     try:
         # Reset the global config manager to pick up new environment
         from src.config.config_manager import reset_config_manager
+
         reset_config_manager()
         config_manager = get_config_manager()
         if config_manager.validate_config():
@@ -50,6 +51,7 @@ def show(branch: str) -> None:
     try:
         # Reset the global config manager to pick up new environment
         from src.config.config_manager import reset_config_manager
+
         reset_config_manager()
         config_manager = get_config_manager()
 

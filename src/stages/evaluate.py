@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 class EvaluateStage(ProcessingStage):
     """Evaluates content relevance using Anthropic API."""
 
-    def __init__(self, settings: Settings, base_path: Path = Path("stages"), export_parquet: bool = True) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        base_path: Path = Path("stages"),
+        export_parquet: bool = True,
+    ) -> None:
         super().__init__("evaluate", "fetch", base_path)
         self.settings = settings
         self.export_parquet = export_parquet
@@ -59,8 +64,12 @@ class EvaluateStage(ProcessingStage):
             content_markdown=content_markdown,
             word_count=frontmatter.get("word_count", 0),
             domain=frontmatter.get("domain", ""),
-            published_date=datetime.fromisoformat(frontmatter["published_date"].rstrip("Z")) if frontmatter.get("published_date") else None,
-            extract_timestamp=datetime.now(UTC).replace(tzinfo=None)
+            published_date=datetime.fromisoformat(
+                frontmatter["published_date"].rstrip("Z")
+            )
+            if frontmatter.get("published_date")
+            else None,
+            extract_timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
     async def process_item(self, input_path: Path, target_date: date) -> Path | None:
@@ -83,7 +92,9 @@ class EvaluateStage(ProcessingStage):
 
             # Evaluate using Anthropic API
             logger.info(f"Evaluating content: {extracted_content.url}")
-            evaluation = self.evaluator.evaluate_article(extracted_content, extracted_content.url)
+            evaluation = self.evaluator.evaluate_article(
+                extracted_content, extracted_content.url
+            )
 
             # Create minimal evaluation file with only essential data
             evaluation_data = {
@@ -95,7 +106,7 @@ class EvaluateStage(ProcessingStage):
                 "content_type": evaluation.content_type,
                 "language": evaluation.language,
                 "evaluated_at": evaluation.evaluated_at.isoformat() + "Z",
-                "evaluator": "claude-haiku-4-5"  # Model used for evaluation
+                "evaluator": "claude-haiku-4-5",  # Model used for evaluation
             }
 
             # Get essential reference data from original file
@@ -107,7 +118,7 @@ class EvaluateStage(ProcessingStage):
                 "url": url,
                 "found_in_posts": found_in_posts,
                 "evaluation": evaluation_data,
-                "stage": "evaluated"
+                "stage": "evaluated",
             }
 
             # Create minimal content (just reference to fetch stage)
@@ -116,7 +127,7 @@ class EvaluateStage(ProcessingStage):
 This content was evaluated for MCP relevance.
 
 **Relevance Score:** {evaluation.relevance_score}
-**MCP Related:** {'Yes' if evaluation.is_mcp_related else 'No'}
+**MCP Related:** {"Yes" if evaluation.is_mcp_related else "No"}
 **Content Type:** {evaluation.content_type}
 **Language:** {evaluation.language}
 
@@ -130,7 +141,9 @@ This content was evaluated for MCP relevance.
             output_path = self.get_output_path(input_path, target_date)
             eval_md.save(output_path)
 
-            logger.info(f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})")
+            logger.info(
+                f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})"
+            )
             return output_path
 
         except Exception:
@@ -150,7 +163,9 @@ This content was evaluated for MCP relevance.
         """
         from datetime import timedelta
 
-        logger.info(f"Running evaluate stage, scanning fetched content from last {days_back} days")
+        logger.info(
+            f"Running evaluate stage, scanning fetched content from last {days_back} days"
+        )
 
         # Track all content we've already evaluated across all dates (unless regenerating)
         evaluated_urls = set()
@@ -190,7 +205,11 @@ This content was evaluated for MCP relevance.
         current_date = start_date
         while current_date <= end_date:
             # Check if fetch stage has data for this date
-            fetch_dir = self.base_path / self.input_stage_name / current_date.strftime("%Y-%m-%d")
+            fetch_dir = (
+                self.base_path
+                / self.input_stage_name
+                / current_date.strftime("%Y-%m-%d")
+            )
 
             if fetch_dir.exists():
                 logger.info(f"Scanning fetched content from {current_date}")
@@ -215,11 +234,15 @@ This content was evaluated for MCP relevance.
 
                         try:
                             # Convert to ExtractedContent
-                            extracted_content = self.markdown_to_extracted_content(md_file)
+                            extracted_content = self.markdown_to_extracted_content(
+                                md_file
+                            )
 
                             # Evaluate using Anthropic API
                             logger.info(f"Evaluating content: {extracted_content.url}")
-                            evaluation = self.evaluator.evaluate_article(extracted_content, extracted_content.url)
+                            evaluation = self.evaluator.evaluate_article(
+                                extracted_content, extracted_content.url
+                            )
 
                             # Add evaluation to frontmatter
                             evaluation_data = {
@@ -230,21 +253,26 @@ This content was evaluated for MCP relevance.
                                 "key_topics": evaluation.key_topics,
                                 "content_type": evaluation.content_type,
                                 "language": evaluation.language,
-                                "evaluated_at": evaluation.evaluated_at.isoformat() + "Z",
-                                "evaluator": "claude-haiku-4-5"  # Model used for evaluation
+                                "evaluated_at": evaluation.evaluated_at.isoformat()
+                                + "Z",
+                                "evaluator": "claude-haiku-4-5",  # Model used for evaluation
                             }
 
                             # Update frontmatter with evaluation
-                            md_file.update_frontmatter({
-                                "evaluation": evaluation_data,
-                                "stage": "evaluated"
-                            })
+                            md_file.update_frontmatter(
+                                {"evaluation": evaluation_data, "stage": "evaluated"}
+                            )
 
                             # Ensure output directory exists for this date
                             self.ensure_stage_dir(current_date)
 
                             # Save to output path in the same date directory
-                            output_path = self.base_path / self.stage_name / current_date.strftime("%Y-%m-%d") / input_path.name
+                            output_path = (
+                                self.base_path
+                                / self.stage_name
+                                / current_date.strftime("%Y-%m-%d")
+                                / input_path.name
+                            )
                             md_file.save(output_path)
 
                             evaluated_urls.add(url)
@@ -263,7 +291,9 @@ This content was evaluated for MCP relevance.
                                 evaluations_by_date[date_str] = 0
                             evaluations_by_date[date_str] += 1
 
-                            logger.info(f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})")
+                            logger.info(
+                                f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})"
+                            )
 
                         except Exception:
                             failed += 1
@@ -275,7 +305,9 @@ This content was evaluated for MCP relevance.
 
             current_date += timedelta(days=1)
 
-        avg_relevance = total_relevance_score / new_evaluations if new_evaluations > 0 else 0.0
+        avg_relevance = (
+            total_relevance_score / new_evaluations if new_evaluations > 0 else 0.0
+        )
 
         result = {
             "stage": self.stage_name,
@@ -289,7 +321,7 @@ This content was evaluated for MCP relevance.
             "previously_evaluated": len(evaluated_urls) - new_evaluations,
             "mcp_related": mcp_related,
             "avg_relevance_score": round(avg_relevance, 3),
-            "evaluations_by_date": evaluations_by_date
+            "evaluations_by_date": evaluations_by_date,
         }
 
         logger.info(f"Evaluate stage completed: {result}")
@@ -301,6 +333,13 @@ This content was evaluated for MCP relevance.
 
             # Export all evaluated data as a single parquet file with 7 days of history
             run_date = datetime.now(UTC).date()
-            await export_stage_to_parquet("evaluate", ArticleEvaluation, run_date, self.export_parquet, days_back=7, settings=self.settings)
+            await export_stage_to_parquet(
+                "evaluate",
+                ArticleEvaluation,
+                run_date,
+                self.export_parquet,
+                days_back=7,
+                settings=self.settings,
+            )
 
         return result

@@ -7,6 +7,7 @@ app = marimo.App(width="full")
 @app.cell
 def _():
     import pandas as pd
+
     return (pd,)
 
 

@@ -52,11 +52,15 @@ def __(defaultdict, stages_dir):
             if stage_path.exists():
                 # Count files by date
                 for date_dir in stage_path.iterdir():
-                    if date_dir.is_dir() and date_dir.name.count("-") == 2:  # YYYY-MM-DD format
-                        file_count = len(list(date_dir.glob("*.md"))) + len(list(date_dir.glob("*.html")))
+                    if (
+                        date_dir.is_dir() and date_dir.name.count("-") == 2
+                    ):  # YYYY-MM-DD format
+                        file_count = len(list(date_dir.glob("*.md"))) + len(
+                            list(date_dir.glob("*.html"))
+                        )
                         stage_stats[stage_name][date_dir.name] = file_count
 
-    return stage_stats,
+    return (stage_stats,)
 
 
 @app.cell
@@ -91,7 +95,7 @@ def __(stage_stats):
     for totals_stage_name, totals_stage_dates in stage_stats.items():
         stage_totals[totals_stage_name] = sum(totals_stage_dates.values())
 
-    return stage_totals,
+    return (stage_totals,)
 
 
 @app.cell
@@ -110,10 +114,10 @@ def __(mo, stage_totals):
     mo.md(f"""
     ### Stage Totals
 
-    - **Collect:** {stage_totals.get('collect', 0):,} posts
-    - **Fetch:** {stage_totals.get('fetch', 0):,} URLs
-    - **Evaluate:** {stage_totals.get('evaluate', 0):,} evaluations
-    - **Report:** {stage_totals.get('report', 0):,} reports
+    - **Collect:** {stage_totals.get("collect", 0):,} posts
+    - **Fetch:** {stage_totals.get("fetch", 0):,} URLs
+    - **Evaluate:** {stage_totals.get("evaluate", 0):,} evaluations
+    - **Report:** {stage_totals.get("report", 0):,} reports
     """)
 
 
@@ -147,7 +151,7 @@ def __(output_dir):
 @app.cell
 def __(report_dates):
     recent_reports = report_dates[:5] if report_dates else []
-    return recent_reports,
+    return (recent_reports,)
 
 
 @app.cell
@@ -181,11 +185,16 @@ def __(parquet_dir):
                 parquet_files = list(stage_parquet_dir.glob("*.parquet"))
                 parquet_stats[parquet_stage] = {
                     "file_count": len(parquet_files),
-                    "total_size_mb": sum(f.stat().st_size for f in parquet_files) / (1024 * 1024),
-                    "latest_file": max(parquet_files, key=lambda x: x.stat().st_mtime).name if parquet_files else None
+                    "total_size_mb": sum(f.stat().st_size for f in parquet_files)
+                    / (1024 * 1024),
+                    "latest_file": max(
+                        parquet_files, key=lambda x: x.stat().st_mtime
+                    ).name
+                    if parquet_files
+                    else None,
                 }
 
-    return parquet_stats,
+    return (parquet_stats,)
 
 
 @app.cell
@@ -194,17 +203,19 @@ def __(parquet_stats):
     for parquet_stage_info, parquet_stats_info in parquet_stats.items():
         parquet_info_list.append(f"""
     **{parquet_stage_info.title()}:**
-    - Files: {parquet_stats_info['file_count']}
-    - Size: {parquet_stats_info['total_size_mb']:.1f} MB
-    - Latest: {parquet_stats_info['latest_file'] or 'None'}
+    - Files: {parquet_stats_info["file_count"]}
+    - Size: {parquet_stats_info["total_size_mb"]:.1f} MB
+    - Latest: {parquet_stats_info["latest_file"] or "None"}
     """)
 
-    return parquet_info_list,
+    return (parquet_info_list,)
 
 
 @app.cell
 def __(mo, parquet_info_list):
-    mo.md("".join(parquet_info_list) if parquet_info_list else "No parquet files found.")
+    mo.md(
+        "".join(parquet_info_list) if parquet_info_list else "No parquet files found."
+    )
 
 
 @app.cell
@@ -231,7 +242,9 @@ def __(datetime, output_dir):
                 stat = filepath.stat()
                 additional_files[main_filename] = {
                     "size_kb": stat.st_size / 1024,
-                    "modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M")
+                    "modified": datetime.fromtimestamp(stat.st_mtime).strftime(
+                        "%Y-%m-%d %H:%M"
+                    ),
                 }
 
         # Check query directory
@@ -250,14 +263,20 @@ def __(additional_files):
         if additional_filename == "query_files":
             additional_file_info.append(f"- **Query files:** {additional_info}")
         else:
-            additional_file_info.append(f"- **{additional_filename}:** {additional_info['size_kb']:.1f} KB (modified: {additional_info['modified']})")
+            additional_file_info.append(
+                f"- **{additional_filename}:** {additional_info['size_kb']:.1f} KB (modified: {additional_info['modified']})"
+            )
 
-    return additional_file_info,
+    return (additional_file_info,)
 
 
 @app.cell
 def __(additional_file_info, mo):
-    mo.md("\n".join(additional_file_info) if additional_file_info else "No additional files found.")
+    mo.md(
+        "\n".join(additional_file_info)
+        if additional_file_info
+        else "No additional files found."
+    )
 
 
 @app.cell

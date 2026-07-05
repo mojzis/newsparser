@@ -25,9 +25,7 @@ class TestURLRegistry:
 
         # Add new URL
         is_new = registry.add_url(
-            "https://example.com/article",
-            "post123",
-            "@user.bsky.social"
+            "https://example.com/article", "post123", "@user.bsky.social"
         )
 
         assert is_new is True

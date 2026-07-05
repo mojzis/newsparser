@@ -23,13 +23,26 @@ logger = logging.getLogger(__name__)
 class CollectStage(InputStage):
     """Collects posts from Bluesky and stores as individual markdown files."""
 
-    def __init__(self, settings: Settings, search_definition: SearchDefinition | None = None,
-                 max_posts: int = 100, expand_urls: bool = True, collect_threads: bool = False,
-                 max_thread_depth: int = 6, max_parent_height: int = 80, base_path: Path = Path("stages"),
-                 export_parquet: bool = True, expand_references: bool = True, max_reference_depth: int = 2) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        search_definition: SearchDefinition | None = None,
+        max_posts: int = 100,
+        expand_urls: bool = True,
+        collect_threads: bool = False,
+        max_thread_depth: int = 6,
+        max_parent_height: int = 80,
+        base_path: Path = Path("stages"),
+        export_parquet: bool = True,
+        expand_references: bool = True,
+        max_reference_depth: int = 2,
+    ) -> None:
         super().__init__("collect", base_path)
         self.settings = settings
-        self.search_definition = search_definition or SearchConfig.get_default_config().searches["mcp_mentions"]
+        self.search_definition = (
+            search_definition
+            or SearchConfig.get_default_config().searches["mcp_mentions"]
+        )
         self.max_posts = max_posts
         self.expand_urls = expand_urls
         self.collect_threads = collect_threads
@@ -44,7 +57,9 @@ class CollectStage(InputStage):
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
         """Collect posts from Bluesky matching search criteria."""
         collection_mode = "threads" if self.collect_threads else "posts"
-        logger.info(f"Collecting {collection_mode} using '{self.search_definition.name}' search")
+        logger.info(
+            f"Collecting {collection_mode} using '{self.search_definition.name}' search"
+        )
 
         if not self.settings.has_bluesky_credentials:
             logger.error("Bluesky credentials not configured")
@@ -54,8 +69,7 @@ class CollectStage(InputStage):
             async with self.bluesky_client as client:
                 # First, get initial search results
                 search_posts = await client.get_posts_by_definition(
-                    search_definition=self.search_definition,
-                    max_posts=self.max_posts
+                    search_definition=self.search_definition, max_posts=self.max_posts
                 )
 
                 if not search_posts:
@@ -64,11 +78,13 @@ class CollectStage(InputStage):
 
                 # If thread collection is enabled, fetch complete threads
                 if self.collect_threads:
-                    logger.info(f"Fetching complete threads for {len(search_posts)} search results")
+                    logger.info(
+                        f"Fetching complete threads for {len(search_posts)} search results"
+                    )
                     posts = await client.get_threads_for_posts(
                         search_posts,
                         depth=self.max_thread_depth,
-                        parent_height=self.max_parent_height
+                        parent_height=self.max_parent_height,
                     )
                 else:
                     posts = search_posts
@@ -81,7 +97,9 @@ class CollectStage(InputStage):
                 if self.expand_references and posts:
                     posts = await self._expand_post_references(posts, depth=0)
 
-                logger.info(f"Collected {len(posts)} total posts ({len(search_posts)} from search)")
+                logger.info(
+                    f"Collected {len(posts)} total posts ({len(search_posts)} from search)"
+                )
                 return posts
 
         except Exception:
@@ -110,6 +128,7 @@ class CollectStage(InputStage):
                 if expanded_urls != original_urls:
                     # Create a new post with expanded URLs
                     from pydantic import HttpUrl
+
                     expanded_links = [HttpUrl(url) for url in expanded_urls]
 
                     # Create new post dict and update links
@@ -121,7 +140,9 @@ class CollectStage(InputStage):
                     expanded_posts.append(expanded_post)
 
                     # Log expansions
-                    for orig, expanded in zip(original_urls, expanded_urls, strict=True):
+                    for orig, expanded in zip(
+                        original_urls, expanded_urls, strict=True
+                    ):
                         if orig != expanded:
                             logger.info(f"Expanded URL: {orig} -> {expanded}")
                 else:
@@ -130,7 +151,9 @@ class CollectStage(InputStage):
         logger.info(f"URL expansion completed for {len(posts)} posts")
         return expanded_posts
 
-    async def _expand_post_references(self, posts: list[BlueskyPost], depth: int) -> list[BlueskyPost]:
+    async def _expand_post_references(
+        self, posts: list[BlueskyPost], depth: int
+    ) -> list[BlueskyPost]:
         """
         Expand Bluesky post references by fetching referenced posts.
 
@@ -161,12 +184,15 @@ class CollectStage(InputStage):
 
             # Separate Bluesky URLs from other URLs
             original_links = [str(link) for link in post.links]
-            non_bluesky_urls, bluesky_urls = clean_bluesky_urls_from_links(original_links)
+            non_bluesky_urls, bluesky_urls = clean_bluesky_urls_from_links(
+                original_links
+            )
 
             # Update post to only have non-Bluesky URLs
             resulting_post = post
             if bluesky_urls:
                 from pydantic import HttpUrl
+
                 filtered_links = [HttpUrl(url) for url in non_bluesky_urls]
 
                 # Create new post with filtered links
@@ -174,7 +200,9 @@ class CollectStage(InputStage):
                 post_dict["links"] = filtered_links
                 resulting_post = BlueskyPost(**post_dict)
 
-                logger.info(f"Removed {len(bluesky_urls)} Bluesky reference(s) from post {resulting_post.id}")
+                logger.info(
+                    f"Removed {len(bluesky_urls)} Bluesky reference(s) from post {resulting_post.id}"
+                )
 
             all_posts.append(resulting_post)
 
@@ -182,15 +210,22 @@ class CollectStage(InputStage):
             for bluesky_url in bluesky_urls:
                 try:
                     referenced_post = await self._fetch_referenced_post(bluesky_url)
-                    if referenced_post and referenced_post.id not in self.processed_post_uris:
+                    if (
+                        referenced_post
+                        and referenced_post.id not in self.processed_post_uris
+                    ):
                         new_posts.append(referenced_post)
                         logger.info(f"Fetched referenced post: {referenced_post.id}")
                 except Exception as e:
-                    logger.warning(f"Failed to fetch referenced post from {bluesky_url}: {e}")
+                    logger.warning(
+                        f"Failed to fetch referenced post from {bluesky_url}: {e}"
+                    )
 
         # Recursively expand references in new posts
         if new_posts:
-            logger.info(f"Found {len(new_posts)} new referenced posts, expanding recursively")
+            logger.info(
+                f"Found {len(new_posts)} new referenced posts, expanding recursively"
+            )
             expanded_new = await self._expand_post_references(new_posts, depth + 1)
             all_posts.extend(expanded_new)
 
@@ -239,12 +274,12 @@ class CollectStage(InputStage):
             "engagement": {
                 "likes": post.engagement_metrics.likes,
                 "reposts": post.engagement_metrics.reposts,
-                "replies": post.engagement_metrics.replies
+                "replies": post.engagement_metrics.replies,
             },
             "links": [str(link) for link in post.links],
             "tags": post.tags,
             "stage": "collected",
-            "collected_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z"
+            "collected_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
         }
 
         # Add thread metadata if available
@@ -253,7 +288,7 @@ class CollectStage(InputStage):
                 "root_uri": post.thread_root_uri,
                 "position": post.thread_position,
                 "depth": post.thread_depth,
-                "parent_uri": post.parent_post_uri
+                "parent_uri": post.parent_post_uri,
             }
 
         # Create content
@@ -302,6 +337,7 @@ class CollectStage(InputStage):
 
         # Group posts by their publication date
         from collections import defaultdict
+
         posts_by_date = defaultdict(list)
 
         for post in posts:
@@ -326,16 +362,24 @@ class CollectStage(InputStage):
                     if output_path.exists():
                         # Read existing post to check for updates
                         existing_md = MarkdownFile.load(output_path)
-                        existing_engagement = existing_md.frontmatter.get("engagement", {})
+                        existing_engagement = existing_md.frontmatter.get(
+                            "engagement", {}
+                        )
                         new_engagement = md_file.frontmatter.get("engagement", {})
 
                         # Check if engagement metrics have changed
-                        if (existing_engagement.get("likes") != new_engagement.get("likes") or
-                            existing_engagement.get("reposts") != new_engagement.get("reposts") or
-                            existing_engagement.get("replies") != new_engagement.get("replies")):
-
+                        if (
+                            existing_engagement.get("likes")
+                            != new_engagement.get("likes")
+                            or existing_engagement.get("reposts")
+                            != new_engagement.get("reposts")
+                            or existing_engagement.get("replies")
+                            != new_engagement.get("replies")
+                        ):
                             # Update the post with new metrics
-                            md_file.frontmatter["updated_at"] = datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z"
+                            md_file.frontmatter["updated_at"] = (
+                                datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z"
+                            )
                             md_file.save(output_path)
                             updated_posts += 1
                             logger.debug(f"Updated post metrics: {filename}")
@@ -361,7 +405,7 @@ class CollectStage(InputStage):
             "total": len(posts),
             "new_posts": new_posts,
             "updated_posts": updated_posts,
-            "posts_by_date": {str(d): len(p) for d, p in posts_by_date.items()}
+            "posts_by_date": {str(d): len(p) for d, p in posts_by_date.items()},
         }
 
         logger.info(f"Collection completed: {result}")
@@ -373,6 +417,13 @@ class CollectStage(InputStage):
 
             # Export all collected data as a single parquet file with 7 days of history
             run_date = datetime.now(UTC).date()
-            await export_stage_to_parquet("collect", BlueskyPost, run_date, self.export_parquet, days_back=7, settings=self.settings)
+            await export_stage_to_parquet(
+                "collect",
+                BlueskyPost,
+                run_date,
+                self.export_parquet,
+                days_back=7,
+                settings=self.settings,
+            )
 
         return result

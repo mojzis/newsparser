@@ -35,7 +35,7 @@ class TestArticleEvaluation:
             prompt_name="default",
             model_id="claude-sonnet-5",
             model_version="1.0",
-            config_branch="main"
+            config_branch="main",
         )
 
         assert str(evaluation.url) == "https://example.com/article"
@@ -65,7 +65,7 @@ class TestArticleEvaluation:
             prompt_name="default",
             model_id="claude-sonnet-5",
             model_version="1.0",
-            config_branch="main"
+            config_branch="main",
         )
 
         assert evaluation.title is None
@@ -95,7 +95,7 @@ class TestArticleEvaluation:
             prompt_name="default",
             model_id="claude-sonnet-5",
             model_version="1.0",
-            config_branch="main"
+            config_branch="main",
         )
 
         assert evaluation.error == "Failed to fetch article: 404 Not Found"
@@ -118,7 +118,7 @@ class TestArticleEvaluation:
                 language="en",
                 domain="example.com",
                 evaluated_at=now,
-                word_count=100
+                word_count=100,
             )
 
         # Invalid relevance score (negative)
@@ -133,7 +133,7 @@ class TestArticleEvaluation:
                 language="en",
                 domain="example.com",
                 evaluated_at=now,
-                word_count=100
+                word_count=100,
             )
 
         # Summary too short
@@ -148,7 +148,7 @@ class TestArticleEvaluation:
                 language="en",
                 domain="example.com",
                 evaluated_at=now,
-                word_count=100
+                word_count=100,
             )
 
         # Invalid URL
@@ -163,7 +163,7 @@ class TestArticleEvaluation:
                 language="en",
                 domain="example.com",
                 evaluated_at=now,
-                word_count=100
+                word_count=100,
             )
 
     def test_evaluation_serialization(self):
@@ -185,7 +185,7 @@ class TestArticleEvaluation:
             prompt_name="default",
             model_id="claude-sonnet-5",
             model_version="1.0",
-            config_branch="main"
+            config_branch="main",
         )
 
         # Test dict serialization

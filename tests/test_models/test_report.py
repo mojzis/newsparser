@@ -19,20 +19,23 @@ class TestReportArticle:
             "relevance_score": 0.85,
             "domain": "example.com",
             "content_type": "article",
-            "language": "en"
+            "language": "en",
         }
 
         article = ReportArticle.from_post_and_evaluation(
             post_id="abc123",
             author="user.bsky.social",
             created_at=datetime(2024, 12, 6, 15, 45),
-            evaluation=evaluation
+            evaluation=evaluation,
         )
 
         assert str(article.url) == "https://example.com/article"
         assert article.title == "Test Article"
         assert article.perex == "A witty summary of the article"
-        assert str(article.bluesky_url) == "https://bsky.app/profile/user.bsky.social/post/abc123"
+        assert (
+            str(article.bluesky_url)
+            == "https://bsky.app/profile/user.bsky.social/post/abc123"
+        )
         assert article.author == "user.bsky.social"
         assert article.timestamp == "3:45 PM"
         assert article.relevance_score == 0.85
@@ -44,14 +47,14 @@ class TestReportArticle:
             "url": "https://example.com/article",
             "summary": "A regular summary",
             "relevance_score": 0.85,
-            "domain": "example.com"
+            "domain": "example.com",
         }
 
         article = ReportArticle.from_post_and_evaluation(
             post_id="abc123",
             author="user.bsky.social",
             created_at=datetime(2024, 12, 6, 9, 30),
-            evaluation=evaluation
+            evaluation=evaluation,
         )
 
         assert article.perex == "A regular summary"
@@ -67,18 +70,21 @@ class TestReportArticle:
             "relevance_score": 0.85,
             "domain": "example.com",
             "content_type": "blog post",
-            "language": "es"
+            "language": "es",
         }
 
         article = ReportArticle.from_post_and_evaluation(
             post_id="at://did:plc:cnkcdjrvp5b27gqmdsbpbn5o/app.bsky.feed.post/3lrivlab6qc2x",
             author="james.montemagno.com",
             created_at=datetime(2024, 12, 6, 15, 45),
-            evaluation=evaluation
+            evaluation=evaluation,
         )
 
         # Should extract just the post ID from the AT protocol URI
-        assert str(article.bluesky_url) == "https://bsky.app/profile/james.montemagno.com/post/3lrivlab6qc2x"
+        assert (
+            str(article.bluesky_url)
+            == "https://bsky.app/profile/james.montemagno.com/post/3lrivlab6qc2x"
+        )
 
     def test_validation(self):
         """Test ReportArticle validation."""
@@ -95,7 +101,7 @@ class TestReportArticle:
             content_type="video",
             language="fr",
             post_id="123",
-            created_at=datetime(2024, 12, 6, 15, 45)
+            created_at=datetime(2024, 12, 6, 15, 45),
         )
         assert article.relevance_score == 0.5
 
@@ -109,7 +115,7 @@ class TestReportArticle:
                 author="user",
                 timestamp="3:45 PM",
                 relevance_score=1.5,  # Out of range
-                domain="example.com"
+                domain="example.com",
             )
 
 
@@ -129,7 +135,7 @@ class TestReportDay:
                 content_type="article",
                 language="en",
                 post_id="1",
-                created_at=datetime(2024, 12, 6, 13, 0)
+                created_at=datetime(2024, 12, 6, 13, 0),
             ),
             ReportArticle(
                 url="https://example.com/2",
@@ -143,14 +149,11 @@ class TestReportDay:
                 content_type="blog post",
                 language="es",
                 post_id="2",
-                created_at=datetime(2024, 12, 6, 14, 0)
-            )
+                created_at=datetime(2024, 12, 6, 14, 0),
+            ),
         ]
 
-        report_day = ReportDay.create(
-            report_date=date(2024, 12, 6),
-            articles=articles
-        )
+        report_day = ReportDay.create(report_date=date(2024, 12, 6), articles=articles)
 
         assert report_day.date == date(2024, 12, 6)
         assert report_day.date_formatted == "December 6, 2024"
@@ -159,10 +162,7 @@ class TestReportDay:
 
     def test_empty_articles(self):
         """Test ReportDay with no articles."""
-        report_day = ReportDay.create(
-            report_date=date(2024, 12, 6),
-            articles=[]
-        )
+        report_day = ReportDay.create(report_date=date(2024, 12, 6), articles=[])
 
         assert report_day.article_count == 0
         assert report_day.articles == []
@@ -172,10 +172,7 @@ class TestArchiveLink:
     def test_create_current_year(self):
         """Test creating archive link for current year."""
         # For this test, assume we're testing with 2024 dates
-        link = ArchiveLink.create(
-            report_date=date(2024, 12, 6),
-            article_count=5
-        )
+        link = ArchiveLink.create(report_date=date(2024, 12, 6), article_count=5)
 
         # The formatting will depend on current year, but path should be consistent
         assert link.path == "reports/2024-12-06/report.html"
@@ -183,10 +180,7 @@ class TestArchiveLink:
 
     def test_create_previous_year(self):
         """Test creating archive link for previous year."""
-        link = ArchiveLink.create(
-            report_date=date(2023, 12, 6),
-            article_count=3
-        )
+        link = ArchiveLink.create(report_date=date(2023, 12, 6), article_count=3)
 
         assert link.formatted == "December 6, 2023"  # Include year
         assert link.path == "reports/2023-12-06/report.html"
@@ -209,18 +203,17 @@ class TestHomepageData:
                 content_type="newsletter",
                 language="ja",
                 post_id="1",
-                created_at=datetime(2024, 12, 6, 13, 0)
+                created_at=datetime(2024, 12, 6, 13, 0),
             )
         ]
 
         archive_dates = [
             ArchiveLink.create(date(2024, 12, 5), 10),
-            ArchiveLink.create(date(2024, 12, 4), 8)
+            ArchiveLink.create(date(2024, 12, 4), 8),
         ]
 
         homepage = HomepageData.create(
-            today_articles=articles,
-            archive_dates=archive_dates
+            today_articles=articles, archive_dates=archive_dates
         )
 
         assert homepage.today  # Should be formatted date string

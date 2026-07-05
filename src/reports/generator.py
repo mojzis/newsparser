@@ -21,7 +21,9 @@ logger = get_logger(__name__)
 class ReportGenerator:
     """Generates HTML reports from collected data."""
 
-    def __init__(self, template_dir: Path | None = None, output_dir: Path | None = None) -> None:
+    def __init__(
+        self, template_dir: Path | None = None, output_dir: Path | None = None
+    ) -> None:
         """
         Initialize report generator.
 
@@ -40,7 +42,7 @@ class ReportGenerator:
         # Set up Jinja2 environment
         self.env = Environment(
             loader=FileSystemLoader(str(self.template_dir)),
-            autoescape=select_autoescape(["html", "xml"])
+            autoescape=select_autoescape(["html", "xml"]),
         )
 
         # Add custom filters
@@ -67,7 +69,7 @@ class ReportGenerator:
         html_content = template.render(
             date_formatted=report_day.date_formatted,
             articles=report_day.articles,
-            active_menu="home"
+            active_menu="home",
         )
 
         # Write to file
@@ -97,7 +99,7 @@ class ReportGenerator:
             today_articles=homepage_data.today_articles,
             day_sections=homepage_data.day_sections,
             archive_dates=homepage_data.archive_dates,
-            active_menu="home"
+            active_menu="home",
         )
 
         # Write to file
@@ -121,8 +123,11 @@ class ReportGenerator:
         template = self.env.get_template(f"{template_name}.html")
         return template.render(**context)
 
-    def generate_sitemap(self, base_url: str = "https://example.com",
-                        report_dates: list[date] | None = None) -> Path:
+    def generate_sitemap(
+        self,
+        base_url: str = "https://example.com",
+        report_dates: list[date] | None = None,
+    ) -> Path:
         """
         Generate sitemap.xml file for all reports.
 
@@ -134,14 +139,18 @@ class ReportGenerator:
             Path to generated sitemap.xml
         """
         # Create root element
-        urlset = ET.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+        urlset = ET.Element(
+            "urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        )
 
         # Add homepage
         url_elem = ET.SubElement(urlset, "url")
         ET.SubElement(url_elem, "loc").text = base_url + "/index.html"
         ET.SubElement(url_elem, "changefreq").text = "daily"
         ET.SubElement(url_elem, "priority").text = "1.0"
-        ET.SubElement(url_elem, "lastmod").text = datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d")
+        ET.SubElement(url_elem, "lastmod").text = (
+            datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d")
+        )
 
         # Scan for report dates if not provided
         if report_dates is None:
@@ -159,7 +168,11 @@ class ReportGenerator:
         # Add report pages
         for report_date in sorted(report_dates, reverse=True):
             url_elem = ET.SubElement(urlset, "url")
-            ET.SubElement(url_elem, "loc").text = f"{base_url}/reports/{report_date.strftime('%Y-%m-%d')}/report.html"
+            ET.SubElement(
+                url_elem, "loc"
+            ).text = (
+                f"{base_url}/reports/{report_date.strftime('%Y-%m-%d')}/report.html"
+            )
             ET.SubElement(url_elem, "lastmod").text = report_date.strftime("%Y-%m-%d")
             ET.SubElement(url_elem, "changefreq").text = "yearly"
             ET.SubElement(url_elem, "priority").text = "0.8"
@@ -171,14 +184,19 @@ class ReportGenerator:
         sitemap_path = self.output_dir / "sitemap.xml"
         sitemap_path.write_text(xml_str)
 
-        logger.info(f"Generated sitemap with {len(report_dates) + 1} URLs: {sitemap_path}")
+        logger.info(
+            f"Generated sitemap with {len(report_dates) + 1} URLs: {sitemap_path}"
+        )
         return sitemap_path
 
-    def generate_rss(self, articles: list[ReportArticle],
-                     feed_title: str = "MCP Monitor Daily Report",
-                     feed_description: str = "Daily monitoring of Model Context Protocol mentions",
-                     feed_link: str = "https://example.com",
-                     max_items: int = 50) -> Path:
+    def generate_rss(
+        self,
+        articles: list[ReportArticle],
+        feed_title: str = "MCP Monitor Daily Report",
+        feed_description: str = "Daily monitoring of Model Context Protocol mentions",
+        feed_link: str = "https://example.com",
+        max_items: int = 50,
+    ) -> Path:
         """
         Generate RSS feed for recent articles.
 
@@ -193,8 +211,9 @@ class ReportGenerator:
             Path to generated rss.xml
         """
         # Create RSS root element
-        rss = ET.Element("rss", version="2.0",
-                        attrib={"xmlns:atom": "http://www.w3.org/2005/Atom"})
+        rss = ET.Element(
+            "rss", version="2.0", attrib={"xmlns:atom": "http://www.w3.org/2005/Atom"}
+        )
         channel = ET.SubElement(rss, "channel")
 
         # Add channel metadata
@@ -202,7 +221,11 @@ class ReportGenerator:
         ET.SubElement(channel, "link").text = feed_link
         ET.SubElement(channel, "description").text = feed_description
         ET.SubElement(channel, "language").text = "en-us"
-        ET.SubElement(channel, "lastBuildDate").text = datetime.now(UTC).replace(tzinfo=None).strftime("%a, %d %b %Y %H:%M:%S +0000")
+        ET.SubElement(channel, "lastBuildDate").text = (
+            datetime.now(UTC)
+            .replace(tzinfo=None)
+            .strftime("%a, %d %b %Y %H:%M:%S +0000")
+        )
 
         # Add atom:link for feed autodiscovery
         atom_link = ET.SubElement(channel, "{http://www.w3.org/2005/Atom}link")
@@ -211,7 +234,9 @@ class ReportGenerator:
         atom_link.set("type", "application/rss+xml")
 
         # Sort articles by date and limit
-        sorted_articles = sorted(articles, key=lambda x: x.created_at, reverse=True)[:max_items]
+        sorted_articles = sorted(articles, key=lambda x: x.created_at, reverse=True)[
+            :max_items
+        ]
 
         # Add items
         for article in sorted_articles:
@@ -220,8 +245,12 @@ class ReportGenerator:
             ET.SubElement(item, "title").text = article.title
             ET.SubElement(item, "link").text = str(article.url)
             ET.SubElement(item, "description").text = article.perex
-            ET.SubElement(item, "pubDate").text = article.created_at.strftime("%a, %d %b %Y %H:%M:%S +0000")
-            ET.SubElement(item, "guid", isPermaLink="false").text = f"{feed_link}#{article.post_id}"
+            ET.SubElement(item, "pubDate").text = article.created_at.strftime(
+                "%a, %d %b %Y %H:%M:%S +0000"
+            )
+            ET.SubElement(
+                item, "guid", isPermaLink="false"
+            ).text = f"{feed_link}#{article.post_id}"
 
             # Add category for content type
             if article.content_type:

@@ -1,4 +1,5 @@
 """Query builders for different search syntax types."""
+
 import re
 from abc import ABC, abstractmethod
 
@@ -46,7 +47,9 @@ class NativeQueryBuilder(QueryBuilder):
                 # Complex term or phrase - needs special handling
                 # For native syntax, we can't easily express complex boolean logic
                 # So we'll skip these or treat them as simple excludes
-                logger.warning(f"Complex exclude term not supported in native syntax: {term}")
+                logger.warning(
+                    f"Complex exclude term not supported in native syntax: {term}"
+                )
                 # Skip complex boolean expressions in native mode
                 continue
             if term.startswith("#"):

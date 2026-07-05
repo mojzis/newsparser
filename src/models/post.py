@@ -28,7 +28,8 @@ class BlueskyPost(AnalyticsBase):
         default_factory=list, description="Hashtags extracted from post content"
     )
     language: LanguageType = Field(
-        default=LanguageType.LATIN, description="Detected language type based on character analysis"
+        default=LanguageType.LATIN,
+        description="Detected language type based on character analysis",
     )
     engagement_metrics: EngagementMetrics = Field(
         ..., description="Engagement statistics"
@@ -114,7 +115,7 @@ class BlueskyPost(AnalyticsBase):
         root_uri: str,
         position: ThreadPosition,
         depth: int,
-        parent_uri: str | None = None
+        parent_uri: str | None = None,
     ) -> "BlueskyPost":
         """Set thread relationship metadata for this post."""
         self.thread_root_uri = root_uri

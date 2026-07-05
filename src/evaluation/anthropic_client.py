@@ -28,9 +28,7 @@ class AnthropicEvaluator:
         self.prompt_config = self.config_manager.get_prompt_config()
 
     def evaluate_article(
-        self,
-        content: ExtractedContent,
-        url: str | HttpUrl
+        self, content: ExtractedContent, url: str | HttpUrl
     ) -> ArticleEvaluation:
         """
         Evaluate article content for MCP relevance.
@@ -58,14 +56,16 @@ class AnthropicEvaluator:
                 if len(article_text) > max_chars:
                     article_text = article_text[:max_chars]
                 truncated = True
-                logger.info(f"Truncated content from {word_count} to {len(article_text.split())} words")
+                logger.info(
+                    f"Truncated content from {word_count} to {len(article_text.split())} words"
+                )
 
             # Create prompt with hints from content extraction using configuration
             prompt = self._create_evaluation_prompt(
                 content=article_text,
                 title=content.title,
                 detected_language=content.language,
-                detected_content_type=content.content_type
+                detected_content_type=content.content_type,
             )
 
             # Call Anthropic API using model configuration
@@ -73,9 +73,7 @@ class AnthropicEvaluator:
                 model=self.model_config.model_id,
                 max_tokens=self.model_config.config["max_tokens"],
                 temperature=self.model_config.config["temperature"],
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                messages=[{"role": "user", "content": prompt}],
             )
 
             # Parse response
@@ -102,7 +100,7 @@ class AnthropicEvaluator:
                 prompt_name=self.prompt_config.name,
                 model_id=self.model_config.model_id,
                 model_version=self.model_config.version,
-                config_branch=self.config_manager.branch
+                config_branch=self.config_manager.branch,
             )
 
         except Exception as e:
@@ -126,7 +124,7 @@ class AnthropicEvaluator:
                 prompt_name="unknown",
                 model_id="unknown",
                 model_version="unknown",
-                config_branch="unknown"
+                config_branch="unknown",
             )
 
     def _create_evaluation_prompt(
@@ -134,7 +132,7 @@ class AnthropicEvaluator:
         content: str,
         title: str | None = None,
         detected_language: str | None = None,
-        detected_content_type: str | None = None
+        detected_content_type: str | None = None,
     ) -> str:
         """Create evaluation prompt for article content using configuration."""
         # Add title if available
@@ -154,9 +152,7 @@ class AnthropicEvaluator:
 
         # Format the template with variables
         return template.format(
-            title_part=title_part,
-            hints_part=hints_part,
-            content=content
+            title_part=title_part, hints_part=hints_part, content=content
         )
 
     def _parse_response(self, response_text: str) -> dict:
@@ -176,7 +172,7 @@ class AnthropicEvaluator:
                 "perex": str(data.get("perex", ""))[:200],
                 "key_topics": list(data.get("key_topics", [])),
                 "content_type": str(data.get("content_type", "article")),
-                "language": str(data.get("language", "en"))
+                "language": str(data.get("language", "en")),
             }
 
         except json.JSONDecodeError:
@@ -191,5 +187,5 @@ class AnthropicEvaluator:
                 "perex": "Failed to parse response",
                 "key_topics": [],
                 "content_type": "article",
-                "language": "en"
+                "language": "en",
             }

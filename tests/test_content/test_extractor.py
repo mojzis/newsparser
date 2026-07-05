@@ -126,7 +126,9 @@ class TestContentExtractor:
         assert "Main Title" in result.content_markdown
         assert "main content" in result.content_markdown
         assert result.word_count > 0
-        assert result.language is None  # No HTML lang attribute, and text too short for detection
+        assert (
+            result.language is None
+        )  # No HTML lang attribute, and text too short for detection
         assert result.content_type == "article"  # Default type
         assert result.domain == "example.com"
 
@@ -184,7 +186,9 @@ class TestContentExtractor:
 
         assert isinstance(result, ExtractedContent)
         assert "[Content truncated...]" in result.content_markdown
-        assert len(result.content_markdown) <= 50 + 50  # Some margin for truncation message
+        assert (
+            len(result.content_markdown) <= 50 + 50
+        )  # Some margin for truncation message
 
     def test_extract_multiple_empty_list(self):
         """Test extracting from empty list returns empty list."""

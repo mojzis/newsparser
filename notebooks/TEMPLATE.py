@@ -36,7 +36,7 @@ def _(mo):
 
     # 2. Display OUTSIDE control blocks, BEFORE return
     mo.md(f"Status: {status}")
-    return result,
+    return (result,)
 
 
 @app.cell

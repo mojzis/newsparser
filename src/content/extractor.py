@@ -1,4 +1,5 @@
 """Content extraction from HTML to Markdown."""
+
 import re
 from datetime import UTC, datetime
 from urllib.parse import urlparse
@@ -45,21 +46,39 @@ class ContentExtractor:
         soup = BeautifulSoup(html, "html.parser")
 
         if debug:
-            logger.info(f"Pre-clean HTML structure: body={len(soup.find_all('body'))}, div={len(soup.find_all('div'))}, p={len(soup.find_all('p'))}")
+            logger.info(
+                f"Pre-clean HTML structure: body={len(soup.find_all('body'))}, div={len(soup.find_all('div'))}, p={len(soup.find_all('p'))}"
+            )
 
         # Remove script and style elements
         for script in soup(["script", "style", "noscript"]):
             script.decompose()
 
         # Remove comment elements
-        for element in soup(string=lambda text: isinstance(text, str) and text.strip().startswith("<!--")):
+        for element in soup(
+            string=lambda text: (
+                isinstance(text, str) and text.strip().startswith("<!--")
+            )
+        ):
             element.extract()
 
         # Remove navigation, sidebar, footer elements
-        for element in soup.find_all(attrs={"class": re.compile(r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE)}):
+        for element in soup.find_all(
+            attrs={
+                "class": re.compile(
+                    r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE
+                )
+            }
+        ):
             element.decompose()
 
-        for element in soup.find_all(attrs={"id": re.compile(r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE)}):
+        for element in soup.find_all(
+            attrs={
+                "id": re.compile(
+                    r"nav|sidebar|footer|menu|ad|advertisement", re.IGNORECASE
+                )
+            }
+        ):
             element.decompose()
 
         # Remove elements by tag that are typically not content
@@ -67,7 +86,9 @@ class ContentExtractor:
             tag.decompose()
 
         if debug:
-            logger.info(f"Post-clean HTML structure: body={len(soup.find_all('body'))}, div={len(soup.find_all('div'))}, p={len(soup.find_all('p'))}")
+            logger.info(
+                f"Post-clean HTML structure: body={len(soup.find_all('body'))}, div={len(soup.find_all('div'))}, p={len(soup.find_all('p'))}"
+            )
 
         return str(soup)
 
@@ -191,8 +212,49 @@ class ContentExtractor:
         text_sample = text[:1000].lower()
 
         # Common English words
-        english_indicators = ["the", "and", "for", "are", "but", "not", "you", "all", "can", "had", "her", "was", "one", "our", "out", "day", "get", "has", "him", "his", "how", "man", "new", "now", "old", "see", "two", "way", "who", "boy", "did", "its", "let", "put", "say", "she", "too", "use"]
-        english_count = sum(1 for word in english_indicators if f" {word} " in text_sample)
+        english_indicators = [
+            "the",
+            "and",
+            "for",
+            "are",
+            "but",
+            "not",
+            "you",
+            "all",
+            "can",
+            "had",
+            "her",
+            "was",
+            "one",
+            "our",
+            "out",
+            "day",
+            "get",
+            "has",
+            "him",
+            "his",
+            "how",
+            "man",
+            "new",
+            "now",
+            "old",
+            "see",
+            "two",
+            "way",
+            "who",
+            "boy",
+            "did",
+            "its",
+            "let",
+            "put",
+            "say",
+            "she",
+            "too",
+            "use",
+        ]
+        english_count = sum(
+            1 for word in english_indicators if f" {word} " in text_sample
+        )
 
         if english_count >= 5:
             return "en"
@@ -204,26 +266,56 @@ class ContentExtractor:
         url_lower = url.lower()
 
         # Video platforms
-        video_domains = ["youtube.com", "youtu.be", "vimeo.com", "dailymotion.com", "twitch.tv", "tiktok.com"]
+        video_domains = [
+            "youtube.com",
+            "youtu.be",
+            "vimeo.com",
+            "dailymotion.com",
+            "twitch.tv",
+            "tiktok.com",
+        ]
         if any(domain in url_lower for domain in video_domains):
             return "video"
 
         # Newsletter platforms
-        newsletter_domains = ["substack.com", "beehiiv.com", "convertkit.com", "buttondown.email", "revue.com"]
+        newsletter_domains = [
+            "substack.com",
+            "beehiiv.com",
+            "convertkit.com",
+            "buttondown.email",
+            "revue.com",
+        ]
         if any(domain in url_lower for domain in newsletter_domains):
             return "newsletter"
 
         # GitHub repositories and documentation
-        if "github.com" in url_lower or "docs." in url_lower or "/documentation/" in url_lower:
+        if (
+            "github.com" in url_lower
+            or "docs." in url_lower
+            or "/documentation/" in url_lower
+        ):
             return "documentation"
 
         # Product updates based on URL patterns
-        update_patterns = ["/changelog", "/release-notes", "/updates", "/releases", "/whats-new"]
+        update_patterns = [
+            "/changelog",
+            "/release-notes",
+            "/updates",
+            "/releases",
+            "/whats-new",
+        ]
         if any(pattern in url_lower for pattern in update_patterns):
             return "product update"
 
         # Blog patterns
-        blog_patterns = ["/blog/", "/posts/", "/article/", "medium.com", "dev.to", "hashnode."]
+        blog_patterns = [
+            "/blog/",
+            "/posts/",
+            "/article/",
+            "medium.com",
+            "dev.to",
+            "hashnode.",
+        ]
         if any(pattern in url_lower for pattern in blog_patterns):
             return "blog post"
 
@@ -235,7 +327,7 @@ class ContentExtractor:
             "video",
             'embed[src*="youtube"]',
             ".youtube-player",
-            ".video-container"
+            ".video-container",
         ]
         for selector in video_selectors:
             if soup.select_one(selector):
@@ -244,7 +336,9 @@ class ContentExtractor:
         # Default to article
         return "article"
 
-    def extract_content(self, article_content: ArticleContent, debug: bool = False) -> ExtractedContent | ContentError:
+    def extract_content(
+        self, article_content: ArticleContent, debug: bool = False
+    ) -> ExtractedContent | ContentError:
         """
         Extract content from ArticleContent and convert to Markdown.
 
@@ -274,7 +368,15 @@ class ContentExtractor:
                     "div_tags": len(soup.find_all("div")),
                     "article_tags": len(soup.find_all("article")),
                     "main_tags": len(soup.find_all("main")),
-                    "content_classes": len(soup.find_all(attrs={"class": re.compile(r"content|article|post", re.IGNORECASE)})),
+                    "content_classes": len(
+                        soup.find_all(
+                            attrs={
+                                "class": re.compile(
+                                    r"content|article|post", re.IGNORECASE
+                                )
+                            }
+                        )
+                    ),
                 }
 
                 logger.info(f"HTML structure analysis: {debug_info}")
@@ -286,16 +388,24 @@ class ContentExtractor:
 
             if debug:
                 logger.info(f"Readability extracted title: '{title}'")
-                logger.info(f"Readability content length: {len(content_html) if content_html else 0}")
+                logger.info(
+                    f"Readability content length: {len(content_html) if content_html else 0}"
+                )
                 if content_html:
                     # Show first 500 chars of extracted HTML
-                    preview = content_html[:500] + "..." if len(content_html) > 500 else content_html
+                    preview = (
+                        content_html[:500] + "..."
+                        if len(content_html) > 500
+                        else content_html
+                    )
                     logger.info(f"Readability HTML preview: {preview!r}")
 
             if not content_html or len(content_html.strip()) < 50:
                 error_details = "Readability failed to extract meaningful content"
                 if debug:
-                    error_details += f" (extracted {len(content_html) if content_html else 0} chars)"
+                    error_details += (
+                        f" (extracted {len(content_html) if content_html else 0} chars)"
+                    )
                 return ContentError(
                     url=article_content.url,
                     error_type="extraction",
@@ -331,9 +441,15 @@ class ContentExtractor:
                 markdown_content = soup.get_text(separator="\n\n").strip()
 
             if debug:
-                logger.info(f"HTML2Text conversion result length: {len(markdown_content)}")
+                logger.info(
+                    f"HTML2Text conversion result length: {len(markdown_content)}"
+                )
                 if markdown_content:
-                    preview = markdown_content[:200] + "..." if len(markdown_content) > 200 else markdown_content
+                    preview = (
+                        markdown_content[:200] + "..."
+                        if len(markdown_content) > 200
+                        else markdown_content
+                    )
                     logger.info(f"Markdown preview: {preview!r}")
 
             # Additional cleaning of Markdown
@@ -360,8 +476,13 @@ class ContentExtractor:
                 )
 
             if len(markdown_content) > self.max_content_length:
-                logger.warning(f"Content truncated for {url_str}: {len(markdown_content)} chars")
-                markdown_content = markdown_content[:self.max_content_length] + "\n\n[Content truncated...]"
+                logger.warning(
+                    f"Content truncated for {url_str}: {len(markdown_content)} chars"
+                )
+                markdown_content = (
+                    markdown_content[: self.max_content_length]
+                    + "\n\n[Content truncated...]"
+                )
 
             # Try to extract a better title if readability didn't find one
             final_title = title
@@ -434,6 +555,8 @@ class ContentExtractor:
             results.append(result)
 
         successful = sum(1 for r in results if isinstance(r, ExtractedContent))
-        logger.info(f"Extracted {successful}/{len(article_contents)} articles successfully")
+        logger.info(
+            f"Extracted {successful}/{len(article_contents)} articles successfully"
+        )
 
         return results

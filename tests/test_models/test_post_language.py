@@ -16,7 +16,7 @@ class TestBlueskyPostLanguageDetection:
             author="user",
             content="Hello world! This is an English post #MCP",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.LATIN
@@ -29,7 +29,7 @@ class TestBlueskyPostLanguageDetection:
             author="user",
             content="你好世界！这是一个中文帖子！很长的中文内容测试语言检测功能",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.UNKNOWN
@@ -43,7 +43,7 @@ class TestBlueskyPostLanguageDetection:
             author="user",
             content="你好 中文 测试 内容 Hello English mixed",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.MIXED
@@ -56,7 +56,7 @@ class TestBlueskyPostLanguageDetection:
             content="你好世界！这是中文内容",
             created_at=datetime.now(UTC),
             language=LanguageType.LATIN,  # Explicitly set (incorrect but should be preserved)
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Should preserve explicitly set language
@@ -69,7 +69,7 @@ class TestBlueskyPostLanguageDetection:
             author="user",
             content="!",  # Just punctuation
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.LATIN
@@ -82,7 +82,7 @@ class TestBlueskyPostLanguageDetection:
             content="Check out this #MCP tool 你好 #技术 https://example.com",
             created_at=datetime.now(UTC),
             links=["https://example.com"],
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Should detect mixed content and extract hashtags
@@ -98,7 +98,7 @@ class TestBlueskyPostLanguageDetection:
             author="user",
             content="Привет мир! Как дела сегодня?",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Test manual detection method
@@ -115,7 +115,7 @@ class TestBlueskyPostLanguageDetection:
             author="user",
             content="Hello world!",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Test JSON serialization
@@ -134,7 +134,7 @@ class TestBlueskyPostLanguageDetection:
             "content": "Test content",
             "created_at": "2024-01-15T10:30:00",
             "engagement_metrics": {"likes": 1, "reposts": 0, "replies": 0},
-            "language": "mixed"
+            "language": "mixed",
         }
 
         post = BlueskyPost.model_validate(data)
@@ -147,7 +147,7 @@ class TestBlueskyPostLanguageDetection:
             "author": "user",
             "content": "Test content",
             "created_at": "2024-01-15T10:30:00",
-            "engagement_metrics": {"likes": 1, "reposts": 0, "replies": 0}
+            "engagement_metrics": {"likes": 1, "reposts": 0, "replies": 0},
             # No language field
         }
 
@@ -165,7 +165,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="https://example.com https://test.org",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.LATIN
@@ -177,7 +177,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="😀😂🚀❤️🎉",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.LATIN
@@ -189,7 +189,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="123 + 456 = 579 !@#$%",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post.language == LanguageType.LATIN
@@ -202,7 +202,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="Love this new AI tool! #AI #人工智能",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Should be Latin due to mostly English content
@@ -216,7 +216,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="Изучаю Machine Learning и Data Science сегодня!",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Should be mixed or unknown depending on ratio
@@ -230,7 +230,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="def hello(): # This prints hello\n    print('Hello!')",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         assert post1.language == LanguageType.LATIN
@@ -241,7 +241,7 @@ class TestLanguageDetectionEdgeCases:
             author="user",
             content="function sayHello() { // 这个函数打印问候语\n  console.log('你好世界'); }",
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Actually has low percentage of Chinese characters, so classified as Latin
@@ -261,7 +261,7 @@ class TestLanguageDetectionPerformance:
             author="user",
             content=long_content,
             created_at=datetime.now(UTC),
-            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+            engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
         )
 
         # Should still detect correctly
@@ -274,7 +274,7 @@ class TestLanguageDetectionPerformance:
             "你好世界！中文内容",
             "Привет мир! Русский текст",
             "Mixed English 和 中文 content",
-            "Another English post #test"
+            "Another English post #test",
         ]
 
         posts = []
@@ -284,7 +284,7 @@ class TestLanguageDetectionPerformance:
                 author="user",
                 content=content,
                 created_at=datetime.now(UTC),
-                engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+                engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
             )
             posts.append(post)
 

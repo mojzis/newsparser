@@ -12,6 +12,7 @@ def _():
     import marimo as mo
     import pandas as pd
     import yaml
+
     return Path, datetime, mo, pd, timedelta, yaml
 
 
@@ -64,13 +65,19 @@ def _(Path, datetime, pd, timedelta, yaml):
                                     "url": frontmatter.get("url", ""),
                                     "title": frontmatter.get("title", ""),
                                     "domain": frontmatter.get("domain", ""),
-                                    "is_mcp_related": evaluation.get("is_mcp_related", False),
-                                    "relevance_score": evaluation.get("relevance_score", 0.0),
+                                    "is_mcp_related": evaluation.get(
+                                        "is_mcp_related", False
+                                    ),
+                                    "relevance_score": evaluation.get(
+                                        "relevance_score", 0.0
+                                    ),
                                     "key_topics": evaluation.get("key_topics", []),
                                     "perex": evaluation.get("perex", ""),
                                     "summary": evaluation.get("summary", ""),
-                                    "found_in_posts": len(frontmatter.get("found_in_posts", [])),
-                                    "file_path": str(md_file)
+                                    "found_in_posts": len(
+                                        frontmatter.get("found_in_posts", [])
+                                    ),
+                                    "file_path": str(md_file),
                                 }
                                 records.append(record)
 
@@ -93,12 +100,7 @@ def _(Path, datetime, pd, timedelta, yaml):
 
 @app.cell
 def _(mo):
-    days_slider = mo.ui.slider(
-        start=1,
-        stop=30,
-        value=7,
-        label="Days to look back"
-    )
+    days_slider = mo.ui.slider(start=1, stop=30, value=7, label="Days to look back")
 
     mo.md(f"""
     ## Load Data
@@ -119,9 +121,9 @@ def _(days_slider, load_evaluated_content, mo):
     ### Data Loaded
 
     - **Total records:** {len(evaluated_content)}
-    - **Date range:** {evaluated_content['date'].min().strftime('%Y-%m-%d') if not evaluated_content.empty else 'N/A'} to {evaluated_content['date'].max().strftime('%Y-%m-%d') if not evaluated_content.empty else 'N/A'}
-    - **MCP-related articles:** {evaluated_content['is_mcp_related'].sum() if not evaluated_content.empty else 0}
-    - **Unique domains:** {evaluated_content['domain'].nunique() if not evaluated_content.empty else 0}
+    - **Date range:** {evaluated_content["date"].min().strftime("%Y-%m-%d") if not evaluated_content.empty else "N/A"} to {evaluated_content["date"].max().strftime("%Y-%m-%d") if not evaluated_content.empty else "N/A"}
+    - **MCP-related articles:** {evaluated_content["is_mcp_related"].sum() if not evaluated_content.empty else 0}
+    - **Unique domains:** {evaluated_content["domain"].nunique() if not evaluated_content.empty else 0}
     """)
     return (evaluated_content,)
 
@@ -133,70 +135,57 @@ def _(mo):
 
 @app.cell
 def _(evaluated_content, mo):
-    mo.ui.table(
-        evaluated_content,
-        selection=None,
-        pagination=True,
-        page_size=30
-    )
+    mo.ui.table(evaluated_content, selection=None, pagination=True, page_size=30)
 
 
 @app.cell
 def _(evaluated_content, mo):
     kt = (
-        evaluated_content.loc[lambda x: x["is_mcp_related"]]
-        [["url","key_topics"]]
+        evaluated_content.loc[lambda x: x["is_mcp_related"]][["url", "key_topics"]]
         .explode("key_topics")
         .groupby("key_topics", as_index=False)
-        .agg(num_urls=("url","nunique"))
+        .agg(num_urls=("url", "nunique"))
         .sort_values("num_urls", ascending=False)
     )
-    mo.ui.table(kt,page_size=30)
+    mo.ui.table(kt, page_size=30)
 
 
 @app.cell
 def _(evaluated_content, mo):
-        # Filter to MCP-related content
+    # Filter to MCP-related content
     mcp_df = evaluated_content[evaluated_content["is_mcp_related"]].copy()
 
     mo.md(f"""
     ### MCP Articles by Relevance Score
 
-    Found **{len(mcp_df)}** MCP-related articles with average relevance score of **{mcp_df['relevance_score'].mean():.3f}**
+    Found **{len(mcp_df)}** MCP-related articles with average relevance score of **{mcp_df["relevance_score"].mean():.3f}**
     """)
     return (mcp_df,)
 
 
 @app.cell
 def _(mcp_df, mo):
-        # Sort by relevance score
-    top_articles = mcp_df.nlargest(20, "relevance_score")[["title", "domain", "relevance_score", "perex"]]
+    # Sort by relevance score
+    top_articles = mcp_df.nlargest(20, "relevance_score")[
+        ["title", "domain", "relevance_score", "perex"]
+    ]
 
-    mo.ui.table(
-        top_articles,
-        selection=None,
-        pagination=False
-    )
-
+    mo.ui.table(top_articles, selection=None, pagination=False)
 
 
 @app.cell
 def _(evaluated_content, mo):
-        # Aggregate by domain
-    domain_stats = evaluated_content.groupby("domain").agg({
-        "url": "count",
-        "is_mcp_related": "sum",
-        "relevance_score": "mean"
-    }).round(3)
+    # Aggregate by domain
+    domain_stats = (
+        evaluated_content.groupby("domain")
+        .agg({"url": "count", "is_mcp_related": "sum", "relevance_score": "mean"})
+        .round(3)
+    )
 
     domain_stats.columns = ["total_articles", "mcp_articles", "avg_relevance"]
     domain_stats = domain_stats.sort_values("mcp_articles", ascending=False).head(15)
 
-    mo.ui.table(
-        domain_stats.reset_index(),
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(domain_stats.reset_index(), selection=None, pagination=False)
 
 
 @app.cell
@@ -205,21 +194,32 @@ def _(evaluated_content, mo):
 
     if not evaluated_content.empty and len(evaluated_content) > 0:
         # Aggregate by date
-        daily_stats = evaluated_content.groupby(evaluated_content["date"].dt.date).agg({
-            "url": "count",
-            "is_mcp_related": "sum",
-            "relevance_score": lambda x: x[evaluated_content.loc[x.index, "is_mcp_related"]].mean() if any(evaluated_content.loc[x.index, "is_mcp_related"]) else 0
-        }).round(3)
+        daily_stats = (
+            evaluated_content.groupby(evaluated_content["date"].dt.date)
+            .agg(
+                {
+                    "url": "count",
+                    "is_mcp_related": "sum",
+                    "relevance_score": lambda x: (
+                        x[evaluated_content.loc[x.index, "is_mcp_related"]].mean()
+                        if any(evaluated_content.loc[x.index, "is_mcp_related"])
+                        else 0
+                    ),
+                }
+            )
+            .round(3)
+        )
 
         daily_stats.columns = ["total_articles", "mcp_articles", "avg_mcp_relevance"]
         daily_stats = daily_stats.reset_index()
-        daily_stats.columns = ["date", "total_articles", "mcp_articles", "avg_mcp_relevance"]
+        daily_stats.columns = [
+            "date",
+            "total_articles",
+            "mcp_articles",
+            "avg_mcp_relevance",
+        ]
 
-        mo.ui.table(
-            daily_stats,
-            selection=None,
-            pagination=False
-        )
+        mo.ui.table(daily_stats, selection=None, pagination=False)
 
 
 @app.cell
@@ -235,28 +235,19 @@ def _(mo):
 
 @app.cell
 def _(evaluated_content, mo):
-        # Create filter controls
+    # Create filter controls
     mcp_only = mo.ui.checkbox(label="MCP-related only", value=False)
     min_relevance = mo.ui.slider(
-        start=0.0,
-        stop=1.0,
-        step=0.1,
-        value=0.0,
-        label="Minimum relevance score"
+        start=0.0, stop=1.0, step=0.1, value=0.0, label="Minimum relevance score"
     )
 
     # Get unique domains for dropdown
     domains = ["All", *sorted(evaluated_content["domain"].unique().tolist())]
     domain_filter = mo.ui.dropdown(
-        options=domains,
-        value="All",
-        label="Filter by domain"
+        options=domains, value="All", label="Filter by domain"
     )
 
-    mo.hstack([
-        mo.vstack([mcp_only, min_relevance]),
-        domain_filter
-    ])
+    mo.hstack([mo.vstack([mcp_only, min_relevance]), domain_filter])
     return domain_filter, mcp_only, min_relevance
 
 
@@ -281,10 +272,12 @@ def _(domain_filter, evaluated_content, mcp_only, min_relevance, mo):
     """)
 
     mo.ui.table(
-        filtered_df[["date", "title", "domain", "is_mcp_related", "relevance_score", "perex"]].head(20),
+        filtered_df[
+            ["date", "title", "domain", "is_mcp_related", "relevance_score", "perex"]
+        ].head(20),
         selection=None,
         pagination=True,
-        page_size=30
+        page_size=30,
     )
 
 

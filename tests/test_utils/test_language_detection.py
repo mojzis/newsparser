@@ -120,7 +120,7 @@ class TestNeutralCharacterDetection:
     def test_emoji_characters(self):
         """Test emoji characters are treated as neutral."""
         assert is_neutral_character("😀")  # U+1F600
-        assert is_neutral_character("❤")   # U+2764
+        assert is_neutral_character("❤")  # U+2764
         assert is_neutral_character("🚀")  # U+1F680
 
     def test_non_neutral_characters(self):
@@ -143,7 +143,9 @@ class TestNonLatinPercentageCalculation:
         """Test text with only Latin characters."""
         assert calculate_non_latin_percentage("Hello World") == 0.0
         assert calculate_non_latin_percentage("The quick brown fox") == 0.0
-        assert calculate_non_latin_percentage("café résumé naïve") == 0.0  # Extended Latin
+        assert (
+            calculate_non_latin_percentage("café résumé naïve") == 0.0
+        )  # Extended Latin
 
     def test_pure_non_latin_text(self):
         """Test text with only non-Latin characters."""
@@ -197,16 +199,24 @@ class TestLanguageDetection:
     def test_detect_latin_language(self):
         """Test detection of Latin-script languages."""
         # English
-        assert detect_language_from_text("Hello, how are you today?") == LanguageType.LATIN
+        assert (
+            detect_language_from_text("Hello, how are you today?") == LanguageType.LATIN
+        )
 
         # Spanish with accents
         assert detect_language_from_text("Hola, ¿cómo estás hoy?") == LanguageType.LATIN
 
         # French with accents
-        assert detect_language_from_text("Bonjour, comment allez-vous aujourd'hui?") == LanguageType.LATIN
+        assert (
+            detect_language_from_text("Bonjour, comment allez-vous aujourd'hui?")
+            == LanguageType.LATIN
+        )
 
         # German with umlauts
-        assert detect_language_from_text("Hallo, wie geht es Ihnen heute?") == LanguageType.LATIN
+        assert (
+            detect_language_from_text("Hallo, wie geht es Ihnen heute?")
+            == LanguageType.LATIN
+        )
 
     def test_detect_mixed_language(self):
         """Test detection of mixed-script content."""
@@ -242,10 +252,14 @@ class TestLanguageDetection:
         mixed_text = "Hello 你好 world"
 
         # With lower threshold (10%), should be mixed
-        assert detect_language_from_text(mixed_text, threshold=0.1) == LanguageType.MIXED
+        assert (
+            detect_language_from_text(mixed_text, threshold=0.1) == LanguageType.MIXED
+        )
 
         # With higher threshold (20%), should be Latin
-        assert detect_language_from_text(mixed_text, threshold=0.2) == LanguageType.LATIN
+        assert (
+            detect_language_from_text(mixed_text, threshold=0.2) == LanguageType.LATIN
+        )
 
     def test_edge_cases(self):
         """Test edge cases for language detection."""
@@ -264,7 +278,7 @@ class TestLanguageDetection:
     @given(
         st.text(min_size=1, max_size=50),
         st.floats(min_value=0.0, max_value=1.0),
-        st.floats(min_value=0.0, max_value=1.0)
+        st.floats(min_value=0.0, max_value=1.0),
     )
     def test_threshold_ordering(self, text, threshold1, threshold2):
         """Test that thresholds work in expected order."""
@@ -275,8 +289,12 @@ class TestLanguageDetection:
             low_thresh = threshold2
             high_thresh = threshold1
 
-        result_low = detect_language_from_text(text, threshold=low_thresh, mixed_threshold=high_thresh)
-        result_high = detect_language_from_text(text, threshold=high_thresh, mixed_threshold=high_thresh)
+        result_low = detect_language_from_text(
+            text, threshold=low_thresh, mixed_threshold=high_thresh
+        )
+        result_high = detect_language_from_text(
+            text, threshold=high_thresh, mixed_threshold=high_thresh
+        )
 
         # With higher threshold, less likely to be classified as mixed/unknown
         assert isinstance(result_low, LanguageType)
@@ -303,7 +321,11 @@ class TestTextAnalysis:
 
         assert analysis["total_chars"] == len(text)
         assert analysis["non_latin_chars"] == 2  # Two Chinese characters
-        assert analysis["language_type"] in [LanguageType.LATIN, LanguageType.MIXED, LanguageType.UNKNOWN]
+        assert analysis["language_type"] in [
+            LanguageType.LATIN,
+            LanguageType.MIXED,
+            LanguageType.UNKNOWN,
+        ]
 
     def test_analyze_empty_text(self):
         """Test analysis of empty text."""
@@ -363,7 +385,9 @@ class TestRealWorldSamples:
         assert detect_language_from_text(english_post) == LanguageType.LATIN
 
         # Chinese weibo-like content - actually mixed due to URL and symbols
-        chinese_post = "刚刚发现了这个很棒的工具！🚀 大家快来看看：https://example.com #工具 #技术"
+        chinese_post = (
+            "刚刚发现了这个很棒的工具！🚀 大家快来看看：https://example.com #工具 #技术"
+        )
         assert detect_language_from_text(chinese_post) == LanguageType.MIXED
 
         # Mixed content (common in international contexts)
@@ -376,11 +400,15 @@ class TestRealWorldSamples:
     def test_programming_content(self):
         """Test with programming-related content."""
         # Code snippet with English comments
-        code_post = "def hello_world(): # This prints hello world\n    print('Hello, World!')"
+        code_post = (
+            "def hello_world(): # This prints hello world\n    print('Hello, World!')"
+        )
         assert detect_language_from_text(code_post) == LanguageType.LATIN
 
         # Code with Chinese comments - mixed due to English code keywords
-        code_chinese = "def 你好世界(): # 这个函数打印你好世界\n    print('你好，世界！')"
+        code_chinese = (
+            "def 你好世界(): # 这个函数打印你好世界\n    print('你好，世界！')"
+        )
         assert detect_language_from_text(code_chinese) == LanguageType.MIXED
 
     def test_academic_content(self):
@@ -410,7 +438,9 @@ class TestPerformance:
     def test_performance_with_long_text(self):
         """Test that detection works efficiently with longer text."""
         # Create a long text with mixed content
-        long_text = ("Hello world! " * 100) + ("你好世界！" * 100) + ("Привет мир! " * 100)
+        long_text = (
+            ("Hello world! " * 100) + ("你好世界！" * 100) + ("Привет мир! " * 100)
+        )
 
         # Should still work and give reasonable result
         result = detect_language_from_text(long_text)

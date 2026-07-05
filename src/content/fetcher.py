@@ -1,4 +1,5 @@
 """Article fetching client using httpx."""
+
 import asyncio
 from datetime import UTC, datetime
 from typing import Self
@@ -69,7 +70,9 @@ class ArticleFetcher:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: object, exc_val: object, exc_tb: object
+    ) -> None:
         """Async context manager exit."""
         await self.close()
 
@@ -77,13 +80,15 @@ class ArticleFetcher:
         """Check if URL is valid and safe to fetch."""
         try:
             parsed = urlparse(url)
-            return all([
-                parsed.scheme in ("http", "https"),
-                parsed.netloc,
-                not parsed.netloc.startswith("localhost"),
-                not parsed.netloc.startswith("127.0.0.1"),
-                not parsed.netloc.startswith("0.0.0.0"),  # noqa: S104  SSRF guard, not a bind address
-            ])
+            return all(
+                [
+                    parsed.scheme in ("http", "https"),
+                    parsed.netloc,
+                    not parsed.netloc.startswith("localhost"),
+                    not parsed.netloc.startswith("127.0.0.1"),
+                    not parsed.netloc.startswith("0.0.0.0"),  # noqa: S104  SSRF guard, not a bind address
+                ]
+            )
         except Exception:
             return False
 
@@ -103,6 +108,7 @@ class ArticleFetcher:
             # For invalid URLs, create a dummy valid URL for the error object
             try:
                 from pydantic import HttpUrl
+
                 error_url = HttpUrl("https://invalid.url")
             except Exception:
                 error_url = "https://invalid.url"
@@ -130,7 +136,9 @@ class ArticleFetcher:
 
                 # Check if response is HTML-like
                 content_type = response.headers.get("content-type", "").lower()
-                if not any(ct in content_type for ct in ["text/html", "application/xhtml"]):
+                if not any(
+                    ct in content_type for ct in ["text/html", "application/xhtml"]
+                ):
                     return ContentError(
                         url=url,
                         error_type="content_type",
@@ -140,7 +148,13 @@ class ArticleFetcher:
                 # Handle non-2xx status codes
                 if response.status_code >= 400:
                     # Don't retry permanent errors
-                    permanent_errors = {401, 403, 404, 410, 451}  # Unauthorized, Forbidden, Not Found, Gone, Unavailable For Legal Reasons
+                    permanent_errors = {
+                        401,
+                        403,
+                        404,
+                        410,
+                        451,
+                    }  # Unauthorized, Forbidden, Not Found, Gone, Unavailable For Legal Reasons
 
                     if response.status_code in permanent_errors:
                         logger.warning(
@@ -154,7 +168,7 @@ class ArticleFetcher:
 
                     # Retry transient errors (5xx, 429, 408, etc.)
                     if attempt < self.max_retries:
-                        delay = self.retry_delay * (2 ** attempt)
+                        delay = self.retry_delay * (2**attempt)
                         logger.warning(
                             f"HTTP {response.status_code} for {url_str}, "
                             f"retrying in {delay}s"
@@ -190,7 +204,7 @@ class ArticleFetcher:
             except httpx.TimeoutException:
                 error_msg = f"Timeout after {self.timeout}s"
                 if attempt < self.max_retries:
-                    delay = self.retry_delay * (2 ** attempt)
+                    delay = self.retry_delay * (2**attempt)
                     logger.warning(f"Timeout for {url_str}, retrying in {delay}s")
                     await asyncio.sleep(delay)
                     continue
@@ -204,7 +218,7 @@ class ArticleFetcher:
             except httpx.NetworkError as e:
                 error_msg = f"Network error: {e}"
                 if attempt < self.max_retries:
-                    delay = self.retry_delay * (2 ** attempt)
+                    delay = self.retry_delay * (2**attempt)
                     logger.warning(f"Network error for {url_str}, retrying in {delay}s")
                     await asyncio.sleep(delay)
                     continue
@@ -248,11 +262,15 @@ class ArticleFetcher:
 
         semaphore = asyncio.Semaphore(max_concurrent)
 
-        async def fetch_with_semaphore(url: str | HttpUrl) -> ArticleContent | ContentError:
+        async def fetch_with_semaphore(
+            url: str | HttpUrl,
+        ) -> ArticleContent | ContentError:
             async with semaphore:
                 return await self.fetch_article(url)
 
-        logger.info(f"Fetching {len(urls)} articles with max {max_concurrent} concurrent")
+        logger.info(
+            f"Fetching {len(urls)} articles with max {max_concurrent} concurrent"
+        )
         tasks = [fetch_with_semaphore(url) for url in urls]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 

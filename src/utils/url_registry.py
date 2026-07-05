@@ -23,16 +23,30 @@ class URLRegistry:
     def __init__(self, df: pd.DataFrame | None = None) -> None:
         """Initialize registry with optional existing DataFrame."""
         if df is None:
-            self.df = pd.DataFrame(columns=[
-                "url", "first_seen", "published_date",
-                "first_post_id", "first_post_author",
-                "times_seen", "last_updated",
-                "evaluated", "evaluated_at", "is_mcp_related", "relevance_score"
-            ])
+            self.df = pd.DataFrame(
+                columns=[
+                    "url",
+                    "first_seen",
+                    "published_date",
+                    "first_post_id",
+                    "first_post_author",
+                    "times_seen",
+                    "last_updated",
+                    "evaluated",
+                    "evaluated_at",
+                    "is_mcp_related",
+                    "relevance_score",
+                ]
+            )
         else:
             self.df = df
             # Add new columns if missing (for backward compatibility)
-            for col in ["evaluated", "evaluated_at", "is_mcp_related", "relevance_score"]:
+            for col in [
+                "evaluated",
+                "evaluated_at",
+                "is_mcp_related",
+                "relevance_score",
+            ]:
                 if col not in self.df.columns:
                     if col == "evaluated":
                         self.df[col] = False
@@ -61,7 +75,7 @@ class URLRegistry:
             first_seen=now,
             first_post_id=post_id,
             first_post_author=author,
-            last_updated=now
+            last_updated=now,
         )
 
         # Convert to dict and normalize URL
@@ -93,10 +107,7 @@ class URLRegistry:
         return False
 
     def mark_evaluated(
-        self,
-        url: str | HttpUrl,
-        is_mcp_related: bool,
-        relevance_score: float
+        self, url: str | HttpUrl, is_mcp_related: bool, relevance_score: float
     ) -> None:
         """Mark URL as evaluated with results."""
         url_str = normalize_url(url)
@@ -119,7 +130,7 @@ class URLRegistry:
                 "unique_domains": 0,
                 "evaluated_urls": 0,
                 "mcp_related_urls": 0,
-                "avg_relevance_score": 0.0
+                "avg_relevance_score": 0.0,
             }
 
         # Extract domains
@@ -136,7 +147,9 @@ class URLRegistry:
             "unique_domains": domains.nunique(),
             "evaluated_urls": int(evaluated),
             "mcp_related_urls": int(mcp_related),
-            "avg_relevance_score": float(avg_relevance) if not pd.isna(avg_relevance) else 0.0
+            "avg_relevance_score": float(avg_relevance)
+            if not pd.isna(avg_relevance)
+            else 0.0,
         }
 
     def to_parquet(self, path: str) -> None:

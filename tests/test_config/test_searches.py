@@ -16,7 +16,7 @@ class TestSearchDefinition:
             include_terms=["test", "example"],
             exclude_terms=["spam"],
             sort="latest",
-            enabled=True
+            enabled=True,
         )
 
         assert search_def.name == "Test Search"
@@ -31,7 +31,7 @@ class TestSearchDefinition:
         search_def = SearchDefinition(
             name="Test Search",
             description="A test search definition",
-            include_terms=["test"]
+            include_terms=["test"],
         )
 
         assert search_def.exclude_terms == []
@@ -44,7 +44,7 @@ class TestSearchDefinition:
             name="Test Search",
             description="A test search definition",
             include_terms=["test"],
-            exclude_terms=[]
+            exclude_terms=[],
         )
 
         assert search_def.exclude_terms == []
@@ -55,7 +55,7 @@ class TestSearchDefinition:
             name="Test Search",
             description="A test search definition",
             include_terms=["test"],
-            exclude_terms=None
+            exclude_terms=None,
         )
 
         assert search_def.exclude_terms == []
@@ -66,7 +66,7 @@ class TestSearchDefinition:
             name="Test Search",
             description="A test search definition",
             include_terms=["test"],
-            exclude_terms=["valid", "", "  ", "also_valid", None]
+            exclude_terms=["valid", "", "  ", "also_valid", None],
         )
 
         assert search_def.exclude_terms == ["valid", "also_valid"]
@@ -78,16 +78,18 @@ class TestSearchDefinition:
                 name="Test Search",
                 description="A test search definition",
                 include_terms=["test"],
-                sort="invalid"
+                sort="invalid",
             )
 
     def test_empty_include_terms(self):
         """Test validation of empty include terms."""
-        with pytest.raises(ValueError, match="At least one include term must be provided"):
+        with pytest.raises(
+            ValueError, match="At least one include term must be provided"
+        ):
             SearchDefinition(
                 name="Test Search",
                 description="A test search definition",
-                include_terms=[]
+                include_terms=[],
             )
 
 
@@ -97,7 +99,7 @@ class TestSearchConfig:
         search_def = SearchDefinition(
             name="Test Search",
             description="A test search definition",
-            include_terms=["test"]
+            include_terms=["test"],
         )
 
         config = SearchConfig(searches={"test": search_def})
@@ -111,20 +113,19 @@ class TestSearchConfig:
             name="Enabled Search",
             description="An enabled search",
             include_terms=["test"],
-            enabled=True
+            enabled=True,
         )
 
         disabled_search = SearchDefinition(
             name="Disabled Search",
             description="A disabled search",
             include_terms=["test"],
-            enabled=False
+            enabled=False,
         )
 
-        config = SearchConfig(searches={
-            "enabled": enabled_search,
-            "disabled": disabled_search
-        })
+        config = SearchConfig(
+            searches={"enabled": enabled_search, "disabled": disabled_search}
+        )
 
         enabled_searches = config.get_enabled_searches()
         assert len(enabled_searches) == 1
@@ -136,7 +137,7 @@ class TestSearchConfig:
         search_def = SearchDefinition(
             name="Test Search",
             description="A test search definition",
-            include_terms=["test"]
+            include_terms=["test"],
         )
 
         config = SearchConfig(searches={"test": search_def})
@@ -153,10 +154,12 @@ class TestSearchConfig:
             name="Disabled Search",
             description="A disabled search",
             include_terms=["test"],
-            enabled=False
+            enabled=False,
         )
 
-        with pytest.raises(ValueError, match="At least one search definition must be enabled"):
+        with pytest.raises(
+            ValueError, match="At least one search definition must be enabled"
+        ):
             SearchConfig(searches={"disabled": disabled_search})
 
     def test_load_from_file_success(self):
@@ -169,7 +172,7 @@ class TestSearchConfig:
                     "include_terms": ["test", "example"],
                     "exclude_terms": ["spam"],
                     "sort": "latest",
-                    "enabled": True
+                    "enabled": True,
                 }
             }
         }
@@ -216,7 +219,9 @@ class TestSearchConfig:
             temp_path = f.name
 
         try:
-            with pytest.raises(ValueError, match="Search configuration must be a YAML object"):
+            with pytest.raises(
+                ValueError, match="Search configuration must be a YAML object"
+            ):
                 SearchConfig.load_from_file(temp_path)
         finally:
             Path(temp_path).unlink()
@@ -225,7 +230,9 @@ class TestSearchConfig:
         """Test getting default configuration."""
         config = SearchConfig.get_default_config()
 
-        assert len(config.searches) >= 2  # Should have at least mcp_mentions and mcp_tools
+        assert (
+            len(config.searches) >= 2
+        )  # Should have at least mcp_mentions and mcp_tools
         assert "mcp_mentions" in config.searches
         assert "mcp_tools" in config.searches
 
@@ -253,7 +260,7 @@ class TestLoadSearchConfig:
                     "name": "Custom Search",
                     "description": "A custom search",
                     "include_terms": ["custom"],
-                    "enabled": True
+                    "enabled": True,
                 }
             }
         }

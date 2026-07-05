@@ -1,4 +1,5 @@
 """Tests for query builders."""
+
 import pytest
 
 from src.bluesky.query_builders import (

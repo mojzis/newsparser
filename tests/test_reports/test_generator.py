@@ -33,7 +33,7 @@ class TestReportGenerator:
                 content_type="article",
                 language="en",
                 post_id="1",
-                created_at=datetime(2024, 12, 6, 13, 0)
+                created_at=datetime(2024, 12, 6, 13, 0),
             ),
             ReportArticle(
                 url="https://example.com/article2",
@@ -47,15 +47,14 @@ class TestReportGenerator:
                 content_type="blog post",
                 language="en",
                 post_id="2",
-                created_at=datetime(2024, 12, 6, 14, 0)
-            )
+                created_at=datetime(2024, 12, 6, 14, 0),
+            ),
         ]
 
     def test_generate_daily_report(self, generator, sample_articles):
         """Test generating daily report."""
         report_day = ReportDay.create(
-            report_date=date(2024, 12, 6),
-            articles=sample_articles
+            report_date=date(2024, 12, 6), articles=sample_articles
         )
 
         report_path = generator.generate_daily_report(report_day)
@@ -77,12 +76,11 @@ class TestReportGenerator:
         """Test generating homepage."""
         archive_links = [
             ArchiveLink.create(date(2024, 12, 5), 10),
-            ArchiveLink.create(date(2024, 12, 4), 8)
+            ArchiveLink.create(date(2024, 12, 4), 8),
         ]
 
         homepage_data = HomepageData.create(
-            today_articles=sample_articles,
-            archive_dates=archive_links
+            today_articles=sample_articles, archive_dates=archive_links
         )
 
         homepage_path = generator.generate_homepage(homepage_data)
@@ -100,10 +98,7 @@ class TestReportGenerator:
 
     def test_preview_template(self, generator):
         """Test template preview functionality."""
-        context = {
-            "date_formatted": "December 6, 2024",
-            "articles": []
-        }
+        context = {"date_formatted": "December 6, 2024", "articles": []}
 
         html = generator.preview_template("daily", context)
 
@@ -113,10 +108,7 @@ class TestReportGenerator:
 
     def test_empty_articles(self, generator):
         """Test report generation with no articles."""
-        report_day = ReportDay.create(
-            report_date=date(2024, 12, 6),
-            articles=[]
-        )
+        report_day = ReportDay.create(report_date=date(2024, 12, 6), articles=[])
 
         report_path = generator.generate_daily_report(report_day)
         content = report_path.read_text()

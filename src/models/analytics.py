@@ -33,7 +33,9 @@ class AnalyticsBase(BaseModel):
         # For BlueskyPost: handle 'engagement' nested data and missing content
         elif cls.__name__ == "BlueskyPost":
             # Handle nested engagement data
-            if "engagement" in frontmatter and isinstance(frontmatter["engagement"], dict):
+            if "engagement" in frontmatter and isinstance(
+                frontmatter["engagement"], dict
+            ):
                 engagement_data = frontmatter["engagement"]
                 data["engagement_metrics"] = engagement_data
 
@@ -46,6 +48,7 @@ class AnalyticsBase(BaseModel):
             if "domain" not in data and "url" in data:
                 try:
                     from urllib.parse import urlparse
+
                     parsed_url = urlparse(str(data["url"]))
                     data["domain"] = parsed_url.netloc
                 except Exception:
@@ -72,7 +75,9 @@ class AnalyticsBase(BaseModel):
                 # Flatten nested model with prefix
                 nested_dict = value.model_dump()
                 for nested_key, nested_value in nested_dict.items():
-                    result[f"{field_name}_{nested_key}"] = self._convert_value(nested_value)
+                    result[f"{field_name}_{nested_key}"] = self._convert_value(
+                        nested_value
+                    )
             else:
                 result[field_name] = self._convert_value(value)
 
@@ -163,7 +168,6 @@ class AnalyticsBase(BaseModel):
         df = pd.DataFrame(records)
         return cls._optimize_dtypes(df)
 
-
     @classmethod
     def _optimize_dtypes(cls, df: pd.DataFrame) -> pd.DataFrame:
         """Optimize DataFrame dtypes based on Pydantic model."""
@@ -214,7 +218,7 @@ class AnalyticsBase(BaseModel):
             compression="snappy",
             index=False,
             use_deprecated_int96_timestamps=False,
-            coerce_timestamps="us"  # Microsecond precision for timestamps
+            coerce_timestamps="us",  # Microsecond precision for timestamps
         )
 
     @classmethod

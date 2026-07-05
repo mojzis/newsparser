@@ -35,7 +35,9 @@ class MarkdownFile:
 
     def to_string(self) -> str:
         """Convert to string format with frontmatter."""
-        yaml_str = yaml.dump(self.frontmatter, default_flow_style=False, allow_unicode=True)
+        yaml_str = yaml.dump(
+            self.frontmatter, default_flow_style=False, allow_unicode=True
+        )
         return f"---\n{yaml_str}---\n\n{self.content}"
 
     def update_frontmatter(self, updates: dict[str, Any]) -> None:
@@ -49,7 +51,9 @@ class MarkdownFile:
     def set_stage(self, stage_name: str) -> None:
         """Set the current stage in frontmatter."""
         self.frontmatter["stage"] = stage_name
-        self.frontmatter["updated_at"] = datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z"
+        self.frontmatter["updated_at"] = (
+            datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z"
+        )
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:

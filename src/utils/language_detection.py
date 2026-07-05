@@ -12,8 +12,8 @@ from enum import StrEnum
 class LanguageType(StrEnum):
     """Enumeration of detected language types based on character analysis."""
 
-    LATIN = "latin"      # <30% non-Latin characters
-    MIXED = "mixed"      # 30-70% non-Latin characters
+    LATIN = "latin"  # <30% non-Latin characters
+    MIXED = "mixed"  # 30-70% non-Latin characters
     UNKNOWN = "unknown"  # >70% non-Latin characters
 
     def __str__(self) -> str:
@@ -141,9 +141,7 @@ def calculate_non_latin_percentage(text: str) -> float:
 
 
 def detect_language_from_text(
-    text: str,
-    threshold: float = 0.3,
-    mixed_threshold: float = 0.7
+    text: str, threshold: float = 0.3, mixed_threshold: float = 0.7
 ) -> LanguageType:
     """
     Detect language type based on character analysis.
@@ -187,7 +185,7 @@ def analyze_text_characters(text: str) -> dict:
             "whitespace_chars": 0,
             "meaningful_chars": 0,
             "non_latin_percentage": 0.0,
-            "language_type": LanguageType.LATIN
+            "language_type": LanguageType.LATIN,
         }
 
     total_chars = len(text)
@@ -219,11 +217,13 @@ def analyze_text_characters(text: str) -> dict:
         "whitespace_chars": whitespace_chars,
         "meaningful_chars": meaningful_chars,
         "non_latin_percentage": non_latin_percentage,
-        "language_type": detect_language_from_text(text)
+        "language_type": detect_language_from_text(text),
     }
 
 
-def get_character_sample(text: str, char_type: str = "non_latin", limit: int = 10) -> list[str]:
+def get_character_sample(
+    text: str, char_type: str = "non_latin", limit: int = 10
+) -> list[str]:
     """
     Extract sample characters of a specific type for debugging.
 
@@ -247,7 +247,15 @@ def get_character_sample(text: str, char_type: str = "non_latin", limit: int = 1
         if char.isspace() or unicodedata.category(char) in ("Cc", "Cf"):
             continue
 
-        if (char_type == "latin" and is_latin_character(char)) or (char_type == "non_latin" and not is_latin_character(char) and not is_neutral_character(char)) or (char_type == "neutral" and is_neutral_character(char)):
+        if (
+            (char_type == "latin" and is_latin_character(char))
+            or (
+                char_type == "non_latin"
+                and not is_latin_character(char)
+                and not is_neutral_character(char)
+            )
+            or (char_type == "neutral" and is_neutral_character(char))
+        ):
             samples.append(char)
 
     return list(set(samples))  # Remove duplicates while preserving order

@@ -29,7 +29,9 @@ logger = logging.getLogger(__name__)
 class ReportStage(ProcessingStage):
     """Generates daily reports from evaluated content."""
 
-    def __init__(self, template_dir: Path | None = None, base_path: Path = Path("stages")) -> None:
+    def __init__(
+        self, template_dir: Path | None = None, base_path: Path = Path("stages")
+    ) -> None:
         super().__init__("report", "evaluate", base_path)
 
         # Set up templates
@@ -41,7 +43,7 @@ class ReportStage(ProcessingStage):
         # Set up Jinja2 environment
         self.env = Environment(
             loader=FileSystemLoader(str(self.template_dir)),
-            autoescape=select_autoescape(["html", "xml"])
+            autoescape=select_autoescape(["html", "xml"]),
         )
 
         # Add custom filters (for potential template previews)
@@ -79,7 +81,7 @@ class ReportStage(ProcessingStage):
                             "author": fetch_md.get_frontmatter_value("author"),
                             "medium": fetch_md.get_frontmatter_value("medium"),
                             "word_count": fetch_md.get_frontmatter_value("word_count"),
-                            "content_markdown": fetch_md.content
+                            "content_markdown": fetch_md.content,
                         }
                 except Exception as e:
                     logger.debug(f"Error reading fetch file {fetch_file}: {e}")
@@ -93,10 +95,16 @@ class ReportStage(ProcessingStage):
             "author": None,
             "medium": None,
             "word_count": 0,
-            "content_markdown": ""
+            "content_markdown": "",
         }
 
-    def collect_mcp_articles_multi_day(self, days_back: int, reference_date: date, min_relevance: float = 0.3, debug: bool = False) -> list[ReportArticle]:
+    def collect_mcp_articles_multi_day(
+        self,
+        days_back: int,
+        reference_date: date,
+        min_relevance: float = 0.3,
+        debug: bool = False,
+    ) -> list[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content across multiple days.
         This method is used as fallback when no content exists for the specific date.
@@ -122,7 +130,11 @@ class ReportStage(ProcessingStage):
         current_date = start_date
         while current_date <= end_date:
             # Check if evaluate stage has data for this date
-            evaluate_dir = self.base_path / self.input_stage_name / current_date.strftime("%Y-%m-%d")
+            evaluate_dir = (
+                self.base_path
+                / self.input_stage_name
+                / current_date.strftime("%Y-%m-%d")
+            )
 
             if evaluate_dir.exists():
                 logger.info(f"Scanning evaluated content from {current_date}")
@@ -150,7 +162,9 @@ class ReportStage(ProcessingStage):
                             continue
                         processed_urls.add(url)
 
-                        found_in_posts = md_file.get_frontmatter_value("found_in_posts", [])
+                        found_in_posts = md_file.get_frontmatter_value(
+                            "found_in_posts", []
+                        )
 
                         # Get original post data to extract correct author and timestamp
                         author = "unknown"
@@ -170,29 +184,51 @@ class ReportStage(ProcessingStage):
 
                                 # Find the original post file in collect stage - search across all dates
                                 post_found = False
-                                for search_days_back in range(days_back + 7):  # Search a bit further back
-                                    search_date = reference_date - timedelta(days=search_days_back)
-                                    collect_dir = Path("stages/collect") / search_date.strftime("%Y-%m-%d")
-                                    post_file = collect_dir / f"post_{actual_post_id}.md"
+                                for search_days_back in range(
+                                    days_back + 7
+                                ):  # Search a bit further back
+                                    search_date = reference_date - timedelta(
+                                        days=search_days_back
+                                    )
+                                    collect_dir = Path(
+                                        "stages/collect"
+                                    ) / search_date.strftime("%Y-%m-%d")
+                                    post_file = (
+                                        collect_dir / f"post_{actual_post_id}.md"
+                                    )
 
                                     if post_file.exists():
                                         post_md = MarkdownFile.load(post_file)
-                                        author = post_md.get_frontmatter_value("author", "unknown")
-                                        created_at_str = post_md.get_frontmatter_value("created_at")
+                                        author = post_md.get_frontmatter_value(
+                                            "author", "unknown"
+                                        )
+                                        created_at_str = post_md.get_frontmatter_value(
+                                            "created_at"
+                                        )
                                         if created_at_str:
                                             # Handle both ISO format with and without timezone
                                             if created_at_str.endswith("+00:00"):
-                                                created_at = datetime.fromisoformat(created_at_str.replace("+00:00", "Z").rstrip("Z"))
+                                                created_at = datetime.fromisoformat(
+                                                    created_at_str.replace(
+                                                        "+00:00", "Z"
+                                                    ).rstrip("Z")
+                                                )
                                             else:
-                                                created_at = datetime.fromisoformat(created_at_str.rstrip("Z"))
+                                                created_at = datetime.fromisoformat(
+                                                    created_at_str.rstrip("Z")
+                                                )
                                         post_found = True
                                         break
 
                                 if not post_found:
-                                    logger.warning(f"Could not find original post for {post_id}")
+                                    logger.warning(
+                                        f"Could not find original post for {post_id}"
+                                    )
 
                             except Exception as e:
-                                logger.warning(f"Failed to load original post data for {post_id}: {e}")
+                                logger.warning(
+                                    f"Failed to load original post data for {post_id}: {e}"
+                                )
 
                         if not post_id:
                             post_id = f"synthetic_{url}"
@@ -208,11 +244,13 @@ class ReportStage(ProcessingStage):
                         eval_dict = {
                             "url": url,
                             "title": fetch_data.get("title", "Untitled"),
-                            "perex": evaluation.get("perex", evaluation.get("summary", "")),
+                            "perex": evaluation.get(
+                                "perex", evaluation.get("summary", "")
+                            ),
                             "relevance_score": relevance_score,
                             "domain": fetch_data.get("domain", ""),
                             "content_type": evaluation.get("content_type", "article"),
-                            "language": evaluation.get("language", "en")
+                            "language": evaluation.get("language", "en"),
                         }
 
                         # IMPORTANT: Only include articles posted on the specific current_date
@@ -223,7 +261,7 @@ class ReportStage(ProcessingStage):
                                 author=author,
                                 created_at=created_at,
                                 evaluation=eval_dict,
-                                debug_filename=debug_filename
+                                debug_filename=debug_filename,
                             )
                             articles.append(article)
                             date_articles += 1
@@ -239,14 +277,18 @@ class ReportStage(ProcessingStage):
         # Sort by relevance score (highest first)
         articles.sort(key=lambda x: x.relevance_score, reverse=True)
 
-        logger.info(f"Collected {len(articles)} unique MCP-related articles from {days_back} days (date-filtered)")
+        logger.info(
+            f"Collected {len(articles)} unique MCP-related articles from {days_back} days (date-filtered)"
+        )
         if articles_by_date:
             for date_str, count in sorted(articles_by_date.items()):
                 logger.info(f"  - {date_str}: {count} articles")
 
         return articles
 
-    def collect_mcp_articles(self, target_date: date, min_relevance: float = 0.3, debug: bool = False) -> list[ReportArticle]:
+    def collect_mcp_articles(
+        self, target_date: date, min_relevance: float = 0.3, debug: bool = False
+    ) -> list[ReportArticle]:
         """
         Collect MCP-related articles from evaluated content for a single date.
         Only includes articles that were originally posted on the target date.
@@ -292,34 +334,52 @@ class ReportStage(ProcessingStage):
 
                         for search_days_back in range(10):  # Search up to 10 days back
                             search_date = target_date - timedelta(days=search_days_back)
-                            collect_dir = Path("stages/collect") / search_date.strftime("%Y-%m-%d")
+                            collect_dir = Path("stages/collect") / search_date.strftime(
+                                "%Y-%m-%d"
+                            )
                             post_file = collect_dir / f"post_{actual_post_id}.md"
 
                             if post_file.exists():
                                 post_md = MarkdownFile.load(post_file)
-                                author = post_md.get_frontmatter_value("author", "unknown")
-                                created_at_str = post_md.get_frontmatter_value("created_at")
+                                author = post_md.get_frontmatter_value(
+                                    "author", "unknown"
+                                )
+                                created_at_str = post_md.get_frontmatter_value(
+                                    "created_at"
+                                )
                                 if created_at_str:
                                     # Handle both ISO format with and without timezone
                                     if created_at_str.endswith("+00:00"):
-                                        created_at = datetime.fromisoformat(created_at_str.replace("+00:00", "Z").rstrip("Z"))
+                                        created_at = datetime.fromisoformat(
+                                            created_at_str.replace(
+                                                "+00:00", "Z"
+                                            ).rstrip("Z")
+                                        )
                                     else:
-                                        created_at = datetime.fromisoformat(created_at_str.rstrip("Z"))
+                                        created_at = datetime.fromisoformat(
+                                            created_at_str.rstrip("Z")
+                                        )
                                 post_found = True
                                 break
 
                         if not post_found:
-                            logger.warning(f"Could not find original post for {post_id}")
+                            logger.warning(
+                                f"Could not find original post for {post_id}"
+                            )
 
                     except Exception as e:
-                        logger.warning(f"Failed to load original post data for {post_id}: {e}")
+                        logger.warning(
+                            f"Failed to load original post data for {post_id}: {e}"
+                        )
 
                 if not post_id:
                     post_id = f"synthetic_{url}"
 
                 # IMPORTANT: Only include articles that were posted on the target date
                 if created_at.date() != target_date:
-                    logger.debug(f"Skipping article from {created_at.date()} - not from target date {target_date}")
+                    logger.debug(
+                        f"Skipping article from {created_at.date()} - not from target date {target_date}"
+                    )
                     continue
 
                 # Get content metadata from fetch stage
@@ -337,7 +397,7 @@ class ReportStage(ProcessingStage):
                     "relevance_score": relevance_score,
                     "domain": fetch_data.get("domain", ""),
                     "content_type": evaluation.get("content_type", "article"),
-                    "language": evaluation.get("language", "en")
+                    "language": evaluation.get("language", "en"),
                 }
 
                 debug_filename = input_path.name if debug else None
@@ -346,7 +406,7 @@ class ReportStage(ProcessingStage):
                     author=author,
                     created_at=created_at,
                     evaluation=eval_dict,
-                    debug_filename=debug_filename
+                    debug_filename=debug_filename,
                 )
 
                 articles.append(article)
@@ -356,7 +416,9 @@ class ReportStage(ProcessingStage):
 
         # Sort by relevance score (highest first)
         articles.sort(key=lambda x: x.relevance_score, reverse=True)
-        logger.info(f"Collected {len(articles)} articles specifically from {target_date}")
+        logger.info(
+            f"Collected {len(articles)} articles specifically from {target_date}"
+        )
         return articles
 
     def process_item(self, input_path: Path, target_date: date) -> Path | None:
@@ -384,7 +446,15 @@ class ReportStage(ProcessingStage):
         stage_dir = self.ensure_stage_dir(target_date)
         return stage_dir / "report_meta.md"
 
-    async def run_report(self, days_back: int = 7, regenerate: bool = True, output_date: date | None = None, debug: bool = False, generate_sitemap: bool = True, generate_rss: bool = True) -> dict:
+    async def run_report(
+        self,
+        days_back: int = 7,
+        regenerate: bool = True,
+        output_date: date | None = None,
+        debug: bool = False,
+        generate_sitemap: bool = True,
+        generate_rss: bool = True,
+    ) -> dict:
         """
         Run the report stage, scanning evaluated content from the last N days.
 
@@ -403,7 +473,9 @@ class ReportStage(ProcessingStage):
         if output_date is None:
             output_date = datetime.now(UTC).date()
 
-        logger.info(f"Running report stage, scanning evaluated content from last {days_back} days")
+        logger.info(
+            f"Running report stage, scanning evaluated content from last {days_back} days"
+        )
 
         # Ensure output directory exists
         self.ensure_stage_dir(output_date)
@@ -414,7 +486,7 @@ class ReportStage(ProcessingStage):
             return {
                 "stage": self.stage_name,
                 "date": output_date,
-                "status": "already_exists"
+                "status": "already_exists",
             }
 
         # First try to collect articles from the specific output date
@@ -422,27 +494,39 @@ class ReportStage(ProcessingStage):
 
         # If no articles found for the output date, fall back to recent content
         if not articles:
-            logger.info(f"No articles found for {output_date}, scanning last {days_back} days for fallback")
-            articles = self.collect_mcp_articles_multi_day(days_back, output_date, debug=debug)
+            logger.info(
+                f"No articles found for {output_date}, scanning last {days_back} days for fallback"
+            )
+            articles = self.collect_mcp_articles_multi_day(
+                days_back, output_date, debug=debug
+            )
 
             # Since we already filtered by date in collect_mcp_articles_multi_day,
             # no additional filtering needed here
             logger.info(f"Using {len(articles)} articles from multi-day fallback")
 
         if not articles:
-            logger.warning(f"No MCP-related articles found in the last {days_back} days")
+            logger.warning(
+                f"No MCP-related articles found in the last {days_back} days"
+            )
 
             # Create empty report metadata
             metadata = {
                 "date": output_date.isoformat(),
                 "days_scanned": days_back,
                 "mcp_related_articles": 0,
-                "report_generated_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
+                "report_generated_at": datetime.now(UTC)
+                .replace(tzinfo=None)
+                .isoformat()
+                + "Z",
                 "stage": "reported",
-                "articles": []
+                "articles": [],
             }
 
-            metadata_md = MarkdownFile(metadata, f"# Daily Report Summary\n\nNo MCP-related articles found in the last {days_back} days.")
+            metadata_md = MarkdownFile(
+                metadata,
+                f"# Daily Report Summary\n\nNo MCP-related articles found in the last {days_back} days.",
+            )
             metadata_path = self.get_metadata_output_path(output_date)
             metadata_md.save(metadata_path)
 
@@ -452,7 +536,7 @@ class ReportStage(ProcessingStage):
                 "days_scanned": days_back,
                 "articles_found": 0,
                 "report_generated": False,
-                "metadata_saved": True
+                "metadata_saved": True,
             }
 
         # Create ReportDay
@@ -483,17 +567,20 @@ class ReportStage(ProcessingStage):
                     continue
 
                 # Check if there are evaluated articles for this date
-                evaluated_articles = self.collect_mcp_articles(check_date, debug=False)  # No debug for archive check
+                evaluated_articles = self.collect_mcp_articles(
+                    check_date, debug=False
+                )  # No debug for archive check
                 if evaluated_articles:
-                    archive_links.append(ArchiveLink.create(
-                        report_date=check_date,
-                        article_count=len(evaluated_articles)
-                    ))
+                    archive_links.append(
+                        ArchiveLink.create(
+                            report_date=check_date,
+                            article_count=len(evaluated_articles),
+                        )
+                    )
 
             # Create enhanced homepage data
             homepage_data = HomepageData.create_enhanced(
-                day_sections=day_sections,
-                archive_dates=archive_links
+                day_sections=day_sections, archive_dates=archive_links
             )
 
             # Generate homepage
@@ -530,20 +617,25 @@ class ReportStage(ProcessingStage):
         # Create and save metadata
         article_summaries = []
         for article in articles:
-            article_summaries.append({
-                "url": str(article.url),
-                "relevance_score": article.relevance_score,
-                "title": article.title,
-                "perex": article.perex[:100] + "..." if len(article.perex) > 100 else article.perex
-            })
+            article_summaries.append(
+                {
+                    "url": str(article.url),
+                    "relevance_score": article.relevance_score,
+                    "title": article.title,
+                    "perex": article.perex[:100] + "..."
+                    if len(article.perex) > 100
+                    else article.perex,
+                }
+            )
 
         metadata = {
             "date": output_date.isoformat(),
             "days_scanned": days_back,
             "mcp_related_articles": len(articles),
-            "report_generated_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
+            "report_generated_at": datetime.now(UTC).replace(tzinfo=None).isoformat()
+            + "Z",
             "stage": "reported",
-            "articles": article_summaries
+            "articles": article_summaries,
         }
 
         metadata_content = f"# Daily Report Summary\n\nGenerated report for {report_day.date_formatted} with {len(articles)} MCP-related articles from the last {days_back} days."
@@ -559,13 +651,25 @@ class ReportStage(ProcessingStage):
             "report_generated": html_content is not None,
             "homepage_generated": homepage_content is not None,
             "metadata_saved": True,
-            "avg_relevance": round(sum(a.relevance_score for a in articles) / len(articles), 3) if articles else 0
+            "avg_relevance": round(
+                sum(a.relevance_score for a in articles) / len(articles), 3
+            )
+            if articles
+            else 0,
         }
 
         logger.info(f"Report stage completed: {result}")
         return result
 
-    async def run_bulk_report(self, days_back: int = 7, regenerate: bool = True, output_date: date | None = None, debug: bool = False, generate_sitemap: bool = True, generate_rss: bool = True) -> dict:
+    async def run_bulk_report(
+        self,
+        days_back: int = 7,
+        regenerate: bool = True,
+        output_date: date | None = None,
+        debug: bool = False,
+        generate_sitemap: bool = True,
+        generate_rss: bool = True,
+    ) -> dict:
         """
         Generate reports for each day that has evaluated content in the last N days.
 
@@ -585,7 +689,9 @@ class ReportStage(ProcessingStage):
         if output_date is None:
             output_date = datetime.now(UTC).date()
 
-        logger.info(f"Running bulk report generation, scanning last {days_back} days from {output_date}")
+        logger.info(
+            f"Running bulk report generation, scanning last {days_back} days from {output_date}"
+        )
 
         reports_generated = 0
         total_articles = 0
@@ -599,22 +705,35 @@ class ReportStage(ProcessingStage):
             articles = self.collect_mcp_articles(check_date, debug=debug)
 
             if articles:
-                logger.info(f"Found {len(articles)} articles for {check_date}, generating report...")
+                logger.info(
+                    f"Found {len(articles)} articles for {check_date}, generating report..."
+                )
 
                 # Check if we should regenerate
                 if not regenerate and not self.should_process_item(Path(), check_date):
-                    logger.info(f"Report already exists for {check_date} and regenerate=False, skipping")
+                    logger.info(
+                        f"Report already exists for {check_date} and regenerate=False, skipping"
+                    )
                     continue
 
                 try:
                     # Generate report for this specific date (without sitemap/RSS for individual reports)
-                    result = await self.run_report(0, regenerate, check_date, debug, generate_sitemap=False, generate_rss=False)  # days_back=0 to avoid recursion
+                    result = await self.run_report(
+                        0,
+                        regenerate,
+                        check_date,
+                        debug,
+                        generate_sitemap=False,
+                        generate_rss=False,
+                    )  # days_back=0 to avoid recursion
 
                     if result.get("report_generated"):
                         reports_generated += 1
                         total_articles += result.get("articles_found", 0)
                         dates_processed.append(check_date.isoformat())
-                        logger.info(f"✅ Generated report for {check_date} with {result.get('articles_found', 0)} articles")
+                        logger.info(
+                            f"✅ Generated report for {check_date} with {result.get('articles_found', 0)} articles"
+                        )
                     else:
                         logger.warning(f"⚠️  Failed to generate report for {check_date}")
 
@@ -627,7 +746,9 @@ class ReportStage(ProcessingStage):
         if reports_generated > 0:
             try:
                 # Generate enhanced homepage with minimum 10 articles
-                day_sections = self.collect_homepage_articles(min_articles=10, debug=debug)
+                day_sections = self.collect_homepage_articles(
+                    min_articles=10, debug=debug
+                )
 
                 # Get archive dates by checking for recent evaluations (beyond the day sections)
                 archive_links = []
@@ -641,23 +762,28 @@ class ReportStage(ProcessingStage):
                         continue
 
                     # Check if there are evaluated articles for this date
-                    evaluated_articles = self.collect_mcp_articles(check_date, debug=False)
+                    evaluated_articles = self.collect_mcp_articles(
+                        check_date, debug=False
+                    )
                     if evaluated_articles:
-                        archive_links.append(ArchiveLink.create(
-                            report_date=check_date,
-                            article_count=len(evaluated_articles)
-                        ))
+                        archive_links.append(
+                            ArchiveLink.create(
+                                report_date=check_date,
+                                article_count=len(evaluated_articles),
+                            )
+                        )
 
                 # Create enhanced homepage data
                 homepage_data = HomepageData.create_enhanced(
-                    day_sections=day_sections,
-                    archive_dates=archive_links
+                    day_sections=day_sections, archive_dates=archive_links
                 )
 
                 # Generate homepage
                 generator = ReportGenerator()
                 homepage_path = generator.generate_homepage(homepage_data)
-                logger.info(f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}")
+                logger.info(
+                    f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}"
+                )
 
                 # Generate sitemap if requested
                 if generate_sitemap:
@@ -690,13 +816,15 @@ class ReportStage(ProcessingStage):
             "days_scanned": days_back,
             "reports_generated": reports_generated,
             "total_articles": total_articles,
-            "dates_processed": dates_processed
+            "dates_processed": dates_processed,
         }
 
         logger.info(f"Bulk report generation completed: {result}")
         return result
 
-    def collect_homepage_articles(self, min_articles: int = 10, max_days_back: int = 14, debug: bool = False) -> list[DaySection]:
+    def collect_homepage_articles(
+        self, min_articles: int = 10, max_days_back: int = 14, debug: bool = False
+    ) -> list[DaySection]:
         """
         Collect articles for homepage, ensuring at least min_articles are included.
         Groups articles by day and continues collecting from previous days until minimum is met.
@@ -715,7 +843,9 @@ class ReportStage(ProcessingStage):
         total_articles = 0
         today = datetime.now(UTC).date()
 
-        logger.info(f"Collecting homepage articles with minimum {min_articles} articles")
+        logger.info(
+            f"Collecting homepage articles with minimum {min_articles} articles"
+        )
 
         # Collect articles day by day until we have enough
         for days_ago in range(max_days_back + 1):
@@ -729,7 +859,11 @@ class ReportStage(ProcessingStage):
                 day_section = DaySection.create(check_date, articles)
                 day_sections.append(day_section)
                 total_articles += len(articles)
-                logger.info(f"Added {len(articles)} articles from {check_date} (total: {total_articles})")
+                logger.info(
+                    f"Added {len(articles)} articles from {check_date} (total: {total_articles})"
+                )
 
-        logger.info(f"Collected {total_articles} articles across {len(day_sections)} days for homepage")
+        logger.info(
+            f"Collected {total_articles} articles across {len(day_sections)} days for homepage"
+        )
         return day_sections

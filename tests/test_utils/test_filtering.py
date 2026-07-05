@@ -18,8 +18,12 @@ from src.utils.filtering import (
 from src.utils.language_detection import LanguageType
 
 
-def create_test_post(content: str, language: LanguageType = LanguageType.LATIN,
-                    has_links: bool = False, has_tags: bool = False) -> BlueskyPost:
+def create_test_post(
+    content: str,
+    language: LanguageType = LanguageType.LATIN,
+    has_links: bool = False,
+    has_tags: bool = False,
+) -> BlueskyPost:
     """Helper to create test posts."""
     return BlueskyPost(
         id=f"test_{hash(content)}",
@@ -29,7 +33,7 @@ def create_test_post(content: str, language: LanguageType = LanguageType.LATIN,
         links=["https://example.com"] if has_links else [],
         tags=["test"] if has_tags else [],
         language=language,
-        engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
+        engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0),
     )
 
 
@@ -52,7 +56,7 @@ class TestLanguageFiltering:
         posts = [
             create_test_post("English post", LanguageType.LATIN),
             create_test_post("Mixed post", LanguageType.MIXED),
-            create_test_post("Unknown post", LanguageType.UNKNOWN)
+            create_test_post("Unknown post", LanguageType.UNKNOWN),
         ]
 
         result = filter_posts_by_language(posts)
@@ -65,7 +69,7 @@ class TestLanguageFiltering:
             create_test_post("English post", LanguageType.LATIN),
             create_test_post("Mixed post", LanguageType.MIXED),
             create_test_post("Unknown post", LanguageType.UNKNOWN),
-            create_test_post("Another English", LanguageType.LATIN)
+            create_test_post("Another English", LanguageType.LATIN),
         ]
 
         # Include only Latin
@@ -74,12 +78,18 @@ class TestLanguageFiltering:
         assert all(post.language == LanguageType.LATIN for post in result)
 
         # Include Latin and Mixed
-        result = filter_posts_by_language(posts, include_languages=[LanguageType.LATIN, LanguageType.MIXED])
+        result = filter_posts_by_language(
+            posts, include_languages=[LanguageType.LATIN, LanguageType.MIXED]
+        )
         assert len(result) == 3
-        assert all(post.language in [LanguageType.LATIN, LanguageType.MIXED] for post in result)
+        assert all(
+            post.language in [LanguageType.LATIN, LanguageType.MIXED] for post in result
+        )
 
         # Include only Unknown
-        result = filter_posts_by_language(posts, include_languages=[LanguageType.UNKNOWN])
+        result = filter_posts_by_language(
+            posts, include_languages=[LanguageType.UNKNOWN]
+        )
         assert len(result) == 1
         assert result[0].language == LanguageType.UNKNOWN
 
@@ -89,32 +99,46 @@ class TestLanguageFiltering:
             create_test_post("English post", LanguageType.LATIN),
             create_test_post("Mixed post", LanguageType.MIXED),
             create_test_post("Unknown post", LanguageType.UNKNOWN),
-            create_test_post("Another English", LanguageType.LATIN)
+            create_test_post("Another English", LanguageType.LATIN),
         ]
 
         # Exclude Unknown
-        result = filter_posts_by_language(posts, exclude_languages=[LanguageType.UNKNOWN])
+        result = filter_posts_by_language(
+            posts, exclude_languages=[LanguageType.UNKNOWN]
+        )
         assert len(result) == 3
         assert all(post.language != LanguageType.UNKNOWN for post in result)
 
         # Exclude Mixed and Unknown
-        result = filter_posts_by_language(posts, exclude_languages=[LanguageType.MIXED, LanguageType.UNKNOWN])
+        result = filter_posts_by_language(
+            posts, exclude_languages=[LanguageType.MIXED, LanguageType.UNKNOWN]
+        )
         assert len(result) == 2
         assert all(post.language == LanguageType.LATIN for post in result)
 
         # Exclude all types
-        result = filter_posts_by_language(posts, exclude_languages=[LanguageType.LATIN, LanguageType.MIXED, LanguageType.UNKNOWN])
+        result = filter_posts_by_language(
+            posts,
+            exclude_languages=[
+                LanguageType.LATIN,
+                LanguageType.MIXED,
+                LanguageType.UNKNOWN,
+            ],
+        )
         assert len(result) == 0
 
     def test_conflicting_criteria_error(self):
         """Test that specifying both include and exclude raises error."""
         posts = [create_test_post("Test", LanguageType.LATIN)]
 
-        with pytest.raises(ValueError, match="Cannot specify both include_languages and exclude_languages"):
+        with pytest.raises(
+            ValueError,
+            match="Cannot specify both include_languages and exclude_languages",
+        ):
             filter_posts_by_language(
                 posts,
                 include_languages=[LanguageType.LATIN],
-                exclude_languages=[LanguageType.UNKNOWN]
+                exclude_languages=[LanguageType.UNKNOWN],
             )
 
 
@@ -131,7 +155,7 @@ class TestLanguageStatistics:
         posts = [
             create_test_post("Post 1", LanguageType.LATIN),
             create_test_post("Post 2", LanguageType.LATIN),
-            create_test_post("Post 3", LanguageType.LATIN)
+            create_test_post("Post 3", LanguageType.LATIN),
         ]
 
         stats = get_language_statistics(posts)
@@ -145,7 +169,7 @@ class TestLanguageStatistics:
             create_test_post("Mixed", LanguageType.MIXED),
             create_test_post("Unknown 1", LanguageType.UNKNOWN),
             create_test_post("Unknown 2", LanguageType.UNKNOWN),
-            create_test_post("Unknown 3", LanguageType.UNKNOWN)
+            create_test_post("Unknown 3", LanguageType.UNKNOWN),
         ]
 
         stats = get_language_statistics(posts)
@@ -183,10 +207,13 @@ class TestPostLanguageFilter:
 
     def test_filter_initialization_error(self):
         """Test that conflicting language criteria raise error."""
-        with pytest.raises(ValueError, match="Cannot specify both include_languages and exclude_languages"):
+        with pytest.raises(
+            ValueError,
+            match="Cannot specify both include_languages and exclude_languages",
+        ):
             PostLanguageFilter(
                 include_languages=[LanguageType.LATIN],
-                exclude_languages=[LanguageType.UNKNOWN]
+                exclude_languages=[LanguageType.UNKNOWN],
             )
 
     def test_language_only_filtering(self):
@@ -194,7 +221,7 @@ class TestPostLanguageFilter:
         posts = [
             create_test_post("English", LanguageType.LATIN),
             create_test_post("Mixed", LanguageType.MIXED),
-            create_test_post("Unknown", LanguageType.UNKNOWN)
+            create_test_post("Unknown", LanguageType.UNKNOWN),
         ]
 
         # Include filter
@@ -214,7 +241,9 @@ class TestPostLanguageFilter:
         posts = [
             create_test_post("Short", LanguageType.LATIN),  # 5 chars
             create_test_post("Medium length content", LanguageType.LATIN),  # 20 chars
-            create_test_post("This is a very long piece of content for testing", LanguageType.LATIN)  # 49 chars
+            create_test_post(
+                "This is a very long piece of content for testing", LanguageType.LATIN
+            ),  # 49 chars
         ]
 
         # Minimum length filter
@@ -240,7 +269,7 @@ class TestPostLanguageFilter:
         posts = [
             create_test_post("No links", has_links=False),
             create_test_post("Has links", has_links=True),
-            create_test_post("Also no links", has_links=False)
+            create_test_post("Also no links", has_links=False),
         ]
 
         # Require links
@@ -260,7 +289,7 @@ class TestPostLanguageFilter:
         posts = [
             create_test_post("No tags", has_tags=False),
             create_test_post("Has tags", has_tags=True),
-            create_test_post("Also no tags", has_tags=False)
+            create_test_post("Also no tags", has_tags=False),
         ]
 
         # Require tags
@@ -278,18 +307,40 @@ class TestPostLanguageFilter:
     def test_combined_filtering_criteria(self):
         """Test filtering with multiple criteria combined."""
         posts = [
-            create_test_post("Short", LanguageType.LATIN, has_links=False, has_tags=False),
-            create_test_post("Medium length with links", LanguageType.LATIN, has_links=True, has_tags=False),
-            create_test_post("Long content with tags and links", LanguageType.LATIN, has_links=True, has_tags=True),
-            create_test_post("Mixed language medium", LanguageType.MIXED, has_links=False, has_tags=True),
-            create_test_post("Unknown long content", LanguageType.UNKNOWN, has_links=True, has_tags=True)
+            create_test_post(
+                "Short", LanguageType.LATIN, has_links=False, has_tags=False
+            ),
+            create_test_post(
+                "Medium length with links",
+                LanguageType.LATIN,
+                has_links=True,
+                has_tags=False,
+            ),
+            create_test_post(
+                "Long content with tags and links",
+                LanguageType.LATIN,
+                has_links=True,
+                has_tags=True,
+            ),
+            create_test_post(
+                "Mixed language medium",
+                LanguageType.MIXED,
+                has_links=False,
+                has_tags=True,
+            ),
+            create_test_post(
+                "Unknown long content",
+                LanguageType.UNKNOWN,
+                has_links=True,
+                has_tags=True,
+            ),
         ]
 
         # Complex filter: Latin language, min 10 chars, requires links
         complex_filter = PostLanguageFilter(
             include_languages=[LanguageType.LATIN],
             min_content_length=10,
-            require_links=True
+            require_links=True,
         )
         result = complex_filter.filter(posts)
         assert len(result) == 2
@@ -304,7 +355,7 @@ class TestPostLanguageFilter:
             create_test_post("English 1", LanguageType.LATIN),
             create_test_post("English 2", LanguageType.LATIN),
             create_test_post("Mixed", LanguageType.MIXED),
-            create_test_post("Unknown", LanguageType.UNKNOWN)
+            create_test_post("Unknown", LanguageType.UNKNOWN),
         ]
 
         filter_obj = PostLanguageFilter(exclude_languages=[LanguageType.UNKNOWN])
@@ -340,7 +391,7 @@ class TestFilterResult:
             filtered_count=75,
             removed_count=25,
             language_stats={"latin": 75, "unknown": 25},
-            filter_criteria={}
+            filter_criteria={},
         )
 
         assert result.removal_percentage == 25.0
@@ -353,7 +404,7 @@ class TestFilterResult:
             filtered_count=0,
             removed_count=0,
             language_stats={},
-            filter_criteria={}
+            filter_criteria={},
         )
 
         assert empty_result.removal_percentage == 0.0
@@ -366,7 +417,7 @@ class TestFilterResult:
             filtered_count=0,
             removed_count=50,
             language_stats={"unknown": 50},
-            filter_criteria={}
+            filter_criteria={},
         )
 
         assert all_removed.removal_percentage == 100.0
@@ -393,7 +444,7 @@ class TestConvenienceFunctions:
         posts = [
             create_test_post("English", LanguageType.LATIN),
             create_test_post("Mixed", LanguageType.MIXED),
-            create_test_post("Unknown", LanguageType.UNKNOWN)
+            create_test_post("Unknown", LanguageType.UNKNOWN),
         ]
 
         result = filter_latin_posts_only(posts)
@@ -405,7 +456,7 @@ class TestConvenienceFunctions:
         posts = [
             create_test_post("English", LanguageType.LATIN),
             create_test_post("Mixed", LanguageType.MIXED),
-            create_test_post("Unknown", LanguageType.UNKNOWN)
+            create_test_post("Unknown", LanguageType.UNKNOWN),
         ]
 
         result = filter_exclude_unknown_language(posts)
@@ -422,7 +473,9 @@ class TestValidation:
         assert validate_language_filter_criteria(include_languages=[LanguageType.LATIN])
 
         # Valid exclude languages
-        assert validate_language_filter_criteria(exclude_languages=[LanguageType.UNKNOWN])
+        assert validate_language_filter_criteria(
+            exclude_languages=[LanguageType.UNKNOWN]
+        )
 
         # No criteria (valid)
         assert validate_language_filter_criteria()
@@ -435,10 +488,13 @@ class TestValidation:
     def test_validate_language_filter_criteria_errors(self):
         """Test validation errors for invalid criteria."""
         # Both include and exclude specified
-        with pytest.raises(ValueError, match="Cannot specify both include_languages and exclude_languages"):
+        with pytest.raises(
+            ValueError,
+            match="Cannot specify both include_languages and exclude_languages",
+        ):
             validate_language_filter_criteria(
                 include_languages=[LanguageType.LATIN],
-                exclude_languages=[LanguageType.UNKNOWN]
+                exclude_languages=[LanguageType.UNKNOWN],
             )
 
         # Invalid language type in include

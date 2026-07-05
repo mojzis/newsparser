@@ -14,10 +14,14 @@ class SearchDefinition(BaseModel):
     name: str = Field(..., description="Human-readable name for the search")
     description: str = Field(..., description="Description of what this search targets")
     include_terms: list[str] = Field(..., description="Terms that must be present")
-    exclude_terms: list[str] = Field(default_factory=list, description="Terms to exclude")
+    exclude_terms: list[str] = Field(
+        default_factory=list, description="Terms to exclude"
+    )
     sort: str = Field(default="latest", description="Sort order: latest, top")
     enabled: bool = Field(default=True, description="Whether this search is active")
-    query_syntax: str = Field(default="native", description="Query syntax type: native, lucene")
+    query_syntax: str = Field(
+        default="native", description="Query syntax type: native, lucene"
+    )
 
     @model_validator(mode="after")
     def validate_sort_option(self) -> "SearchDefinition":
@@ -32,7 +36,9 @@ class SearchDefinition(BaseModel):
         """Validate query syntax is supported."""
         valid_syntaxes = ["native", "lucene"]
         if self.query_syntax not in valid_syntaxes:
-            raise ValueError(f"Query syntax must be one of {valid_syntaxes}, got: {self.query_syntax}")
+            raise ValueError(
+                f"Query syntax must be one of {valid_syntaxes}, got: {self.query_syntax}"
+            )
         return self
 
     @field_validator("exclude_terms", mode="before")
@@ -43,7 +49,11 @@ class SearchDefinition(BaseModel):
             return []
         if isinstance(v, list):
             # Filter out None, empty strings, and whitespace-only strings
-            return [term for term in v if term is not None and isinstance(term, str) and term.strip()]
+            return [
+                term
+                for term in v
+                if term is not None and isinstance(term, str) and term.strip()
+            ]
         return v
 
     @model_validator(mode="after")
@@ -57,7 +67,9 @@ class SearchDefinition(BaseModel):
 class SearchConfig(BaseModel):
     """Configuration for all search definitions."""
 
-    searches: dict[str, SearchDefinition] = Field(..., description="Search definitions by key")
+    searches: dict[str, SearchDefinition] = Field(
+        ..., description="Search definitions by key"
+    )
 
     @model_validator(mode="after")
     def validate_searches(self) -> "SearchConfig":
@@ -105,17 +117,13 @@ class SearchConfig(BaseModel):
             "mcp_mentions": SearchDefinition(
                 name="MCP Protocol Mentions",
                 description="Posts about Model Context Protocol",
-                include_terms=[
-                    "mcp",
-                    "model context protocol",
-                    "anthropic mcp"
-                ],
+                include_terms=["mcp", "model context protocol", "anthropic mcp"],
                 exclude_terms=[
                     "minecraft",
-                    "#mcp AND (medical OR healthcare OR clinic)"
+                    "#mcp AND (medical OR healthcare OR clinic)",
                 ],
                 sort="latest",
-                enabled=True
+                enabled=True,
             ),
             "mcp_tools": SearchDefinition(
                 name="MCP Tools and Implementations",
@@ -124,14 +132,12 @@ class SearchConfig(BaseModel):
                     "mcp tool",
                     "mcp server",
                     "mcp client",
-                    "mcp implementation"
+                    "mcp implementation",
                 ],
-                exclude_terms=[
-                    "minecraft"
-                ],
+                exclude_terms=["minecraft"],
                 sort="latest",
-                enabled=True
-            )
+                enabled=True,
+            ),
         }
 
         return cls(searches=default_searches)
@@ -153,10 +159,14 @@ def load_search_config(config_path: str | Path | None = None) -> SearchConfig:
         default_yaml_path = Path(__file__).parent / "searches.yaml"
         if default_yaml_path.exists():
             try:
-                logger.info(f"Loading search configuration from default file: {default_yaml_path}")
+                logger.info(
+                    f"Loading search configuration from default file: {default_yaml_path}"
+                )
                 return SearchConfig.load_from_file(default_yaml_path)
             except Exception as e:
-                logger.warning(f"Failed to load default search config from {default_yaml_path}: {e}")
+                logger.warning(
+                    f"Failed to load default search config from {default_yaml_path}: {e}"
+                )
 
         # Fall back to hardcoded defaults
         logger.info("Using hardcoded default search configuration as fallback")

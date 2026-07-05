@@ -11,12 +11,15 @@ def _():
     import pandas as pd
 
     from src.stages.report import ReportStage
+
     return ReportStage, date, pd
 
 
 @app.cell
 def _(ReportStage, date):
-    data = ReportStage().collect_mcp_articles_multi_day(days_back=7,reference_date =date(2025,6,16) )
+    data = ReportStage().collect_mcp_articles_multi_day(
+        days_back=7, reference_date=date(2025, 6, 16)
+    )
     return (data,)
 
 

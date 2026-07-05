@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 class PathsConfig(BaseModel):
     """Configuration for file paths."""
+
     stages_base: str = "stages"
     templates: str = "src/templates"
     data_legacy: str = "data"
@@ -18,6 +19,7 @@ class PathsConfig(BaseModel):
 
 class ProcessingConfig(BaseModel):
     """Configuration for processing parameters."""
+
     fetch_lookback_days: int = 10
     min_relevance_score: float = 0.3
     max_concurrent_requests: int = 10
@@ -28,6 +30,7 @@ class ProcessingConfig(BaseModel):
 
 class UIConfig(BaseModel):
     """Configuration for UI settings."""
+
     site_title: str = "MCP Monitor"
     site_tagline: str = "Daily digest of Model Context Protocol mentions"
     theme: str = "default"
@@ -35,12 +38,14 @@ class UIConfig(BaseModel):
 
 class MetadataConfig(BaseModel):
     """Configuration metadata."""
+
     name: str
     description: str
 
 
 class AppConfig(BaseModel):
     """Main application configuration."""
+
     version: str
     metadata: MetadataConfig
     paths: PathsConfig
@@ -50,6 +55,7 @@ class AppConfig(BaseModel):
 
 class ModelConfig(BaseModel):
     """Individual model configuration."""
+
     name: str
     version: str
     provider: str
@@ -61,6 +67,7 @@ class ModelConfig(BaseModel):
 
 class ModelsConfig(BaseModel):
     """Models configuration container."""
+
     version: str
     metadata: MetadataConfig
     models: dict[str, ModelConfig]
@@ -68,12 +75,14 @@ class ModelsConfig(BaseModel):
 
 class PromptVariable(BaseModel):
     """Prompt template variable definition."""
+
     name: str
     required: bool
 
 
 class PromptConfig(BaseModel):
     """Individual prompt configuration."""
+
     name: str
     version: str
     compatible_models: list[str]
@@ -83,6 +92,7 @@ class PromptConfig(BaseModel):
 
 class PromptsConfig(BaseModel):
     """Prompts configuration container."""
+
     version: str
     metadata: MetadataConfig
     prompts: dict[str, PromptConfig]
@@ -90,6 +100,7 @@ class PromptsConfig(BaseModel):
 
 class ExperimentConfig(BaseModel):
     """Experimental configuration overrides."""
+
     version: str
     metadata: MetadataConfig
     processing: ProcessingConfig | None = None
@@ -99,7 +110,9 @@ class ExperimentConfig(BaseModel):
 class ConfigManager:
     """Manages loading and merging of configuration files."""
 
-    def __init__(self, config_path: str | Path | None = None, branch: str = "base") -> None:
+    def __init__(
+        self, config_path: str | Path | None = None, branch: str = "base"
+    ) -> None:
         """Initialize configuration manager.
 
         Args:
@@ -218,16 +231,25 @@ class ConfigManager:
 
             # Validate that default model exists
             if app.processing.default_model_config not in models.models:
-                raise ValueError(f"Default model config not found: {app.processing.default_model_config}")
+                raise ValueError(
+                    f"Default model config not found: {app.processing.default_model_config}"
+                )
 
             # Validate that default prompt exists
             if app.processing.default_prompt_config not in prompts.prompts:
-                raise ValueError(f"Default prompt config not found: {app.processing.default_prompt_config}")
+                raise ValueError(
+                    f"Default prompt config not found: {app.processing.default_prompt_config}"
+                )
 
             # Validate prompt-model compatibility
             default_prompt = prompts.prompts[app.processing.default_prompt_config]
-            if app.processing.default_model_config not in default_prompt.compatible_models:
-                raise ValueError(f"Default model {app.processing.default_model_config} not compatible with default prompt {app.processing.default_prompt_config}")
+            if (
+                app.processing.default_model_config
+                not in default_prompt.compatible_models
+            ):
+                raise ValueError(
+                    f"Default model {app.processing.default_model_config} not compatible with default prompt {app.processing.default_prompt_config}"
+                )
 
             return True
 

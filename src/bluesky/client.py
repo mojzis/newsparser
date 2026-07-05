@@ -69,7 +69,9 @@ class BlueskyClient:
         await self.authenticate()
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: object, exc_val: object, exc_tb: object
+    ) -> None:
         """Async context manager exit."""
         await self.close()
 
@@ -78,9 +80,7 @@ class BlueskyClient:
         if not self._session_active or not self.client:
             raise RuntimeError("Client not authenticated. Call authenticate() first.")
 
-    def _convert_post_to_model(
-        self, post_data: Any
-    ) -> BlueskyPost:
+    def _convert_post_to_model(self, post_data: Any) -> BlueskyPost:
         """
         Convert atproto post data to our BlueskyPost model.
 
@@ -129,7 +129,11 @@ class BlueskyClient:
         )
 
     async def search_posts(
-        self, query: str, limit: int = 25, cursor: str | None = None, sort: str = "latest"
+        self,
+        query: str,
+        limit: int = 25,
+        cursor: str | None = None,
+        sort: str = "latest",
     ) -> tuple[list[BlueskyPost], str | None]:
         """
         Search for posts containing specific keywords.
@@ -189,7 +193,10 @@ class BlueskyClient:
             return [], None
 
     async def search_by_definition(
-        self, search_definition: SearchDefinition, limit: int = 25, cursor: str | None = None
+        self,
+        search_definition: SearchDefinition,
+        limit: int = 25,
+        cursor: str | None = None,
     ) -> tuple[list[BlueskyPost], str | None]:
         """
         Search for posts using a search definition.
@@ -212,17 +219,18 @@ class BlueskyClient:
             if not is_valid:
                 raise ValueError(f"Invalid query: {error_msg}")
 
-            logger.info(f"Searching with definition '{search_definition.name}' using {search_definition.query_syntax} syntax: {query}")
+            logger.info(
+                f"Searching with definition '{search_definition.name}' using {search_definition.query_syntax} syntax: {query}"
+            )
 
             return await self.search_posts(
-                query=query,
-                limit=limit,
-                cursor=cursor,
-                sort=search_definition.sort
+                query=query, limit=limit, cursor=cursor, sort=search_definition.sort
             )
 
         except Exception:
-            logger.exception(f"Failed to search with definition '{search_definition.name}'")
+            logger.exception(
+                f"Failed to search with definition '{search_definition.name}'"
+            )
             return [], None
 
     async def search_mcp_mentions(
@@ -277,7 +285,9 @@ class BlueskyClient:
             # Add small delay to respect rate limits
             await asyncio.sleep(0.5)
 
-        logger.info(f"Collected {len(all_posts)} posts using definition '{search_definition.name}'")
+        logger.info(
+            f"Collected {len(all_posts)} posts using definition '{search_definition.name}'"
+        )
         return all_posts
 
     async def get_recent_mcp_posts(self, max_posts: int = 100) -> list[BlueskyPost]:
@@ -343,10 +353,7 @@ class BlueskyClient:
             return None
 
     async def get_thread_by_uri(
-        self,
-        uri: str,
-        depth: int = 6,
-        parent_height: int = 80
+        self, uri: str, depth: int = 6, parent_height: int = 80
     ) -> Any | None:
         """
         Get thread data for a specific post URI.
@@ -363,9 +370,7 @@ class BlueskyClient:
 
         try:
             params = models.AppBskyFeedGetPostThread.Params(
-                uri=uri,
-                depth=depth,
-                parent_height=parent_height
+                uri=uri, depth=depth, parent_height=parent_height
             )
 
             response = await self.client.app.bsky.feed.get_post_thread(params)
@@ -380,10 +385,7 @@ class BlueskyClient:
             return None
 
     async def get_threads_for_posts(
-        self,
-        posts: list[BlueskyPost],
-        depth: int = 6,
-        parent_height: int = 80
+        self, posts: list[BlueskyPost], depth: int = 6, parent_height: int = 80
     ) -> list[BlueskyPost]:
         """
         Get complete threads for a list of posts.
@@ -406,7 +408,9 @@ class BlueskyClient:
                 posts, depth, parent_height
             )
 
-            logger.info(f"Collected {len(thread_posts)} posts from {len(posts)} initial posts")
+            logger.info(
+                f"Collected {len(thread_posts)} posts from {len(posts)} initial posts"
+            )
             return thread_posts
 
         except Exception:

@@ -7,6 +7,7 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -34,7 +35,6 @@ def _():
     # Import our modules
     from src.bluesky.collector import BlueskyDataCollector
     from src.config.settings import get_settings
-
 
     return BlueskyDataCollector, date, datetime, get_settings, pd
 
@@ -102,20 +102,24 @@ def _(mo, pd, posts):
     # Convert posts to DataFrame for analysis
     posts_data = []
     for post in posts:
-        posts_data.append({
-            "id": post.id,
-            "author": post.author,
-            "content": post.content,
-            "created_at": post.created_at,
-            "likes": post.engagement_metrics.likes,
-            "reposts": post.engagement_metrics.reposts,
-            "replies": post.engagement_metrics.replies,
-            "total_engagement": post.engagement_metrics.likes + post.engagement_metrics.reposts + post.engagement_metrics.replies,
-            "has_links": len(post.links) > 0,
-            "link_count": len(post.links),
-            "content_length": len(post.content),
-            "tags": post.tags
-        })
+        posts_data.append(
+            {
+                "id": post.id,
+                "author": post.author,
+                "content": post.content,
+                "created_at": post.created_at,
+                "likes": post.engagement_metrics.likes,
+                "reposts": post.engagement_metrics.reposts,
+                "replies": post.engagement_metrics.replies,
+                "total_engagement": post.engagement_metrics.likes
+                + post.engagement_metrics.reposts
+                + post.engagement_metrics.replies,
+                "has_links": len(post.links) > 0,
+                "link_count": len(post.links),
+                "content_length": len(post.content),
+                "tags": post.tags,
+            }
+        )
 
     df = pd.DataFrame(posts_data)
     mo.md(f"📈 **DataFrame created** with {len(df)} rows and {len(df.columns)} columns")
@@ -125,7 +129,7 @@ def _(mo, pd, posts):
 
 @app.cell
 def _(df, mo):
-    mo.ui.table(df,page_size=20)
+    mo.ui.table(df, page_size=20)
 
 
 @app.cell
@@ -143,21 +147,23 @@ def _(df, mo):
                     "Total Reposts",
                     "Total Replies",
                     "Most Active Author",
-                    "Highest Engagement Post"
+                    "Highest Engagement Post",
                 ],
                 "Value": [
                     len(df),
                     df["author"].nunique(),
                     f"{df['content_length'].mean():.1f} chars",
-                    f"{df['has_links'].sum()} ({df['has_links'].mean()*100:.1f}%)",
+                    f"{df['has_links'].sum()} ({df['has_links'].mean() * 100:.1f}%)",
                     df["likes"].sum(),
                     df["reposts"].sum(),
                     df["replies"].sum(),
                     df["author"].value_counts().index[0] if len(df) > 0 else "N/A",
-                    df.loc[df["total_engagement"].idxmax(), "author"] if len(df) > 0 else "N/A"
-                ]
+                    df.loc[df["total_engagement"].idxmax(), "author"]
+                    if len(df) > 0
+                    else "N/A",
+                ],
             },
-            label="📊 Data Overview"
+            label="📊 Data Overview",
         )
         stats_table
     else:
@@ -172,12 +178,11 @@ def _(df, mo):
 
         author_table_data = {
             "Author": top_authors.index.tolist(),
-            "Post Count": top_authors.values.tolist()
+            "Post Count": top_authors.values.tolist(),
         }
 
         author_table = mo.ui.table(
-            data=author_table_data,
-            label="👥 Top Authors by Post Count"
+            data=author_table_data, label="👥 Top Authors by Post Count"
         )
         author_table
     else:
@@ -188,19 +193,20 @@ def _(df, mo):
 def _(df, mo):
     # Engagement analysis
     if not df.empty:
-        engagement_stats = df[["likes", "reposts", "replies", "total_engagement"]].describe()
+        engagement_stats = df[
+            ["likes", "reposts", "replies", "total_engagement"]
+        ].describe()
 
         engagement_table_data = {
             "Metric": engagement_stats.index.tolist(),
             "Likes": engagement_stats["likes"].round(2).tolist(),
             "Reposts": engagement_stats["reposts"].round(2).tolist(),
             "Replies": engagement_stats["replies"].round(2).tolist(),
-            "Total": engagement_stats["total_engagement"].round(2).tolist()
+            "Total": engagement_stats["total_engagement"].round(2).tolist(),
         }
 
         engagement_table = mo.ui.table(
-            data=engagement_table_data,
-            label="📈 Engagement Statistics"
+            data=engagement_table_data, label="📈 Engagement Statistics"
         )
         engagement_table
     else:
@@ -211,20 +217,24 @@ def _(df, mo):
 def _(df, mo):
     # Most engaging posts
     if not df.empty and len(df) > 0:
-        top_posts = df.nlargest(5, "total_engagement")[["author", "content", "total_engagement", "likes", "reposts", "replies"]]
+        top_posts = df.nlargest(5, "total_engagement")[
+            ["author", "content", "total_engagement", "likes", "reposts", "replies"]
+        ]
 
         top_posts_data = {
             "Author": top_posts["author"].tolist(),
-            "Content (truncated)": [content[:80] + "..." if len(content) > 80 else content for content in top_posts["content"].tolist()],
+            "Content (truncated)": [
+                content[:80] + "..." if len(content) > 80 else content
+                for content in top_posts["content"].tolist()
+            ],
             "Total": top_posts["total_engagement"].tolist(),
             "❤️": top_posts["likes"].tolist(),
             "🔄": top_posts["reposts"].tolist(),
-            "💬": top_posts["replies"].tolist()
+            "💬": top_posts["replies"].tolist(),
         }
 
         top_posts_table = mo.ui.table(
-            data=top_posts_data,
-            label="🔥 Most Engaging Posts"
+            data=top_posts_data, label="🔥 Most Engaging Posts"
         )
         top_posts_table
     else:
@@ -241,18 +251,17 @@ def _(df, mo):
             "Median Length": f"{df['content_length'].median():.1f} characters",
             "Shortest Post": f"{df['content_length'].min()} characters",
             "Longest Post": f"{df['content_length'].max()} characters",
-            "Posts with Links": f"{df['has_links'].sum()} ({df['has_links'].mean()*100:.1f}%)",
-            "Total Links": df["link_count"].sum()
+            "Posts with Links": f"{df['has_links'].sum()} ({df['has_links'].mean() * 100:.1f}%)",
+            "Total Links": df["link_count"].sum(),
         }
 
         content_table_data = {
             "Metric": list(content_stats.keys()),
-            "Value": list(content_stats.values())
+            "Value": list(content_stats.values()),
         }
 
         content_table = mo.ui.table(
-            data=content_table_data,
-            label="📝 Content Analysis"
+            data=content_table_data, label="📝 Content Analysis"
         )
         content_table
     else:
@@ -267,15 +276,14 @@ def _(df, mo):
 
         # Add filters
         author_filter = mo.ui.multiselect(
-            options=sorted(df["author"].unique().tolist()),
-            label="Filter by authors:"
+            options=sorted(df["author"].unique().tolist()), label="Filter by authors:"
         )
 
         min_engagement = mo.ui.slider(
             start=0,
             stop=int(df["total_engagement"].max()) if len(df) > 0 else 100,
             value=0,
-            label="Minimum engagement:"
+            label="Minimum engagement:",
         )
 
         mo.hstack([author_filter, min_engagement])
@@ -295,11 +303,21 @@ def _(author_filter, df, min_engagement, mo):
             filtered_df = filtered_df[filtered_df["author"].isin(author_filter.value)]
 
         if min_engagement.value > 0:
-            filtered_df = filtered_df[filtered_df["total_engagement"] >= min_engagement.value]
+            filtered_df = filtered_df[
+                filtered_df["total_engagement"] >= min_engagement.value
+            ]
 
         if len(filtered_df) > 0:
             # Display filtered results
-            display_columns = ["author", "content", "total_engagement", "likes", "reposts", "replies", "has_links"]
+            display_columns = [
+                "author",
+                "content",
+                "total_engagement",
+                "likes",
+                "reposts",
+                "replies",
+                "has_links",
+            ]
 
             # Truncate content for display
             display_df = filtered_df[display_columns].copy()
@@ -313,7 +331,7 @@ def _(author_filter, df, min_engagement, mo):
 
             filtered_table = mo.ui.table(
                 data=filtered_table_data,
-                label=f"📊 Filtered Results ({len(filtered_df)} posts)"
+                label=f"📊 Filtered Results ({len(filtered_df)} posts)",
             )
             filtered_table
         else:
@@ -330,14 +348,10 @@ def _(df, mo):
         mo.md("## 💾 Export Data")
 
         export_format = mo.ui.dropdown(
-            options=["CSV", "JSON", "Parquet"],
-            value="CSV",
-            label="Export format:"
+            options=["CSV", "JSON", "Parquet"], value="CSV", label="Export format:"
         )
 
-        export_filtered = mo.ui.checkbox(
-            label="Export only filtered data"
-        )
+        export_filtered = mo.ui.checkbox(label="Export only filtered data")
 
         mo.hstack([export_format, export_filtered])
     else:
@@ -366,7 +380,9 @@ def _(
 
         if export_button.value:
             # Determine which data to export
-            export_df = filtered_df if export_filtered.value and len(filtered_df) > 0 else df
+            export_df = (
+                filtered_df if export_filtered.value and len(filtered_df) > 0 else df
+            )
 
             # Generate filename
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -434,7 +450,9 @@ def _(collect_date, max_posts_input, mo, settings):
 
         if collect_button.value:
             mo.md("🔄 **Data collection disabled in notebook** - use CLI instead:")
-            mo.md(f"```bash\npoetry run nsp collect --date {collect_date.value} --max-posts {max_posts_input.value}\n```")
+            mo.md(
+                f"```bash\npoetry run nsp collect --date {collect_date.value} --max-posts {max_posts_input.value}\n```"
+            )
 
         collect_button
     else:

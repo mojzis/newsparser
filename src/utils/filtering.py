@@ -39,7 +39,7 @@ class FilterResult:
 def filter_posts_by_language(
     posts: list[BlueskyPost],
     include_languages: list[LanguageType] | None = None,
-    exclude_languages: list[LanguageType] | None = None
+    exclude_languages: list[LanguageType] | None = None,
 ) -> list[BlueskyPost]:
     """
     Filter posts based on detected language types.
@@ -84,7 +84,11 @@ def get_language_statistics(posts: list[BlueskyPost]) -> dict[str, int]:
     stats = {}
 
     for post in posts:
-        language = post.language.value if hasattr(post.language, "value") else str(post.language)
+        language = (
+            post.language.value
+            if hasattr(post.language, "value")
+            else str(post.language)
+        )
         stats[language] = stats.get(language, 0) + 1
 
     return stats
@@ -100,7 +104,7 @@ class PostLanguageFilter:
         min_content_length: int | None = None,
         max_content_length: int | None = None,
         require_links: bool | None = None,
-        require_tags: bool | None = None
+        require_tags: bool | None = None,
     ) -> None:
         """
         Initialize the filter with criteria.
@@ -117,7 +121,9 @@ class PostLanguageFilter:
             ValueError: If both include and exclude languages are specified
         """
         if include_languages and exclude_languages:
-            raise ValueError("Cannot specify both include_languages and exclude_languages")
+            raise ValueError(
+                "Cannot specify both include_languages and exclude_languages"
+            )
 
         self.include_languages = include_languages
         self.exclude_languages = exclude_languages
@@ -143,16 +149,28 @@ class PostLanguageFilter:
 
         # Apply language filtering
         if self.include_languages:
-            filtered = [post for post in filtered if post.language in self.include_languages]
+            filtered = [
+                post for post in filtered if post.language in self.include_languages
+            ]
         elif self.exclude_languages:
-            filtered = [post for post in filtered if post.language not in self.exclude_languages]
+            filtered = [
+                post for post in filtered if post.language not in self.exclude_languages
+            ]
 
         # Apply content length filtering
         if self.min_content_length is not None:
-            filtered = [post for post in filtered if len(post.content) >= self.min_content_length]
+            filtered = [
+                post
+                for post in filtered
+                if len(post.content) >= self.min_content_length
+            ]
 
         if self.max_content_length is not None:
-            filtered = [post for post in filtered if len(post.content) <= self.max_content_length]
+            filtered = [
+                post
+                for post in filtered
+                if len(post.content) <= self.max_content_length
+            ]
 
         # Apply link requirement filtering
         if self.require_links is not None:
@@ -188,12 +206,16 @@ class PostLanguageFilter:
         removed_count = original_count - filtered_count
 
         filter_criteria = {
-            "include_languages": [lang.value for lang in self.include_languages] if self.include_languages else None,
-            "exclude_languages": [lang.value for lang in self.exclude_languages] if self.exclude_languages else None,
+            "include_languages": [lang.value for lang in self.include_languages]
+            if self.include_languages
+            else None,
+            "exclude_languages": [lang.value for lang in self.exclude_languages]
+            if self.exclude_languages
+            else None,
             "min_content_length": self.min_content_length,
             "max_content_length": self.max_content_length,
             "require_links": self.require_links,
-            "require_tags": self.require_tags
+            "require_tags": self.require_tags,
         }
 
         return FilterResult(
@@ -202,7 +224,7 @@ class PostLanguageFilter:
             filtered_count=filtered_count,
             removed_count=removed_count,
             language_stats=original_stats,
-            filter_criteria=filter_criteria
+            filter_criteria=filter_criteria,
         )
 
 
@@ -247,7 +269,9 @@ def filter_exclude_unknown_language(posts: list[BlueskyPost]) -> list[BlueskyPos
     return filter_posts_by_language(posts, exclude_languages=[LanguageType.UNKNOWN])
 
 
-def print_language_statistics(posts: list[BlueskyPost], title: str = "Language Statistics") -> None:
+def print_language_statistics(
+    posts: list[BlueskyPost], title: str = "Language Statistics"
+) -> None:
     """
     Print language statistics for a list of posts.
 
@@ -273,7 +297,7 @@ def print_language_statistics(posts: list[BlueskyPost], title: str = "Language S
 
 def validate_language_filter_criteria(
     include_languages: list[LanguageType] | None = None,
-    exclude_languages: list[LanguageType] | None = None
+    exclude_languages: list[LanguageType] | None = None,
 ) -> bool:
     """
     Validate language filter criteria.

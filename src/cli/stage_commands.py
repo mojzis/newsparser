@@ -27,7 +27,9 @@ def parse_date(date_str: str | None) -> date:
         try:
             return date.fromisoformat(date_str)
         except ValueError:
-            console.print(f"❌ Invalid date format: {date_str}. Use YYYY-MM-DD", style="red")
+            console.print(
+                f"❌ Invalid date format: {date_str}. Use YYYY-MM-DD", style="red"
+            )
             sys.exit(1)
     return datetime.now(UTC).date()
 
@@ -38,20 +40,62 @@ def stages() -> None:
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
+@click.option(
+    "--date",
+    "target_date",
+    help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.",
+)
 @click.option("--max-posts", default=400, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-@click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-@click.option("--threads/--no-threads", default=True, help="Collect entire threads instead of just individual posts")
-@click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
-@click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
-@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-@click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
-@click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
-def collect(target_date: str | None, max_posts: int, search: str, config_path: str | None,
-           expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, export_parquet: bool,
-           expand_references: bool, max_reference_depth: int) -> None:
+@click.option(
+    "--expand-urls/--no-expand-urls",
+    default=True,
+    help="Expand shortened URLs to final destinations",
+)
+@click.option(
+    "--threads/--no-threads",
+    default=True,
+    help="Collect entire threads instead of just individual posts",
+)
+@click.option(
+    "--max-thread-depth",
+    default=6,
+    help="Maximum depth to traverse in thread replies (default: 6)",
+)
+@click.option(
+    "--max-parent-height",
+    default=80,
+    help="Maximum height to traverse up parent chain (default: 80)",
+)
+@click.option(
+    "--export-parquet/--no-export-parquet",
+    default=True,
+    help="Export data to Parquet files for analytics (default: True)",
+)
+@click.option(
+    "--expand-references/--no-expand-references",
+    default=True,
+    help="Expand Bluesky post references into new posts (default: True)",
+)
+@click.option(
+    "--max-reference-depth",
+    default=2,
+    help="Maximum depth for reference expansion (default: 2)",
+)
+def collect(
+    target_date: str | None,
+    max_posts: int,
+    search: str,
+    config_path: str | None,
+    expand_urls: bool,
+    threads: bool,
+    max_thread_depth: int,
+    max_parent_height: int,
+    export_parquet: bool,
+    expand_references: bool,
+    max_reference_depth: int,
+) -> None:
     """Collect posts from Bluesky. Posts are organized by their publication date."""
 
     parsed_date = parse_date(target_date)
@@ -59,14 +103,18 @@ def collect(target_date: str | None, max_posts: int, search: str, config_path: s
     console.print(f"🔍 Collecting {mode_text} using search '{search}'...")
 
     if threads:
-        console.print(f"   Thread collection enabled: depth={max_thread_depth}, parent_height={max_parent_height}")
+        console.print(
+            f"   Thread collection enabled: depth={max_thread_depth}, parent_height={max_parent_height}"
+        )
 
     try:
         settings = get_settings()
 
         if not settings.has_bluesky_credentials:
             console.print("❌ Bluesky credentials not configured", style="red")
-            console.print("Set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables")
+            console.print(
+                "Set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables"
+            )
             sys.exit(1)
 
         # Load search configuration
@@ -94,7 +142,7 @@ def collect(target_date: str | None, max_posts: int, search: str, config_path: s
             max_parent_height=max_parent_height,
             export_parquet=export_parquet,
             expand_references=expand_references,
-            max_reference_depth=max_reference_depth
+            max_reference_depth=max_reference_depth,
         )
 
         result = asyncio.run(collect_stage.run_collection(parsed_date))
@@ -118,8 +166,16 @@ def collect(target_date: str | None, max_posts: int, search: str, config_path: s
 
 
 @stages.command()
-@click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
-@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+@click.option(
+    "--days-back",
+    default=7,
+    help="Number of days to look back for unfetched URLs (default: 7)",
+)
+@click.option(
+    "--export-parquet/--no-export-parquet",
+    default=True,
+    help="Export data to Parquet files for analytics (default: True)",
+)
 def fetch(days_back: int, export_parquet: bool) -> None:
     """Fetch full content from URLs found in collected posts from the last N days."""
 
@@ -149,9 +205,21 @@ def fetch(days_back: int, export_parquet: bool) -> None:
 
 
 @stages.command()
-@click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
-@click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
-@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
+@click.option(
+    "--days-back",
+    default=7,
+    help="Number of days to look back for unevaluated content (default: 7)",
+)
+@click.option(
+    "--regenerate/--no-regenerate",
+    default=False,
+    help="Re-evaluate existing evaluations (default: False)",
+)
+@click.option(
+    "--export-parquet/--no-export-parquet",
+    default=True,
+    help="Export data to Parquet files for analytics (default: True)",
+)
 def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
     """Evaluate content relevance using Anthropic API for fetched content from the last N days."""
 
@@ -169,7 +237,9 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
             sys.exit(1)
 
         evaluate_stage = EvaluateStage(settings, export_parquet=export_parquet)
-        result = asyncio.run(evaluate_stage.run_evaluate(days_back, regenerate=regenerate))
+        result = asyncio.run(
+            evaluate_stage.run_evaluate(days_back, regenerate=regenerate)
+        )
 
         console.print("✅ Evaluation completed:", style="green")
         console.print(f"  • Date range: {result['date_range']}")
@@ -193,14 +263,43 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
 
 
 @stages.command()
-@click.option("--days-back", default=7, help="Number of days to look back for evaluated content (default: 7)")
-@click.option("--regenerate/--no-regenerate", default=True, help="Regenerate existing reports (default: True)")
-@click.option("--output-date", help="Date to use for report filename (YYYY-MM-DD), defaults to today")
-@click.option("--bulk/--single", default=False, help="Generate reports for all days with content in range (default: auto-detect)")
-@click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
-@click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
+@click.option(
+    "--days-back",
+    default=7,
+    help="Number of days to look back for evaluated content (default: 7)",
+)
+@click.option(
+    "--regenerate/--no-regenerate",
+    default=True,
+    help="Regenerate existing reports (default: True)",
+)
+@click.option(
+    "--output-date",
+    help="Date to use for report filename (YYYY-MM-DD), defaults to today",
+)
+@click.option(
+    "--bulk/--single",
+    default=False,
+    help="Generate reports for all days with content in range (default: auto-detect)",
+)
+@click.option(
+    "--debug/--no-debug",
+    default=False,
+    help="Show debug information including evaluation filenames",
+)
+@click.option(
+    "--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)"
+)
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-def report(days_back: int, regenerate: bool, output_date: str | None, bulk: bool, debug: bool, sitemap: bool, rss: bool) -> None:
+def report(
+    days_back: int,
+    regenerate: bool,
+    output_date: str | None,
+    bulk: bool,
+    debug: bool,
+    sitemap: bool,
+    rss: bool,
+) -> None:
     """Generate report from evaluated content in the last N days."""
 
     parsed_output_date = parse_date(output_date)
@@ -208,36 +307,56 @@ def report(days_back: int, regenerate: bool, output_date: str | None, bulk: bool
     # Auto-enable bulk mode if days_back > 0 and not explicitly set to single
     if days_back > 0 and not bulk:
         bulk = True
-        console.print(f"📊 Auto-enabling bulk mode to regenerate reports for all {days_back} days with content...")
+        console.print(
+            f"📊 Auto-enabling bulk mode to regenerate reports for all {days_back} days with content..."
+        )
     elif bulk:
-        console.print(f"📊 Generating reports for each day with content in the last {days_back} days...")
+        console.print(
+            f"📊 Generating reports for each day with content in the last {days_back} days..."
+        )
     else:
-        console.print(f"📊 Generating single report from content in the last {days_back} days...")
+        console.print(
+            f"📊 Generating single report from content in the last {days_back} days..."
+        )
 
     try:
         report_stage = ReportStage()
 
         if bulk:
-            result = asyncio.run(report_stage.run_bulk_report(days_back, regenerate, parsed_output_date, debug, sitemap, rss))
+            result = asyncio.run(
+                report_stage.run_bulk_report(
+                    days_back, regenerate, parsed_output_date, debug, sitemap, rss
+                )
+            )
 
             console.print("✅ Bulk report generation completed:", style="green")
             console.print(f"  • Reference date: {result['reference_date']}")
             console.print(f"  • Days scanned: {result['days_scanned']}")
             console.print(f"  • Reports generated: {result['reports_generated']}")
             console.print(f"  • Total articles: {result['total_articles']}")
-            console.print(f"  • Dates processed: {', '.join(result['dates_processed'])}")
+            console.print(
+                f"  • Dates processed: {', '.join(result['dates_processed'])}"
+            )
         else:
-            result = asyncio.run(report_stage.run_report(days_back, regenerate, parsed_output_date, debug, sitemap, rss))
+            result = asyncio.run(
+                report_stage.run_report(
+                    days_back, regenerate, parsed_output_date, debug, sitemap, rss
+                )
+            )
 
             if result.get("status") == "already_exists":
-                console.print(f"ℹ️  Report already exists for {parsed_output_date}", style="yellow")
+                console.print(
+                    f"ℹ️  Report already exists for {parsed_output_date}", style="yellow"
+                )
                 return
 
             console.print("✅ Report completed:", style="green")
             console.print(f"  • Days scanned: {result['days_scanned']}")
             console.print(f"  • Articles found: {result['articles_found']}")
             console.print(f"  • Report generated: {result['report_generated']}")
-            console.print(f"  • Homepage generated: {result.get('homepage_generated', False)}")
+            console.print(
+                f"  • Homepage generated: {result.get('homepage_generated', False)}"
+            )
             console.print(f"  • Metadata saved: {result['metadata_saved']}")
             console.print(f"  • Output date: {result['date']}")
             console.print(f"  • Avg relevance: {result.get('avg_relevance', 0)}")
@@ -262,14 +381,14 @@ def render_stats() -> None:
             "file": Path("notebooks/content_stats.py"),
             "output": "content_stats.html",
             "title": "Content Stats",
-            "active_menu": "stats"
+            "active_menu": "stats",
         },
         {
             "file": Path("notebooks/stats.py"),
             "output": "project_stats.html",
             "title": "Project Stats",
-            "active_menu": "stats"
-        }
+            "active_menu": "stats",
+        },
     ]
 
     # Create output directory
@@ -290,13 +409,25 @@ def render_stats() -> None:
             output_file = output_dir / output_filename
 
             # Run marimo export command
-            result = subprocess.run([  # noqa: S603, S607  fixed trusted command from venv PATH
-                "marimo", "export", "html", str(notebook_file),
-                "--output", str(output_file), "--no-include-code",
-            ], capture_output=True, text=True, timeout=60)
+            result = subprocess.run(
+                [  # noqa: S603, S607  fixed trusted command from venv PATH
+                    "marimo",
+                    "export",
+                    "html",
+                    str(notebook_file),
+                    "--output",
+                    str(output_file),
+                    "--no-include-code",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
 
             if result.returncode != 0:
-                console.print(f"❌ Failed to export {notebook_file}: {result.stderr}", style="red")
+                console.print(
+                    f"❌ Failed to export {notebook_file}: {result.stderr}", style="red"
+                )
                 continue
 
             # Post-process the HTML to add navigation
@@ -318,7 +449,7 @@ def render_stats() -> None:
                     <a href="/query/duckdb.html" class="nav-link" style="color: #bdc3c7; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">Query</a>
                 </li>
                 <li class="nav-item" style="margin: 0;">
-                    <a href="/content_stats.html" class="nav-link" style="{'background-color: #3498db; color: white;' if notebook_config['active_menu'] == 'stats' else 'color: #bdc3c7;'} text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">Stats</a>
+                    <a href="/content_stats.html" class="nav-link" style="{"background-color: #3498db; color: white;" if notebook_config["active_menu"] == "stats" else "color: #bdc3c7;"} text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">Stats</a>
                 </li>
                 <li class="nav-item" style="margin: 0;">
                     <a href="/about.html" class="nav-link" style="color: #bdc3c7; text-decoration: none; padding: 0.5rem 1rem; border-radius: 4px; transition: background-color 0.3s ease; font-size: 15px;">About</a>
@@ -369,18 +500,26 @@ def render_about() -> None:
 
         # Process Mermaid blocks before markdown conversion
         import re
+
         def replace_mermaid(match):
             mermaid_code = match.group(1)
             return f'<div class="mermaid">\n{mermaid_code}\n</div>'
 
         # Replace ```mermaid blocks with <div class="mermaid">
-        markdown_content = re.sub(r"```mermaid\n(.*?)\n```", replace_mermaid, markdown_content, flags=re.DOTALL)
+        markdown_content = re.sub(
+            r"```mermaid\n(.*?)\n```",
+            replace_mermaid,
+            markdown_content,
+            flags=re.DOTALL,
+        )
 
         # Convert markdown to HTML
         html_content = markdown.markdown(markdown_content)
 
         # Set up Jinja2 environment
-        env = Environment(loader=FileSystemLoader("src/templates"), autoescape=select_autoescape())
+        env = Environment(
+            loader=FileSystemLoader("src/templates"), autoescape=select_autoescape()
+        )
 
         # Load the about template
         template = env.get_template("about.html")
@@ -407,24 +546,90 @@ def render_about() -> None:
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.")
+@click.option(
+    "--date",
+    "target_date",
+    help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.",
+)
 @click.option("--max-posts", default=500, help="Maximum posts to collect")
 @click.option("--search", default="mcp_tag", help="Search definition to use")
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-@click.option("--expand-urls/--no-expand-urls", default=True, help="Expand shortened URLs to final destinations")
-@click.option("--threads/--no-threads", default=True, help="Collect entire threads instead of just individual posts")
-@click.option("--max-thread-depth", default=6, help="Maximum depth to traverse in thread replies (default: 6)")
-@click.option("--max-parent-height", default=80, help="Maximum height to traverse up parent chain (default: 80)")
-@click.option("--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)")
-@click.option("--regenerate-reports/--no-regenerate-reports", default=True, help="Regenerate existing reports (default: True)")
-@click.option("--regenerate-evaluations/--no-regenerate-evaluations", default=False, help="Re-evaluate existing evaluations (default: False)")
-@click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-@click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
-@click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
-@click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
+@click.option(
+    "--expand-urls/--no-expand-urls",
+    default=True,
+    help="Expand shortened URLs to final destinations",
+)
+@click.option(
+    "--threads/--no-threads",
+    default=True,
+    help="Collect entire threads instead of just individual posts",
+)
+@click.option(
+    "--max-thread-depth",
+    default=6,
+    help="Maximum depth to traverse in thread replies (default: 6)",
+)
+@click.option(
+    "--max-parent-height",
+    default=80,
+    help="Maximum height to traverse up parent chain (default: 80)",
+)
+@click.option(
+    "--days-back", default=7, help="Days to look back for unfetched URLs (default: 7)"
+)
+@click.option(
+    "--regenerate-reports/--no-regenerate-reports",
+    default=True,
+    help="Regenerate existing reports (default: True)",
+)
+@click.option(
+    "--regenerate-evaluations/--no-regenerate-evaluations",
+    default=False,
+    help="Re-evaluate existing evaluations (default: False)",
+)
+@click.option(
+    "--export-parquet/--no-export-parquet",
+    default=True,
+    help="Export data to Parquet files for analytics (default: True)",
+)
+@click.option(
+    "--expand-references/--no-expand-references",
+    default=True,
+    help="Expand Bluesky post references into new posts (default: True)",
+)
+@click.option(
+    "--max-reference-depth",
+    default=2,
+    help="Maximum depth for reference expansion (default: 2)",
+)
+@click.option(
+    "--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)"
+)
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-@click.option("--publish/--no-publish", default=True, help="Publish DuckDB query interface (default: True)")
-def run_all(target_date: str | None, max_posts: int, search: str, config_path: str | None, expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int, sitemap: bool, rss: bool, publish: bool) -> None:
+@click.option(
+    "--publish/--no-publish",
+    default=True,
+    help="Publish DuckDB query interface (default: True)",
+)
+def run_all(
+    target_date: str | None,
+    max_posts: int,
+    search: str,
+    config_path: str | None,
+    expand_urls: bool,
+    threads: bool,
+    max_thread_depth: int,
+    max_parent_height: int,
+    days_back: int,
+    regenerate_reports: bool,
+    regenerate_evaluations: bool,
+    export_parquet: bool,
+    expand_references: bool,
+    max_reference_depth: int,
+    sitemap: bool,
+    rss: bool,
+    publish: bool,
+) -> None:
     """Run all stages in sequence. Posts organized by publication date."""
 
     # Store reference to publish command before parameter shadows it
@@ -436,7 +641,20 @@ def run_all(target_date: str | None, max_posts: int, search: str, config_path: s
     # Stage 1: Collect
     console.print("\n[bold blue]Stage 1: Collect[/bold blue]")
     ctx = click.Context(collect)
-    ctx.invoke(collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth)
+    ctx.invoke(
+        collect,
+        target_date=target_date,
+        max_posts=max_posts,
+        search=search,
+        config_path=config_path,
+        expand_urls=expand_urls,
+        threads=threads,
+        max_thread_depth=max_thread_depth,
+        max_parent_height=max_parent_height,
+        export_parquet=export_parquet,
+        expand_references=expand_references,
+        max_reference_depth=max_reference_depth,
+    )
 
     # Stage 2: Fetch
     console.print("\n[bold blue]Stage 2: Fetch[/bold blue]")
@@ -446,12 +664,24 @@ def run_all(target_date: str | None, max_posts: int, search: str, config_path: s
     # Stage 3: Evaluate
     console.print("\n[bold blue]Stage 3: Evaluate[/bold blue]")
     ctx = click.Context(evaluate)
-    ctx.invoke(evaluate, days_back=days_back, regenerate=regenerate_evaluations, export_parquet=export_parquet)
+    ctx.invoke(
+        evaluate,
+        days_back=days_back,
+        regenerate=regenerate_evaluations,
+        export_parquet=export_parquet,
+    )
 
     # Stage 4: Report
     console.print("\n[bold blue]Stage 4: Report[/bold blue]")
     ctx = click.Context(report)
-    ctx.invoke(report, days_back=days_back, regenerate=regenerate_reports, output_date=target_date, sitemap=sitemap, rss=rss)
+    ctx.invoke(
+        report,
+        days_back=days_back,
+        regenerate=regenerate_reports,
+        output_date=target_date,
+        sitemap=sitemap,
+        rss=rss,
+    )
 
     # Stage 5: Render Stats
     console.print("\n[bold blue]Stage 5: Render Stats[/bold blue]")
@@ -471,7 +701,9 @@ def run_all(target_date: str | None, max_posts: int, search: str, config_path: s
 
 
 @stages.command()
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.option(
+    "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
+)
 def status(target_date: str | None) -> None:
     """Show status of all stages for a date."""
 
@@ -503,8 +735,12 @@ def status(target_date: str | None) -> None:
 
 
 @stages.command()
-@click.argument("stage_name", type=click.Choice(["collect", "fetch", "evaluate", "report"]))
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.argument(
+    "stage_name", type=click.Choice(["collect", "fetch", "evaluate", "report"])
+)
+@click.option(
+    "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
+)
 @click.option("--limit", default=10, help="Maximum number of files to list")
 def list_files(stage_name: str, target_date: str | None, limit: int) -> None:
     """List files in a specific stage."""
@@ -541,8 +777,12 @@ def list_files(stage_name: str, target_date: str | None, limit: int) -> None:
 
 
 @stages.command()
-@click.argument("stage_name", type=click.Choice(["collect", "fetch", "evaluate", "report"]))
-@click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
+@click.argument(
+    "stage_name", type=click.Choice(["collect", "fetch", "evaluate", "report"])
+)
+@click.option(
+    "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
+)
 @click.option("--confirm", is_flag=True, help="Skip confirmation prompt")
 def clean(stage_name: str, target_date: str | None, confirm: bool) -> None:
     """Clean (remove) all files from a specific stage."""
@@ -561,7 +801,9 @@ def clean(stage_name: str, target_date: str | None, confirm: bool) -> None:
         return
 
     if not confirm:
-        console.print(f"⚠️  This will delete {len(files)} files from {stage_name} stage for {parsed_date}")
+        console.print(
+            f"⚠️  This will delete {len(files)} files from {stage_name} stage for {parsed_date}"
+        )
         if not click.confirm("Do you want to continue?"):
             console.print("❌ Cancelled")
             return
@@ -573,7 +815,9 @@ def clean(stage_name: str, target_date: str | None, confirm: bool) -> None:
     with contextlib.suppress(OSError):  # Directory not empty
         stage_dir.rmdir()
 
-    console.print(f"✅ Cleaned {len(files)} files from {stage_name} stage", style="green")
+    console.print(
+        f"✅ Cleaned {len(files)} files from {stage_name} stage", style="green"
+    )
 
 
 @stages.command()
@@ -620,7 +864,10 @@ def publish() -> None:
 
             console.print(f"📁 Metadata published to: {metadata_dir}")
         else:
-            console.print(f"⚠️  Metadata directory not found: {source_metadata_dir}", style="yellow")
+            console.print(
+                f"⚠️  Metadata directory not found: {source_metadata_dir}",
+                style="yellow",
+            )
 
         # Copy metadata browser HTML to query directory
         metadata_browser_source = Path("src/html/metadata-example.html")
@@ -629,7 +876,10 @@ def publish() -> None:
             shutil.copy2(metadata_browser_source, metadata_browser_target)
             console.print(f"✅ Published metadata browser: {metadata_browser_target}")
         else:
-            console.print(f"⚠️  Metadata browser not found: {metadata_browser_source}", style="yellow")
+            console.print(
+                f"⚠️  Metadata browser not found: {metadata_browser_source}",
+                style="yellow",
+            )
 
         console.print("🌐 Access query interface at: output/query/duckdb.html")
         console.print("📄 Metadata available at: output/metadata/")
@@ -642,7 +892,9 @@ def publish() -> None:
 
 @stages.command()
 @click.option("--port", default=8000, help="Port to serve on (default: 8000)")
-@click.option("--host", default="localhost", help="Host to bind to (default: localhost)")
+@click.option(
+    "--host", default="localhost", help="Host to bind to (default: localhost)"
+)
 def present(port: int, host: str) -> None:
     """Start HTTP server to view generated HTML reports."""
     import subprocess
@@ -652,7 +904,9 @@ def present(port: int, host: str) -> None:
 
     output_dir = Path("output")
     if not output_dir.exists():
-        console.print("❌ Output directory does not exist. Generate reports first.", style="red")
+        console.print(
+            "❌ Output directory does not exist. Generate reports first.", style="red"
+        )
         sys.exit(1)
 
     console.print(f"🌐 Starting HTTP server on http://{host}:{port}")
@@ -662,6 +916,7 @@ def present(port: int, host: str) -> None:
     try:
         # Change to output directory and start Python HTTP server
         import os
+
         os.chdir(output_dir)
 
         # Open browser after a short delay
@@ -670,15 +925,22 @@ def present(port: int, host: str) -> None:
             webbrowser.open(f"http://{host}:{port}")
 
         import threading
+
         browser_thread = threading.Thread(target=open_browser)
         browser_thread.daemon = True
         browser_thread.start()
 
         # Start the server
-        subprocess.run([  # noqa: S603  fixed command, sys.executable + local args
-            sys.executable, "-m", "http.server", str(port),
-            "--bind", host
-        ])
+        subprocess.run(
+            [  # noqa: S603  fixed command, sys.executable + local args
+                sys.executable,
+                "-m",
+                "http.server",
+                str(port),
+                "--bind",
+                host,
+            ]
+        )
 
     except KeyboardInterrupt:
         console.print("\n👋 Server stopped", style="yellow")

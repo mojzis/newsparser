@@ -27,10 +27,7 @@ class ThreadCollector:
         self._collected_threads: set[str] = set()  # Track processed thread roots
 
     async def collect_thread_from_post(
-        self,
-        post_uri: str,
-        depth: int = 6,
-        parent_height: int = 80
+        self, post_uri: str, depth: int = 6, parent_height: int = 80
     ) -> list[BlueskyPost]:
         """
         Fetch complete thread for a given post URI.
@@ -48,9 +45,7 @@ class ThreadCollector:
 
             # Get thread data from atproto
             params = models.AppBskyFeedGetPostThread.Params(
-                uri=post_uri,
-                depth=depth,
-                parent_height=parent_height
+                uri=post_uri, depth=depth, parent_height=parent_height
             )
 
             response = await self.client.app.bsky.feed.get_post_thread(params)
@@ -75,10 +70,7 @@ class ThreadCollector:
             return []
 
     async def collect_threads_from_search(
-        self,
-        search_posts: list[BlueskyPost],
-        depth: int = 6,
-        parent_height: int = 80
+        self, search_posts: list[BlueskyPost], depth: int = 6, parent_height: int = 80
     ) -> list[BlueskyPost]:
         """
         Collect complete threads for all posts from search results.
@@ -116,7 +108,9 @@ class ThreadCollector:
                 # Small delay to respect rate limits
                 await asyncio.sleep(0.3)
 
-        logger.info(f"Collected {len(all_thread_posts)} total posts from {len(processed_roots)} threads")
+        logger.info(
+            f"Collected {len(all_thread_posts)} total posts from {len(processed_roots)} threads"
+        )
         return all_thread_posts
 
     def _extract_thread_posts(self, thread_view: Any) -> list[BlueskyPost]:
@@ -142,7 +136,9 @@ class ThreadCollector:
                 # Extract post data
                 if hasattr(current_view, "post"):
                     post_data = current_view.post
-                    post = self._convert_thread_post_to_model(post_data, parent_uri, depth)
+                    post = self._convert_thread_post_to_model(
+                        post_data, parent_uri, depth
+                    )
 
                     # Set root URI (first post we encounter is the root)
                     if root_uri is None:
@@ -167,10 +163,7 @@ class ThreadCollector:
         return posts
 
     def _convert_thread_post_to_model(
-        self,
-        post_data: Any,
-        parent_uri: str | None,
-        depth: int
+        self, post_data: Any, parent_uri: str | None, depth: int
     ) -> BlueskyPost:
         """
         Convert atproto post data to BlueskyPost model with thread context.
@@ -194,7 +187,6 @@ class ThreadCollector:
 
         # Convert using existing logic
         return temp_client._convert_post_to_model(post_data)
-
 
     def _find_thread_root_uri(self, posts: list[BlueskyPost]) -> str | None:
         """

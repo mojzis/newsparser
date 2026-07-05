@@ -51,7 +51,7 @@ def _(mo, r2_client):
     **Evaluated**: {len(evaluated_files)} files
 
     ### Recent Files:
-    {chr(10).join(['- ' + f for f in (posts_files[:3] + fetched_files[:3] + evaluated_files[:3])])}
+    {chr(10).join(["- " + f for f in (posts_files[:3] + fetched_files[:3] + evaluated_files[:3])])}
     """)
     return evaluated_files, fetched_files, posts_files
 
@@ -64,7 +64,7 @@ def _(evaluated_files, fetched_files, mo, pd, posts_files, r2_client):
     file_sets = [
         ("posts", posts_files[:1]),
         ("fetched", fetched_files[:1]),
-        ("evaluated", evaluated_files[:1])
+        ("evaluated", evaluated_files[:1]),
     ]
 
     for category, files in file_sets:
@@ -76,12 +76,14 @@ def _(evaluated_files, fetched_files, mo, pd, posts_files, r2_client):
                 datasets[category] = {
                     "df": df_temp,
                     "file": key,
-                    "shape": df_temp.shape
+                    "shape": df_temp.shape,
                 }
 
     summary_parts = ["## Loaded Datasets"]
     for dataset_name, dataset_info in datasets.items():
-        summary_parts.append(f"**{dataset_name.title()}**: {dataset_info['shape'][0]} rows × {dataset_info['shape'][1]} columns")
+        summary_parts.append(
+            f"**{dataset_name.title()}**: {dataset_info['shape'][0]} rows × {dataset_info['shape'][1]} columns"
+        )
         summary_parts.append(f"  - File: `{dataset_info['file']}`")
 
     mo.md(chr(10).join(summary_parts))
@@ -93,9 +95,7 @@ def _(datasets, mo):
     if "posts" in datasets:
         posts_df = datasets["posts"]["df"]
         posts_table = mo.ui.table(
-            posts_df.head(15),
-            selection="multi",
-            label="Posts Data"
+            posts_df.head(15), selection="multi", label="Posts Data"
         )
         posts_table
     else:
@@ -107,9 +107,7 @@ def _(datasets, mo):
     if "fetched" in datasets:
         fetched_df = datasets["fetched"]["df"]
         fetched_table = mo.ui.table(
-            fetched_df.head(15),
-            selection="multi",
-            label="Fetched Articles Data"
+            fetched_df.head(15), selection="multi", label="Fetched Articles Data"
         )
         fetched_table
     else:
@@ -121,9 +119,7 @@ def _(datasets, mo):
     if "evaluated" in datasets:
         evaluated_df = datasets["evaluated"]["df"]
         evaluated_table = mo.ui.table(
-            evaluated_df.head(15),
-            selection="multi",
-            label="Evaluated Content Data"
+            evaluated_df.head(15), selection="multi", label="Evaluated Content Data"
         )
         evaluated_table
     else:
@@ -139,7 +135,9 @@ def _(datasets, mo):
         analysis_parts.append(f"### {dataset_name.title()} Dataset")
         analysis_parts.append(f"- **Rows**: {df_analysis.shape[0]:,}")
         analysis_parts.append(f"- **Columns**: {df_analysis.shape[1]}")
-        analysis_parts.append(f"- **Memory**: {df_analysis.memory_usage(deep=True).sum() / 1024 / 1024:.1f} MB")
+        analysis_parts.append(
+            f"- **Memory**: {df_analysis.memory_usage(deep=True).sum() / 1024 / 1024:.1f} MB"
+        )
         analysis_parts.append("")
 
     mo.md(chr(10).join(analysis_parts))

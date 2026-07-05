@@ -13,6 +13,7 @@ def _():
     import numpy as np
     import pandas as pd
     import yaml
+
     return Path, datetime, mo, np, pd, timedelta, yaml
 
 
@@ -63,9 +64,15 @@ def _(Path, datetime, pd, timedelta, yaml):
                                 created_at = frontmatter.get("created_at", "")
                                 if created_at:
                                     if created_at.endswith("+00:00"):
-                                        created_at = datetime.fromisoformat(created_at.replace("+00:00", "Z").rstrip("Z"))
+                                        created_at = datetime.fromisoformat(
+                                            created_at.replace("+00:00", "Z").rstrip(
+                                                "Z"
+                                            )
+                                        )
                                     else:
-                                        created_at = datetime.fromisoformat(created_at.rstrip("Z"))
+                                        created_at = datetime.fromisoformat(
+                                            created_at.rstrip("Z")
+                                        )
                                 else:
                                     created_at = datetime.now()
 
@@ -80,11 +87,13 @@ def _(Path, datetime, pd, timedelta, yaml):
                                     "likes": engagement.get("likes", 0),
                                     "reposts": engagement.get("reposts", 0),
                                     "replies": engagement.get("replies", 0),
-                                    "total_engagement": engagement.get("likes", 0) + engagement.get("reposts", 0) + engagement.get("replies", 0),
+                                    "total_engagement": engagement.get("likes", 0)
+                                    + engagement.get("reposts", 0)
+                                    + engagement.get("replies", 0),
                                     "urls_count": len(frontmatter.get("urls", [])),
                                     "has_urls": len(frontmatter.get("urls", [])) > 0,
                                     "text_length": len(frontmatter.get("text", "")),
-                                    "file_path": str(md_file)
+                                    "file_path": str(md_file),
                                 }
                                 records.append(record)
 
@@ -107,12 +116,7 @@ def _(Path, datetime, pd, timedelta, yaml):
 
 @app.cell
 def _(mo):
-    days_slider = mo.ui.slider(
-        start=1,
-        stop=30,
-        value=7,
-        label="Days to look back"
-    )
+    days_slider = mo.ui.slider(start=1, stop=30, value=7, label="Days to look back")
 
     mo.md(f"""
     ## Load Data
@@ -133,9 +137,9 @@ def _(days_slider, load_posts, mo):
     ### Data Loaded
 
     - **Total posts:** {len(posts_data)}
-    - **Date range:** {posts_data['date'].min().strftime('%Y-%m-%d') if not posts_data.empty else 'N/A'} to {posts_data['date'].max().strftime('%Y-%m-%d') if not posts_data.empty else 'N/A'}
-    - **Unique authors:** {posts_data['author'].nunique() if not posts_data.empty else 0}
-    - **Total engagement:** {posts_data['total_engagement'].sum() if not posts_data.empty else 0:,}
+    - **Date range:** {posts_data["date"].min().strftime("%Y-%m-%d") if not posts_data.empty else "N/A"} to {posts_data["date"].max().strftime("%Y-%m-%d") if not posts_data.empty else "N/A"}
+    - **Unique authors:** {posts_data["author"].nunique() if not posts_data.empty else 0}
+    - **Total engagement:** {posts_data["total_engagement"].sum() if not posts_data.empty else 0:,}
     """)
     return (posts_data,)
 
@@ -149,24 +153,27 @@ def _(mo):
 def _(mo, pd, posts_data):
     # Calculate engagement statistics
     engagement_stats = {
-        "Metric": ["Total Likes", "Total Reposts", "Total Replies", "Avg Likes per Post", "Avg Reposts per Post", "Avg Replies per Post"],
+        "Metric": [
+            "Total Likes",
+            "Total Reposts",
+            "Total Replies",
+            "Avg Likes per Post",
+            "Avg Reposts per Post",
+            "Avg Replies per Post",
+        ],
         "Value": [
             posts_data["likes"].sum(),
             posts_data["reposts"].sum(),
             posts_data["replies"].sum(),
             round(posts_data["likes"].mean(), 2),
             round(posts_data["reposts"].mean(), 2),
-            round(posts_data["replies"].mean(), 2)
-        ]
+            round(posts_data["replies"].mean(), 2),
+        ],
     }
 
     engagement_df = pd.DataFrame(engagement_stats)
 
-    mo.ui.table(
-        engagement_df,
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(engagement_df, selection=None, pagination=False)
 
 
 @app.cell
@@ -178,14 +185,18 @@ def _(mo):
 def _(mo, posts_data):
     # Get top posts by total engagement
     top_posts = posts_data.nlargest(20, "total_engagement")[
-        ["author", "created_at", "likes", "reposts", "replies", "total_engagement", "has_urls"]
+        [
+            "author",
+            "created_at",
+            "likes",
+            "reposts",
+            "replies",
+            "total_engagement",
+            "has_urls",
+        ]
     ]
 
-    mo.ui.table(
-        top_posts,
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(top_posts, selection=None, pagination=False)
 
 
 @app.cell
@@ -196,26 +207,39 @@ def _(mo):
 @app.cell
 def _(mo, posts_data):
     # Analyze authors by engagement
-    author_stats = posts_data.groupby("author").agg({
-        "post_id": "count",
-        "likes": ["sum", "mean"],
-        "reposts": ["sum", "mean"],
-        "replies": ["sum", "mean"],
-        "total_engagement": ["sum", "mean"]
-    }).round(2)
+    author_stats = (
+        posts_data.groupby("author")
+        .agg(
+            {
+                "post_id": "count",
+                "likes": ["sum", "mean"],
+                "reposts": ["sum", "mean"],
+                "replies": ["sum", "mean"],
+                "total_engagement": ["sum", "mean"],
+            }
+        )
+        .round(2)
+    )
 
     # Flatten column names
-    author_stats.columns = ["posts", "total_likes", "avg_likes", "total_reposts", "avg_reposts",
-                            "total_replies", "avg_replies", "total_engagement", "avg_engagement"]
+    author_stats.columns = [
+        "posts",
+        "total_likes",
+        "avg_likes",
+        "total_reposts",
+        "avg_reposts",
+        "total_replies",
+        "avg_replies",
+        "total_engagement",
+        "avg_engagement",
+    ]
 
     # Sort by total engagement
-    author_stats = author_stats.sort_values("total_engagement", ascending=False).head(20)
-
-    mo.ui.table(
-        author_stats.reset_index(),
-        selection=None,
-        pagination=False
+    author_stats = author_stats.sort_values("total_engagement", ascending=False).head(
+        20
     )
+
+    mo.ui.table(author_stats.reset_index(), selection=None, pagination=False)
 
 
 @app.cell
@@ -226,40 +250,42 @@ def _(mo):
 @app.cell
 def _(mo, posts_data):
     # Analyze by hour of day
-    hourly_stats = posts_data.groupby("hour_of_day").agg({
-        "post_id": "count",
-        "total_engagement": "mean"
-    }).round(2)
+    hourly_stats = (
+        posts_data.groupby("hour_of_day")
+        .agg({"post_id": "count", "total_engagement": "mean"})
+        .round(2)
+    )
 
     hourly_stats.columns = ["posts", "avg_engagement"]
     hourly_stats = hourly_stats.reset_index()
 
-    mo.ui.table(
-        hourly_stats,
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(hourly_stats, selection=None, pagination=False)
 
 
 @app.cell
 def _(mo, posts_data):
     # Analyze by day of week
-    daily_stats = posts_data.groupby("day_of_week").agg({
-        "post_id": "count",
-        "total_engagement": "mean"
-    }).round(2)
+    daily_stats = (
+        posts_data.groupby("day_of_week")
+        .agg({"post_id": "count", "total_engagement": "mean"})
+        .round(2)
+    )
 
     daily_stats.columns = ["posts", "avg_engagement"]
 
     # Reorder by weekday
-    weekday_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    weekday_order = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
     daily_stats = daily_stats.reindex(weekday_order, fill_value=0)
 
-    mo.ui.table(
-        daily_stats.reset_index(),
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(daily_stats.reset_index(), selection=None, pagination=False)
 
 
 @app.cell
@@ -270,22 +296,30 @@ def _(mo):
 @app.cell
 def _(mo, posts_data):
     # Analyze posts with URLs vs without
-    url_analysis = posts_data.groupby("has_urls").agg({
-        "post_id": "count",
-        "likes": "mean",
-        "reposts": "mean",
-        "replies": "mean",
-        "total_engagement": "mean"
-    }).round(2)
+    url_analysis = (
+        posts_data.groupby("has_urls")
+        .agg(
+            {
+                "post_id": "count",
+                "likes": "mean",
+                "reposts": "mean",
+                "replies": "mean",
+                "total_engagement": "mean",
+            }
+        )
+        .round(2)
+    )
 
     url_analysis.index = ["No URLs", "Has URLs"]
-    url_analysis.columns = ["posts", "avg_likes", "avg_reposts", "avg_replies", "avg_engagement"]
+    url_analysis.columns = [
+        "posts",
+        "avg_likes",
+        "avg_reposts",
+        "avg_replies",
+        "avg_engagement",
+    ]
 
-    mo.ui.table(
-        url_analysis.reset_index(),
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(url_analysis.reset_index(), selection=None, pagination=False)
 
 
 @app.cell
@@ -295,21 +329,23 @@ def _(mo, np, pd, posts_data):
     posts_with_length["length_category"] = pd.cut(
         posts_with_length["text_length"],
         bins=[0, 100, 200, 300, np.inf],
-        labels=["Short (<100)", "Medium (100-200)", "Long (200-300)", "Very Long (>300)"]
+        labels=[
+            "Short (<100)",
+            "Medium (100-200)",
+            "Long (200-300)",
+            "Very Long (>300)",
+        ],
     )
 
-    length_stats = posts_with_length.groupby("length_category").agg({
-        "post_id": "count",
-        "total_engagement": "mean"
-    }).round(2)
+    length_stats = (
+        posts_with_length.groupby("length_category")
+        .agg({"post_id": "count", "total_engagement": "mean"})
+        .round(2)
+    )
 
     length_stats.columns = ["posts", "avg_engagement"]
 
-    mo.ui.table(
-        length_stats.reset_index(),
-        selection=None,
-        pagination=False
-    )
+    mo.ui.table(length_stats.reset_index(), selection=None, pagination=False)
 
 
 @app.cell
@@ -321,18 +357,15 @@ def _(mo):
 def _(mo, pd, posts_data):
     # Calculate engagement percentiles
     percentiles = [0, 25, 50, 75, 90, 95, 99, 100]
-    engagement_dist = posts_data["total_engagement"].describe(percentiles=[p/100 for p in percentiles[1:-1]])
-
-    dist_df = pd.DataFrame({
-        "Statistic": engagement_dist.index,
-        "Value": engagement_dist.values.round(2)
-    })
-
-    mo.ui.table(
-        dist_df,
-        selection=None,
-        pagination=False
+    engagement_dist = posts_data["total_engagement"].describe(
+        percentiles=[p / 100 for p in percentiles[1:-1]]
     )
+
+    dist_df = pd.DataFrame(
+        {"Statistic": engagement_dist.index, "Value": engagement_dist.values.round(2)}
+    )
+
+    mo.ui.table(dist_df, selection=None, pagination=False)
 
 
 @app.cell
@@ -348,15 +381,13 @@ def _(mo, posts_data):
         stop=int(posts_data["total_engagement"].max()) if not posts_data.empty else 100,
         step=1,
         value=0,
-        label="Minimum total engagement"
+        label="Minimum total engagement",
     )
 
     # Get unique authors for dropdown
     authors = ["All", *sorted(posts_data["author"].unique().tolist())]
     author_filter = mo.ui.dropdown(
-        options=authors,
-        value="All",
-        label="Filter by author"
+        options=authors, value="All", label="Filter by author"
     )
 
     mo.hstack([min_engagement, author_filter])
@@ -369,7 +400,9 @@ def _(author_filter, min_engagement, mo, posts_data):
     filtered_posts = posts_data.copy()
 
     if min_engagement.value > 0:
-        filtered_posts = filtered_posts[filtered_posts["total_engagement"] >= min_engagement.value]
+        filtered_posts = filtered_posts[
+            filtered_posts["total_engagement"] >= min_engagement.value
+        ]
 
     if author_filter.value != "All":
         filtered_posts = filtered_posts[filtered_posts["author"] == author_filter.value]
@@ -381,10 +414,20 @@ def _(author_filter, min_engagement, mo, posts_data):
     """)
 
     mo.ui.table(
-        filtered_posts[["author", "created_at", "likes", "reposts", "replies", "total_engagement", "has_urls"]].head(30),
+        filtered_posts[
+            [
+                "author",
+                "created_at",
+                "likes",
+                "reposts",
+                "replies",
+                "total_engagement",
+                "has_urls",
+            ]
+        ].head(30),
         selection=None,
         pagination=True,
-        page_size=20
+        page_size=20,
     )
 
 

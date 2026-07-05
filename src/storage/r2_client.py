@@ -232,7 +232,9 @@ class R2Client:
             with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
                 if self.download_file(registry_key, tmp.name):
                     registry = URLRegistry.from_parquet(tmp.name)
-                    logger.info(f"Downloaded URL registry with {len(registry.df)} entries")
+                    logger.info(
+                        f"Downloaded URL registry with {len(registry.df)} entries"
+                    )
                     return registry
                 return None
 
@@ -264,13 +266,13 @@ class R2Client:
 
                 # Upload to R2
                 success = self.upload_file(
-                    tmp.name,
-                    registry_key,
-                    content_type="application/octet-stream"
+                    tmp.name, registry_key, content_type="application/octet-stream"
                 )
 
                 if success:
-                    logger.info(f"Uploaded URL registry with {len(registry.df)} entries")
+                    logger.info(
+                        f"Uploaded URL registry with {len(registry.df)} entries"
+                    )
 
                 return success
 

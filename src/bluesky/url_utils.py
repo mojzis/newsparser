@@ -40,7 +40,11 @@ def extract_post_uri_from_url(url: str) -> str | None:
         parsed = urlparse(url)
         path_parts = parsed.path.strip("/").split("/")
 
-        if len(path_parts) != 4 or path_parts[0] != "profile" or path_parts[2] != "post":
+        if (
+            len(path_parts) != 4
+            or path_parts[0] != "profile"
+            or path_parts[2] != "post"
+        ):
             return None
 
         handle = path_parts[1]
@@ -71,7 +75,11 @@ def extract_handle_and_post_id(url: str) -> tuple[str, str] | None:
         parsed = urlparse(url)
         path_parts = parsed.path.strip("/").split("/")
 
-        if len(path_parts) != 4 or path_parts[0] != "profile" or path_parts[2] != "post":
+        if (
+            len(path_parts) != 4
+            or path_parts[0] != "profile"
+            or path_parts[2] != "post"
+        ):
             return None
 
         handle = path_parts[1]

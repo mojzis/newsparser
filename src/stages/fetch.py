@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 class FetchStage(ProcessingStage):
     """Fetches full content from URLs found in posts."""
 
-    def __init__(self, base_path: Path = Path("stages"), export_parquet: bool = True) -> None:
+    def __init__(
+        self, base_path: Path = Path("stages"), export_parquet: bool = True
+    ) -> None:
         super().__init__("fetch", "collect", base_path)
         self.export_parquet = export_parquet
         self.fetcher = ArticleFetcher()
@@ -27,7 +29,9 @@ class FetchStage(ProcessingStage):
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+    async def __aexit__(
+        self, exc_type: object, exc_val: object, exc_tb: object
+    ) -> None:
         """Async context manager exit."""
         await self.fetcher.close()
 
@@ -64,9 +68,11 @@ class FetchStage(ProcessingStage):
                 "fetch_status": "error",
                 "error_type": result.error_type,
                 "error_message": result.error_message,
-                "stage": "fetched"
+                "stage": "fetched",
             }
-            content = f"# Fetch Error\n\nFailed to fetch content: {result.error_message}"
+            content = (
+                f"# Fetch Error\n\nFailed to fetch content: {result.error_message}"
+            )
             return frontmatter, content
 
         # Extract content
@@ -77,11 +83,12 @@ class FetchStage(ProcessingStage):
                 # Handle extraction error
                 frontmatter = {
                     "url": url,
-                    "fetched_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
+                    "fetched_at": datetime.now(UTC).replace(tzinfo=None).isoformat()
+                    + "Z",
                     "fetch_status": "error",
                     "error_type": extracted.error_type,
                     "error_message": extracted.error_message,
-                    "stage": "fetched"
+                    "stage": "fetched",
                 }
                 content = f"# Extraction Error\n\nFailed to extract content: {extracted.error_message}"
                 return frontmatter, content
@@ -97,12 +104,15 @@ class FetchStage(ProcessingStage):
                 "domain": extracted.domain,
                 "medium": extracted.medium,
                 "language": extracted.language,
-                "extraction_timestamp": extracted.extraction_timestamp.isoformat() + "Z",
-                "stage": "fetched"
+                "extraction_timestamp": extracted.extraction_timestamp.isoformat()
+                + "Z",
+                "stage": "fetched",
             }
 
             # Use extracted markdown content
-            content = f"# {extracted.title or 'Article'}\n\n{extracted.content_markdown}"
+            content = (
+                f"# {extracted.title or 'Article'}\n\n{extracted.content_markdown}"
+            )
             return frontmatter, content
 
         except Exception as e:
@@ -113,7 +123,7 @@ class FetchStage(ProcessingStage):
                 "fetch_status": "error",
                 "error_type": "extraction",
                 "error_message": str(e),
-                "stage": "fetched"
+                "stage": "fetched",
             }
             content = f"# Extraction Error\n\nUnexpected error: {e!s}"
             return frontmatter, content
@@ -152,7 +162,9 @@ class FetchStage(ProcessingStage):
                     frontmatter, content = await self.fetch_and_extract_content(url)
 
                     # Add reference to the source post
-                    frontmatter["found_in_posts"] = [md_file.get_frontmatter_value("id")]
+                    frontmatter["found_in_posts"] = [
+                        md_file.get_frontmatter_value("id")
+                    ]
 
                     # Create and save markdown file
                     url_md = MarkdownFile(frontmatter, content)
@@ -222,7 +234,11 @@ class FetchStage(ProcessingStage):
             current_date = start_date
             while current_date <= end_date:
                 # Check if collect stage has data for this date
-                collect_dir = self.base_path / self.input_stage_name / current_date.strftime("%Y-%m-%d")
+                collect_dir = (
+                    self.base_path
+                    / self.input_stage_name
+                    / current_date.strftime("%Y-%m-%d")
+                )
 
                 if collect_dir.exists():
                     logger.info(f"Scanning posts from {current_date}")
@@ -249,9 +265,13 @@ class FetchStage(ProcessingStage):
                                 try:
                                     # Determine which date directory to save in
                                     # Use the post's publication date
-                                    post_created = md_file.get_frontmatter_value("created_at")
+                                    post_created = md_file.get_frontmatter_value(
+                                        "created_at"
+                                    )
                                     if post_created:
-                                        post_date = datetime.fromisoformat(post_created).date()
+                                        post_date = datetime.fromisoformat(
+                                            post_created
+                                        ).date()
                                     else:
                                         post_date = current_date
 
@@ -259,10 +279,15 @@ class FetchStage(ProcessingStage):
                                     self.ensure_stage_dir(post_date)
 
                                     # Get output path
-                                    output_path = self.get_output_path_for_url(post_date, url)
+                                    output_path = self.get_output_path_for_url(
+                                        post_date, url
+                                    )
 
                                     # Fetch and extract content
-                                    frontmatter, content = await self.fetch_and_extract_content(url)
+                                    (
+                                        frontmatter,
+                                        content,
+                                    ) = await self.fetch_and_extract_content(url)
 
                                     # Track which posts this URL was found in
                                     if "found_in_posts" not in frontmatter:
@@ -282,7 +307,9 @@ class FetchStage(ProcessingStage):
                                         urls_by_date[date_str] = 0
                                     urls_by_date[date_str] += 1
 
-                                    logger.info(f"Fetched new URL: {url} -> {output_path.name}")
+                                    logger.info(
+                                        f"Fetched new URL: {url} -> {output_path.name}"
+                                    )
 
                                 except Exception:
                                     logger.exception(f"Failed to fetch URL {url}")
@@ -306,7 +333,7 @@ class FetchStage(ProcessingStage):
             "total_urls_found": total_urls_found,
             "new_urls_fetched": new_urls_fetched,
             "previously_fetched": len(fetched_urls) - new_urls_fetched,
-            "urls_by_date": urls_by_date
+            "urls_by_date": urls_by_date,
         }
 
         logger.info(f"Fetch stage completed: {result}")
@@ -318,6 +345,8 @@ class FetchStage(ProcessingStage):
 
             # Export all fetched data as a single parquet file with 7 days of history
             run_date = datetime.now(UTC).date()
-            await export_stage_to_parquet("fetch", FetchResult, run_date, self.export_parquet, days_back=7)
+            await export_stage_to_parquet(
+                "fetch", FetchResult, run_date, self.export_parquet, days_back=7
+            )
 
         return result

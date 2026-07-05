@@ -20,7 +20,7 @@ async def export_stage_to_parquet[T: AnalyticsBase](
     export_enabled: bool = True,
     days_back: int = 7,
     upload_to_r2: bool = True,
-    settings: Optional["Settings"] = None
+    settings: Optional["Settings"] = None,
 ) -> None:
     """
     Export stage data to Parquet file containing the last N days of history.
@@ -44,20 +44,29 @@ async def export_stage_to_parquet[T: AnalyticsBase](
         df = model_class.df_from_stage_dir(stage_name, days_back=days_back)
 
         if df.empty:
-            logger.warning(f"No data found for {stage_name} stage in the last {days_back} days")
+            logger.warning(
+                f"No data found for {stage_name} stage in the last {days_back} days"
+            )
             return
 
         # Create output path based on run date
         output_dir = Path("parquet") / stage_name / "by-run-date"
-        output_file = output_dir / f"{target_date.strftime('%Y-%m-%d')}_last_{days_back}_days.parquet"
+        output_file = (
+            output_dir
+            / f"{target_date.strftime('%Y-%m-%d')}_last_{days_back}_days.parquet"
+        )
 
         # Export to Parquet locally
         model_class.to_parquet(df, output_file)
-        logger.info(f"Successfully exported {len(df)} records from last {days_back} days to {output_file}")
+        logger.info(
+            f"Successfully exported {len(df)} records from last {days_back} days to {output_file}"
+        )
 
         # Upload to R2 if enabled
         if upload_to_r2:
-            await upload_parquet_to_r2(output_file, stage_name, target_date, days_back, settings)
+            await upload_parquet_to_r2(
+                output_file, stage_name, target_date, days_back, settings
+            )
 
     except Exception:
         logger.exception(f"Failed to export {stage_name} stage to Parquet")
@@ -68,7 +77,7 @@ async def upload_parquet_to_r2(
     stage_name: str,
     target_date: date,
     days_back: int,
-    settings: Optional["Settings"] = None
+    settings: Optional["Settings"] = None,
 ) -> None:
     """
     Upload a parquet file to R2 storage.
@@ -91,7 +100,9 @@ async def upload_parquet_to_r2(
 
         # Check if R2 is configured
         if not settings.has_r2_credentials:
-            logger.debug(f"R2 credentials not configured, skipping upload of {local_file_path}")
+            logger.debug(
+                f"R2 credentials not configured, skipping upload of {local_file_path}"
+            )
             return
 
         # Create R2 client
@@ -105,7 +116,7 @@ async def upload_parquet_to_r2(
         success = r2_client.upload_file(
             file_path=local_file_path,
             key=r2_key,
-            content_type="application/octet-stream"
+            content_type="application/octet-stream",
         )
 
         if success:
@@ -131,11 +142,14 @@ def get_model_class_for_stage(stage_name: str) -> type[AnalyticsBase]:
     """
     if stage_name == "collect":
         from src.models.post import BlueskyPost
+
         return BlueskyPost
     if stage_name == "fetch":
         from src.models.fetch import FetchResult
+
         return FetchResult
     if stage_name == "evaluate":
         from src.models.evaluation import ArticleEvaluation
+
         return ArticleEvaluation
     raise ValueError(f"Unknown stage: {stage_name}")

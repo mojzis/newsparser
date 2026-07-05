@@ -50,21 +50,21 @@ def _(Path, conn, latest_date):
 
     if latest_date and parquet_dir.exists():
         # Try to load by-run-date files
-        stages = [
-            ("collect", "posts"),
-            ("fetch", "fetched"),
-            ("evaluate", "evaluated")
-        ]
+        stages = [("collect", "posts"), ("fetch", "fetched"), ("evaluate", "evaluated")]
 
         for stage, table_name in stages:
             by_run_date_dir = parquet_dir / stage / "by-run-date"
             if by_run_date_dir.exists():
                 # Look for the most recent file
-                parquet_files = list(by_run_date_dir.glob(f"{latest_date}_last_7_days.parquet"))
+                parquet_files = list(
+                    by_run_date_dir.glob(f"{latest_date}_last_7_days.parquet")
+                )
                 if parquet_files:
                     parquet_file = parquet_files[0]
                     try:
-                        conn.execute(f"CREATE TABLE {table_name} AS SELECT * FROM read_parquet('{parquet_file}')")
+                        conn.execute(
+                            f"CREATE TABLE {table_name} AS SELECT * FROM read_parquet('{parquet_file}')"
+                        )
                         tables_loaded.append((table_name, parquet_file))
                         print(f"✅ Loaded {table_name} from {parquet_file}")
                     except Exception as e:
@@ -92,18 +92,54 @@ def _(conn, mo):
     # Define all test queries
     queries = [
         ("Show all tables", "SHOW TABLES;"),
-        ("First 10 posts", "SELECT id, author, CAST(created_at AS VARCHAR) as created_at, content, engagement_metrics_likes, engagement_metrics_reposts, engagement_metrics_replies, language FROM posts LIMIT 10;"),
-        ("Failed fetches", "SELECT url, fetch_status, error_type, title, CAST(fetched_at AS VARCHAR) as fetched_at FROM fetched WHERE fetch_status = 'error' LIMIT 10;"),
-        ("MCP-related content", "SELECT url, title, content_type, is_mcp_related, relevance_score, CAST(evaluated_at AS VARCHAR) as evaluated_at FROM evaluated WHERE is_mcp_related = true LIMIT 10;"),
-        ("Top posters", "SELECT author, COUNT(*) as post_count FROM posts GROUP BY author ORDER BY post_count DESC LIMIT 20;"),
-        ("Posts per day", "SELECT CAST(DATE(created_at) AS VARCHAR) as date, COUNT(*) as posts FROM posts GROUP BY DATE(created_at) ORDER BY DATE(created_at);"),
-        ("Popular hashtags", "SELECT tag, COUNT(*) as count FROM (SELECT UNNEST(tags) as tag FROM posts) GROUP BY tag ORDER BY count DESC LIMIT 20;"),
-        ("Top domains", "SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetched WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;"),
-        ("Error breakdown", "SELECT error_type, COUNT(*) as count FROM fetched WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;"),
-        ("Content types", "SELECT content_type, COUNT(*) as count FROM evaluated GROUP BY content_type ORDER BY count DESC;"),
-        ("Languages", "SELECT language, COUNT(*) as count FROM evaluated GROUP BY language ORDER BY count DESC;"),
-        ("Top MCP content", "SELECT title, relevance_score, perex FROM evaluated WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;"),
-        ("Authors sharing MCP content", "SELECT p.author, COUNT(DISTINCT e.url) as mcp_articles FROM posts p JOIN fetched f ON f.url = ANY(p.links) JOIN evaluated e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY p.author ORDER BY mcp_articles DESC LIMIT 20;")
+        (
+            "First 10 posts",
+            "SELECT id, author, CAST(created_at AS VARCHAR) as created_at, content, engagement_metrics_likes, engagement_metrics_reposts, engagement_metrics_replies, language FROM posts LIMIT 10;",
+        ),
+        (
+            "Failed fetches",
+            "SELECT url, fetch_status, error_type, title, CAST(fetched_at AS VARCHAR) as fetched_at FROM fetched WHERE fetch_status = 'error' LIMIT 10;",
+        ),
+        (
+            "MCP-related content",
+            "SELECT url, title, content_type, is_mcp_related, relevance_score, CAST(evaluated_at AS VARCHAR) as evaluated_at FROM evaluated WHERE is_mcp_related = true LIMIT 10;",
+        ),
+        (
+            "Top posters",
+            "SELECT author, COUNT(*) as post_count FROM posts GROUP BY author ORDER BY post_count DESC LIMIT 20;",
+        ),
+        (
+            "Posts per day",
+            "SELECT CAST(DATE(created_at) AS VARCHAR) as date, COUNT(*) as posts FROM posts GROUP BY DATE(created_at) ORDER BY DATE(created_at);",
+        ),
+        (
+            "Popular hashtags",
+            "SELECT tag, COUNT(*) as count FROM (SELECT UNNEST(tags) as tag FROM posts) GROUP BY tag ORDER BY count DESC LIMIT 20;",
+        ),
+        (
+            "Top domains",
+            "SELECT domain, COUNT(*) as count, AVG(word_count) as avg_words FROM fetched WHERE fetch_status = 'success' GROUP BY domain ORDER BY count DESC LIMIT 20;",
+        ),
+        (
+            "Error breakdown",
+            "SELECT error_type, COUNT(*) as count FROM fetched WHERE fetch_status = 'error' GROUP BY error_type ORDER BY count DESC;",
+        ),
+        (
+            "Content types",
+            "SELECT content_type, COUNT(*) as count FROM evaluated GROUP BY content_type ORDER BY count DESC;",
+        ),
+        (
+            "Languages",
+            "SELECT language, COUNT(*) as count FROM evaluated GROUP BY language ORDER BY count DESC;",
+        ),
+        (
+            "Top MCP content",
+            "SELECT title, relevance_score, perex FROM evaluated WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;",
+        ),
+        (
+            "Authors sharing MCP content",
+            "SELECT p.author, COUNT(DISTINCT e.url) as mcp_articles FROM posts p JOIN fetched f ON f.url = ANY(p.links) JOIN evaluated e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY p.author ORDER BY mcp_articles DESC LIMIT 20;",
+        ),
     ]
 
     # Test all queries and collect results
@@ -113,11 +149,17 @@ def _(conn, mo):
         try:
             result = conn.execute(query).fetchall()
             if len(result) > 0:
-                results.append(f"✅ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: {len(result)} rows returned\n")
+                results.append(
+                    f"✅ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: {len(result)} rows returned\n"
+                )
             else:
-                results.append(f"⚪ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: 0 rows returned\n")
+                results.append(
+                    f"⚪ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: 0 rows returned\n"
+                )
         except Exception as e:
-            results.append(f"❌ **Query {i}: {name}**\n   - Query: `{query}`\n   - Error: {e!s}\n")
+            results.append(
+                f"❌ **Query {i}: {name}**\n   - Query: `{query}`\n   - Error: {e!s}\n"
+            )
 
     # Prepare summary
     total_queries = len(queries)
@@ -172,7 +214,9 @@ def _(conn, mo):
             try:
                 # Get first 3 rows as sample
                 result = conn.execute(f"SELECT * FROM {table} LIMIT 3").df()
-                sample_data.append(f"### Sample data from {table} ({len(result)} rows shown)")
+                sample_data.append(
+                    f"### Sample data from {table} ({len(result)} rows shown)"
+                )
                 sample_data.append("```")
                 sample_data.append(result.to_string())
                 sample_data.append("```")

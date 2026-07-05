@@ -56,7 +56,7 @@ def _(mo, r2_client):
         file_patterns = {
             "posts": f"parquet/collect/by-run-date/{date_str}_last_7_days.parquet",
             "fetched": f"parquet/fetch/by-run-date/{date_str}_last_7_days.parquet",
-            "evaluated": f"parquet/evaluate/by-run-date/{date_str}_last_7_days.parquet"
+            "evaluated": f"parquet/evaluate/by-run-date/{date_str}_last_7_days.parquet",
         }
 
         for file_type, file_path in file_patterns.items():
@@ -69,9 +69,9 @@ def _(mo, r2_client):
 
     files_status = f"""
     **Available Files for {today.strftime("%Y-%m-%d")} / {yesterday.strftime("%Y-%m-%d")}:**
-    - Posts: {'✅' if 'posts' in available_files else '❌'}
-    - Fetched: {'✅' if 'fetched' in available_files else '❌'}
-    - Evaluated: {'✅' if 'evaluated' in available_files else '❌'}
+    - Posts: {"✅" if "posts" in available_files else "❌"}
+    - Fetched: {"✅" if "fetched" in available_files else "❌"}
+    - Evaluated: {"✅" if "evaluated" in available_files else "❌"}
     """
 
     mo.md(files_status)
@@ -81,7 +81,6 @@ def _(mo, r2_client):
 @app.cell
 def _(file_patterns):
     file_patterns
-
 
 
 @app.cell

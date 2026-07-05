@@ -33,10 +33,7 @@ class EvaluationProcessor:
         self.evaluator = AnthropicEvaluator(settings)
 
     async def evaluate_posts(
-        self,
-        posts: list,
-        target_date: date | None = None,
-        force: bool = False
+        self, posts: list, target_date: date | None = None, force: bool = False
     ) -> tuple[int, int]:
         """
         Evaluate articles from posts, skipping already processed URLs.
@@ -88,7 +85,9 @@ class EvaluationProcessor:
                     fetch_result = await self.fetcher.fetch_article(url)
 
                     if isinstance(fetch_result, ContentError):
-                        logger.warning(f"Failed to fetch {url}: {fetch_result.error_message}")
+                        logger.warning(
+                            f"Failed to fetch {url}: {fetch_result.error_message}"
+                        )
                         # Still track in registry as attempted
                         registry.add_url(url, post_id, author)
                         continue
@@ -97,7 +96,9 @@ class EvaluationProcessor:
                     extract_result = self.extractor.extract_content(fetch_result)
 
                     if isinstance(extract_result, ContentError):
-                        logger.warning(f"Failed to extract {url}: {extract_result.error_message}")
+                        logger.warning(
+                            f"Failed to extract {url}: {extract_result.error_message}"
+                        )
                         # Still track in registry as attempted
                         registry.add_url(url, post_id, author)
                         continue
@@ -110,9 +111,7 @@ class EvaluationProcessor:
                     # Add to registry and mark as evaluated
                     registry.add_url(url, post_id, author)
                     registry.mark_evaluated(
-                        url,
-                        evaluation.is_mcp_related,
-                        evaluation.relevance_score
+                        url, evaluation.is_mcp_related, evaluation.relevance_score
                     )
 
                 except Exception:
@@ -135,9 +134,7 @@ class EvaluationProcessor:
         return len(evaluations), len(registry.df)
 
     async def _store_evaluations(
-        self,
-        evaluations: list[ArticleEvaluation],
-        target_date: date
+        self, evaluations: list[ArticleEvaluation], target_date: date
     ) -> bool:
         """Store evaluations to R2."""
         try:
@@ -157,7 +154,9 @@ class EvaluationProcessor:
 
             # Convert list columns to JSON strings
             if "key_topics" in df.columns:
-                df["key_topics"] = df["key_topics"].apply(lambda x: json.dumps(x) if x else "[]")
+                df["key_topics"] = df["key_topics"].apply(
+                    lambda x: json.dumps(x) if x else "[]"
+                )
 
             # Save to temporary parquet file
             with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
@@ -167,9 +166,7 @@ class EvaluationProcessor:
                 # Upload to R2
                 file_path = FileManager.get_evaluations_path(target_date)
                 success = self.r2_client.upload_file(
-                    tmp_path,
-                    file_path,
-                    content_type="application/octet-stream"
+                    tmp_path, file_path, content_type="application/octet-stream"
                 )
 
                 # Clean up
@@ -213,15 +210,21 @@ class EvaluationProcessor:
                                 eval_dict[field] = eval_dict[field].to_pydatetime()
 
                         # Convert JSON strings back to lists
-                        if "key_topics" in eval_dict and isinstance(eval_dict["key_topics"], str):
-                            eval_dict["key_topics"] = json.loads(eval_dict["key_topics"])
+                        if "key_topics" in eval_dict and isinstance(
+                            eval_dict["key_topics"], str
+                        ):
+                            eval_dict["key_topics"] = json.loads(
+                                eval_dict["key_topics"]
+                            )
 
                         evaluation = ArticleEvaluation.model_validate(eval_dict)
                         evaluations.append(evaluation)
                     except Exception as e:
                         logger.warning(f"Failed to parse evaluation: {e}")
 
-                logger.info(f"Retrieved {len(evaluations)} evaluations for {target_date}")
+                logger.info(
+                    f"Retrieved {len(evaluations)} evaluations for {target_date}"
+                )
                 return evaluations
 
         except Exception:
