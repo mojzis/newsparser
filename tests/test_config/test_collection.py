@@ -1,9 +1,11 @@
 from pathlib import Path
 
 import pytest
+import yaml
 
 from src.config.collection import load_collection
 from src.config.config_manager import ConfigManager
+from src.config.searches import SearchDefinition
 
 
 class TestLoadCollection:
@@ -18,6 +20,28 @@ class TestLoadCollection:
             collection.topic.min_relevance_score
             == app_config.topic.min_relevance_score
         )
+
+        assert collection.ui.site_title == app_config.ui.site_title
+        assert collection.ui.site_tagline == app_config.ui.site_tagline
+        assert collection.ui.theme == app_config.ui.theme
+
+        assert (
+            collection.evaluation.prompt_config
+            == app_config.processing.default_prompt_config
+        )
+        assert (
+            collection.evaluation.model_config_name
+            == app_config.processing.default_model_config
+        )
+
+        with open("config/base/searches.yaml", encoding="utf-8") as f:
+            base_searches = yaml.safe_load(f)["searches"]
+        assert set(collection.searches.searches.keys()) == set(base_searches.keys())
+        for key, base_search in base_searches.items():
+            assert (
+                collection.searches.searches[key].model_dump()
+                == SearchDefinition(**base_search).model_dump()
+            )
 
     def test_mcp_paths(self):
         collection = load_collection("mcp")
