@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Any, List, Optional
+from typing import Any
 
 from atproto import AsyncClient, models
 from atproto.exceptions import AtProtocolError
@@ -91,7 +91,7 @@ class BlueskyClient:
             BlueskyPost model instance
         """
         # Handle different post data structures
-        if hasattr(post_data, 'post'):
+        if hasattr(post_data, "post"):
             # FeedViewPost structure
             post = post_data.post
         else:
@@ -156,7 +156,7 @@ class BlueskyClient:
                 "limit": limit,
                 "sort": sort,
             }
-            
+
             if cursor:
                 params["cursor"] = cursor
 
@@ -170,9 +170,9 @@ class BlueskyClient:
                 except Exception as e:
                     # Try to get URI for logging, but handle different post structures
                     try:
-                        if hasattr(post_data, 'post'):
+                        if hasattr(post_data, "post"):
                             uri = post_data.post.uri
-                        elif hasattr(post_data, 'uri'):
+                        elif hasattr(post_data, "uri"):
                             uri = post_data.uri
                         else:
                             uri = "unknown"
@@ -211,21 +211,21 @@ class BlueskyClient:
             # Build query using appropriate builder
             builder = QueryBuilderFactory.create(search_definition.query_syntax)
             query = builder.build_query(search_definition)
-            
+
             # Validate query
             is_valid, error_msg = builder.validate_query(query)
             if not is_valid:
                 raise ValueError(f"Invalid query: {error_msg}")
-            
+
             logger.info(f"Searching with definition '{search_definition.name}' using {search_definition.query_syntax} syntax: {query}")
-            
+
             return await self.search_posts(
                 query=query,
                 limit=limit,
                 cursor=cursor,
                 sort=search_definition.sort
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to search with definition '{search_definition.name}': {e}")
             return [], None
@@ -235,7 +235,7 @@ class BlueskyClient:
     ) -> tuple[list[BlueskyPost], str | None]:
         """
         Search for posts mentioning "mcp" or related terms.
-        
+
         Note: This method is deprecated. Use search_by_definition instead.
 
         Args:
@@ -288,7 +288,7 @@ class BlueskyClient:
     async def get_recent_mcp_posts(self, max_posts: int = 100) -> list[BlueskyPost]:
         """
         Get recent posts mentioning MCP, handling pagination.
-        
+
         Note: This method is deprecated. Use get_posts_by_definition instead.
 
         Args:
@@ -320,20 +320,20 @@ class BlueskyClient:
 
         logger.info(f"Collected {len(all_posts)} MCP-related posts")
         return all_posts
-    
-    async def get_post_by_uri(self, uri: str) -> Optional[Any]:
+
+    async def get_post_by_uri(self, uri: str) -> Any | None:
         """
         Fetch a single post by its AT protocol URI.
-        
+
         Args:
             uri: AT protocol URI (e.g., at://did:plc:xyz/app.bsky.feed.post/abc123)
                  or simplified format (at://handle/app.bsky.feed.post/abc123)
-        
+
         Returns:
             Post data from atproto API or None if not found
         """
         self._ensure_authenticated()
-        
+
         try:
             # Handle simplified URI format with handle instead of DID
             if uri.startswith("at://") and not uri.startswith("at://did:"):
@@ -343,88 +343,86 @@ class BlueskyClient:
                     handle = parts[2]
                     # Try to resolve handle to get proper URI
                     # For now, let's try the get_posts method with this URI format
-                    pass
-            
+
             # Use the get_posts method from atproto
             response = await self.client.app.bsky.feed.get_posts(params={"uris": [uri]})
-            
+
             if response.posts and len(response.posts) > 0:
                 return response.posts[0]
-            else:
-                logger.debug(f"No post found for URI: {uri}")
-                return None
-                
+            logger.debug(f"No post found for URI: {uri}")
+            return None
+
         except Exception as e:
             logger.warning(f"Failed to fetch post by URI {uri}: {e}")
             return None
-    
+
     async def get_thread_by_uri(
-        self, 
-        uri: str, 
-        depth: int = 6, 
+        self,
+        uri: str,
+        depth: int = 6,
         parent_height: int = 80
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """
         Get thread data for a specific post URI.
-        
+
         Args:
             uri: Post URI to fetch thread for
             depth: How deep to go in replies (default 6)
             parent_height: How far up parent chain (default 80)
-            
+
         Returns:
             Thread response from atproto, or None if failed
         """
         self._ensure_authenticated()
-        
+
         try:
             params = models.AppBskyFeedGetPostThread.Params(
                 uri=uri,
                 depth=depth,
                 parent_height=parent_height
             )
-            
+
             response = await self.client.app.bsky.feed.get_post_thread(params)
             logger.info(f"Successfully fetched thread for URI: {uri}")
             return response
-            
+
         except AtProtocolError as e:
             logger.error(f"Failed to fetch thread for {uri}: {e}")
             return None
         except Exception as e:
             logger.exception(f"Unexpected error fetching thread for {uri}: {e}")
             return None
-    
+
     async def get_threads_for_posts(
-        self, 
-        posts: List[BlueskyPost], 
-        depth: int = 6, 
+        self,
+        posts: list[BlueskyPost],
+        depth: int = 6,
         parent_height: int = 80
-    ) -> List[BlueskyPost]:
+    ) -> list[BlueskyPost]:
         """
         Get complete threads for a list of posts.
-        
+
         Args:
             posts: List of posts to fetch threads for
             depth: Thread depth to fetch
             parent_height: Parent chain height to fetch
-            
+
         Returns:
             List of all posts from all threads (deduplicated)
         """
         from src.bluesky.thread_collector import ThreadCollector
-        
+
         self._ensure_authenticated()
-        
+
         try:
             collector = ThreadCollector(self.client)
             thread_posts = await collector.collect_threads_from_search(
                 posts, depth, parent_height
             )
-            
+
             logger.info(f"Collected {len(thread_posts)} posts from {len(posts)} initial posts")
             return thread_posts
-            
+
         except Exception as e:
             logger.exception(f"Error collecting threads: {e}")
             return posts  # Return original posts if thread collection fails

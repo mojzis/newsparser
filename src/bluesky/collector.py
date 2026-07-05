@@ -1,6 +1,6 @@
-from datetime import date, datetime
 import json
 import tempfile
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -76,7 +76,7 @@ class BlueskyDataCollector:
     ) -> list[BlueskyPost]:
         """
         Collect MCP-related posts for a specific date.
-        
+
         Note: This method is deprecated. Use collect_posts_by_definition instead.
 
         Args:
@@ -134,32 +134,32 @@ class BlueskyDataCollector:
 
             # Convert to DataFrame
             df = pd.DataFrame(posts_data)
-            
+
             # Handle nested fields by converting to JSON strings for Parquet compatibility
-            if 'links' in df.columns:
+            if "links" in df.columns:
                 # Convert HttpUrl objects to strings first
-                df['links'] = df['links'].apply(lambda x: json.dumps([str(url) for url in x] if x else []))
-            if 'tags' in df.columns:
-                df['tags'] = df['tags'].apply(lambda x: json.dumps(x) if x else '[]')
-            if 'engagement_metrics' in df.columns:
-                df['engagement_metrics'] = df['engagement_metrics'].apply(lambda x: json.dumps(x) if x else '{}')
-            
+                df["links"] = df["links"].apply(lambda x: json.dumps([str(url) for url in x] if x else []))
+            if "tags" in df.columns:
+                df["tags"] = df["tags"].apply(lambda x: json.dumps(x) if x else "[]")
+            if "engagement_metrics" in df.columns:
+                df["engagement_metrics"] = df["engagement_metrics"].apply(lambda x: json.dumps(x) if x else "{}")
+
             # Ensure datetime columns are properly typed
-            if 'created_at' in df.columns:
-                df['created_at'] = pd.to_datetime(df['created_at'], utc=True)
+            if "created_at" in df.columns:
+                df["created_at"] = pd.to_datetime(df["created_at"], utc=True)
 
             # Save to temporary parquet file
-            with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
+            with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
                 df.to_parquet(tmp.name, index=False)
                 tmp_path = Path(tmp.name)
-                
+
                 # Upload to R2
                 success = self.r2_client.upload_file(
                     tmp_path,
                     file_path,
                     content_type="application/octet-stream"
                 )
-                
+
                 # Clean up temp file
                 tmp_path.unlink()
 
@@ -174,7 +174,7 @@ class BlueskyDataCollector:
             return False
 
     async def collect_and_store_by_definition(
-        self, search_definition: SearchDefinition, target_date: date | None = None, 
+        self, search_definition: SearchDefinition, target_date: date | None = None,
         max_posts: int = 100, track_urls: bool = False
     ) -> tuple[int, bool]:
         """
@@ -214,11 +214,11 @@ class BlueskyDataCollector:
         )
 
         return len(posts), storage_success
-    
+
     async def _track_urls_from_posts(self, posts: list[BlueskyPost]) -> None:
         """
         Extract and track URLs from posts in the registry.
-        
+
         Args:
             posts: List of posts to extract URLs from
         """
@@ -228,26 +228,26 @@ class BlueskyDataCollector:
             if registry is None:
                 registry = URLRegistry()
                 logger.info("Created new URL registry")
-            
+
             # Track URLs from each post
             new_urls = 0
             total_urls = 0
-            
+
             for post in posts:
                 for url in post.links:
                     total_urls += 1
                     is_new = registry.add_url(url, post.id, post.author)
                     if is_new:
                         new_urls += 1
-            
+
             logger.info(f"Tracked {total_urls} URLs, {new_urls} new")
-            
+
             # Upload updated registry
             if total_urls > 0:
                 success = self.r2_client.upload_url_registry(registry)
                 if not success:
                     logger.error("Failed to upload updated URL registry")
-                    
+
         except Exception as e:
             logger.exception(f"Error tracking URLs: {e}")
 
@@ -256,7 +256,7 @@ class BlueskyDataCollector:
     ) -> tuple[int, bool]:
         """
         Collect and store posts in one operation.
-        
+
         Note: This method is deprecated. Use collect_and_store_by_definition instead.
 
         Args:
@@ -307,46 +307,46 @@ class BlueskyDataCollector:
             # Try Parquet first
             if self.r2_client.file_exists(file_path):
                 logger.info(f"Reading posts from Parquet: {file_path}")
-                
+
                 # Download to temp file
-                with tempfile.NamedTemporaryFile(suffix='.parquet', delete=False) as tmp:
+                with tempfile.NamedTemporaryFile(suffix=".parquet", delete=False) as tmp:
                     if self.r2_client.download_file(file_path, tmp.name):
                         # Read parquet
                         df = pd.read_parquet(tmp.name)
-                        
+
                         # Clean up temp file
                         Path(tmp.name).unlink()
-                        
+
                         # Convert JSON strings back to lists/dicts
-                        if 'links' in df.columns:
-                            df['links'] = df['links'].apply(lambda x: json.loads(x) if x else [])
-                        if 'tags' in df.columns:
-                            df['tags'] = df['tags'].apply(lambda x: json.loads(x) if x else [])
-                        if 'engagement_metrics' in df.columns:
-                            df['engagement_metrics'] = df['engagement_metrics'].apply(lambda x: json.loads(x) if x else {})
-                        
+                        if "links" in df.columns:
+                            df["links"] = df["links"].apply(lambda x: json.loads(x) if x else [])
+                        if "tags" in df.columns:
+                            df["tags"] = df["tags"].apply(lambda x: json.loads(x) if x else [])
+                        if "engagement_metrics" in df.columns:
+                            df["engagement_metrics"] = df["engagement_metrics"].apply(lambda x: json.loads(x) if x else {})
+
                         # Convert to BlueskyPost models
                         posts = []
                         for _, row in df.iterrows():
                             try:
                                 post_data = row.to_dict()
                                 # Handle datetime
-                                if 'created_at' in post_data and pd.notna(post_data['created_at']):
-                                    post_data['created_at'] = post_data['created_at'].to_pydatetime()
-                                
+                                if "created_at" in post_data and pd.notna(post_data["created_at"]):
+                                    post_data["created_at"] = post_data["created_at"].to_pydatetime()
+
                                 post = BlueskyPost.model_validate(post_data)
                                 posts.append(post)
                             except Exception as e:
                                 logger.warning(f"Failed to parse stored post: {e}")
                                 continue
-                        
+
                         logger.info(f"Retrieved {len(posts)} posts from Parquet for {target_date}")
                         return posts
-            
+
             # Fall back to JSON for backward compatibility
             elif self.r2_client.file_exists(json_path):
                 logger.info(f"Reading posts from JSON (legacy): {json_path}")
-                
+
                 # Download from R2
                 data = self.r2_client.download_bytes(json_path)
                 if not data:
@@ -373,7 +373,7 @@ class BlueskyDataCollector:
 
                 logger.info(f"Retrieved {len(posts)} posts from JSON for {target_date}")
                 return posts
-            
+
             else:
                 logger.warning(f"No stored posts found for {target_date}")
                 return []
@@ -402,7 +402,7 @@ class BlueskyDataCollector:
     def get_stored_posts_sync(self, target_date: date) -> list[BlueskyPost]:
         """
         Synchronous version of get_stored_posts for use in notebooks/synchronous contexts.
-        
+
         Args:
             target_date: Date to retrieve posts for
 
@@ -410,7 +410,7 @@ class BlueskyDataCollector:
             List of BlueskyPost instances
         """
         import asyncio
-        
+
         try:
             # Check if we're in an event loop
             try:

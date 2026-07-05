@@ -1,11 +1,11 @@
 import re
 from datetime import datetime
-from typing import Any, Optional, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator, model_validator
 
-from src.utils.language_detection import LanguageType, detect_language_from_text
 from src.models.analytics import AnalyticsBase
+from src.utils.language_detection import LanguageType, detect_language_from_text
 
 ThreadPosition = Literal["root", "reply", "nested_reply"]
 
@@ -33,18 +33,18 @@ class BlueskyPost(AnalyticsBase):
     engagement_metrics: EngagementMetrics = Field(
         ..., description="Engagement statistics"
     )
-    
+
     # Thread relationship fields
-    thread_root_uri: Optional[str] = Field(
+    thread_root_uri: str | None = Field(
         default=None, description="URI of the root post in this thread"
     )
-    thread_position: Optional[ThreadPosition] = Field(
+    thread_position: ThreadPosition | None = Field(
         default=None, description="Position of this post within the thread"
     )
-    parent_post_uri: Optional[str] = Field(
+    parent_post_uri: str | None = Field(
         default=None, description="URI of the direct parent post (for replies)"
     )
-    thread_depth: Optional[int] = Field(
+    thread_depth: int | None = Field(
         default=None, ge=0, description="Nesting level within the thread (0=root)"
     )
 
@@ -72,49 +72,49 @@ class BlueskyPost(AnalyticsBase):
                     detected_language = detect_language_from_text(content)
                     data["language"] = detected_language
         return data
-    
+
     @model_validator(mode="after")
     def extract_tags_from_content(self) -> "BlueskyPost":
         """Extract hashtags from content if not explicitly provided."""
         # Extract hashtags if not already populated
         if not self.tags and self.content:
             # Find hashtags (# followed by word characters)
-            hashtag_pattern = r'#(\w+)'
+            hashtag_pattern = r"#(\w+)"
             hashtags = re.findall(hashtag_pattern, self.content, re.IGNORECASE)
-            
+
             # Remove duplicates and convert to lowercase for consistency
             unique_tags = list(dict.fromkeys(tag.lower() for tag in hashtags))
-            
+
             # Update tags field
             self.tags = unique_tags
-        
+
         return self
 
     @staticmethod
     def extract_hashtags_from_text(text: str) -> list[str]:
         """Utility method to extract hashtags from any text."""
-        hashtag_pattern = r'#(\w+)'
+        hashtag_pattern = r"#(\w+)"
         hashtags = re.findall(hashtag_pattern, text, re.IGNORECASE)
         return list(dict.fromkeys(tag.lower() for tag in hashtags))
 
     def detect_language(self) -> LanguageType:
         """Manually detect language from post content."""
         return detect_language_from_text(self.content)
-    
+
     def is_thread_root(self) -> bool:
         """Check if this post is the root of a thread."""
         return self.thread_position == "root"
-    
+
     def is_reply(self) -> bool:
         """Check if this post is a reply to another post."""
         return self.thread_position in ("reply", "nested_reply")
-    
+
     def set_thread_metadata(
-        self, 
-        root_uri: str, 
-        position: ThreadPosition, 
+        self,
+        root_uri: str,
+        position: ThreadPosition,
         depth: int,
-        parent_uri: Optional[str] = None
+        parent_uri: str | None = None
     ) -> "BlueskyPost":
         """Set thread relationship metadata for this post."""
         self.thread_root_uri = root_uri

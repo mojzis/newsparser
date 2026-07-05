@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
@@ -19,7 +19,7 @@ class ArticleEvaluation(BaseModel):
         ..., min_length=1, description="Key MCP-related topics identified in the article"
     )
     evaluation_timestamp: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None), description="When the evaluation was performed"
+        default_factory=lambda: datetime.now(UTC).replace(tzinfo=None), description="When the evaluation was performed"
     )
 
     @field_validator("content_summary")

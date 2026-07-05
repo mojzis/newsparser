@@ -1,5 +1,5 @@
 """Data models for content processing."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, HttpUrl
@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, HttpUrl
 
 class ExtractedContent(BaseModel):
     """Content extracted from an article."""
-    
+
     url: HttpUrl
     title: str | None = None
     content_markdown: str = Field(..., description="Article content in Markdown format")
@@ -17,25 +17,25 @@ class ExtractedContent(BaseModel):
     domain: str = Field(..., description="Domain of the URL")
     author: str | None = Field(default=None, description="Article author if available")
     medium: str | None = Field(default=None, description="Publication/source name")
-    extraction_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
-    
+    extraction_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
+
 
 
 class ArticleContent(BaseModel):
     """Raw article content from HTTP fetch."""
-    
+
     url: HttpUrl
     html: str
     status_code: int
     headers: dict[str, Any] = Field(default_factory=dict)
-    fetch_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
-    
+    fetch_timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))
+
 
 
 class ContentError(BaseModel):
     """Error information for failed content processing."""
-    
+
     url: HttpUrl
     error_type: str = Field(..., description="Type of error (fetch, extraction, etc.)")
     error_message: str = Field(..., description="Detailed error message")
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC).replace(tzinfo=None))

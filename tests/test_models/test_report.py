@@ -21,14 +21,14 @@ class TestReportArticle:
             "content_type": "article",
             "language": "en"
         }
-        
+
         article = ReportArticle.from_post_and_evaluation(
             post_id="abc123",
             author="user.bsky.social",
             created_at=datetime(2024, 12, 6, 15, 45),
             evaluation=evaluation
         )
-        
+
         assert str(article.url) == "https://example.com/article"
         assert article.title == "Test Article"
         assert article.perex == "A witty summary of the article"
@@ -37,7 +37,7 @@ class TestReportArticle:
         assert article.timestamp == "3:45 PM"
         assert article.relevance_score == 0.85
         assert article.domain == "example.com"
-    
+
     def test_fallback_to_summary_when_no_perex(self):
         """Test falling back to summary when perex is not available."""
         evaluation = {
@@ -46,18 +46,18 @@ class TestReportArticle:
             "relevance_score": 0.85,
             "domain": "example.com"
         }
-        
+
         article = ReportArticle.from_post_and_evaluation(
             post_id="abc123",
             author="user.bsky.social",
             created_at=datetime(2024, 12, 6, 9, 30),
             evaluation=evaluation
         )
-        
+
         assert article.perex == "A regular summary"
         assert article.title == "Untitled"
         assert article.timestamp == "9:30 AM"
-    
+
     def test_create_from_at_protocol_uri(self):
         """Test creating ReportArticle with AT protocol URI."""
         evaluation = {
@@ -69,17 +69,17 @@ class TestReportArticle:
             "content_type": "blog post",
             "language": "es"
         }
-        
+
         article = ReportArticle.from_post_and_evaluation(
             post_id="at://did:plc:cnkcdjrvp5b27gqmdsbpbn5o/app.bsky.feed.post/3lrivlab6qc2x",
             author="james.montemagno.com",
             created_at=datetime(2024, 12, 6, 15, 45),
             evaluation=evaluation
         )
-        
+
         # Should extract just the post ID from the AT protocol URI
         assert str(article.bluesky_url) == "https://bsky.app/profile/james.montemagno.com/post/3lrivlab6qc2x"
-    
+
     def test_validation(self):
         """Test ReportArticle validation."""
         # Valid article
@@ -98,7 +98,7 @@ class TestReportArticle:
             created_at=datetime(2024, 12, 6, 15, 45)
         )
         assert article.relevance_score == 0.5
-        
+
         # Invalid relevance score
         with pytest.raises(ValidationError):
             ReportArticle(
@@ -146,24 +146,24 @@ class TestReportDay:
                 created_at=datetime(2024, 12, 6, 14, 0)
             )
         ]
-        
+
         report_day = ReportDay.create(
             report_date=date(2024, 12, 6),
             articles=articles
         )
-        
+
         assert report_day.date == date(2024, 12, 6)
         assert report_day.date_formatted == "December 6, 2024"
         assert len(report_day.articles) == 2
         assert report_day.article_count == 2
-    
+
     def test_empty_articles(self):
         """Test ReportDay with no articles."""
         report_day = ReportDay.create(
             report_date=date(2024, 12, 6),
             articles=[]
         )
-        
+
         assert report_day.article_count == 0
         assert report_day.articles == []
 
@@ -176,18 +176,18 @@ class TestArchiveLink:
             report_date=date(2024, 12, 6),
             article_count=5
         )
-        
+
         # The formatting will depend on current year, but path should be consistent
         assert link.path == "reports/2024-12-06/report.html"
         assert link.article_count == 5
-    
+
     def test_create_previous_year(self):
         """Test creating archive link for previous year."""
         link = ArchiveLink.create(
             report_date=date(2023, 12, 6),
             article_count=3
         )
-        
+
         assert link.formatted == "December 6, 2023"  # Include year
         assert link.path == "reports/2023-12-06/report.html"
         assert link.article_count == 3
@@ -212,17 +212,17 @@ class TestHomepageData:
                 created_at=datetime(2024, 12, 6, 13, 0)
             )
         ]
-        
+
         archive_dates = [
             ArchiveLink.create(date(2024, 12, 5), 10),
             ArchiveLink.create(date(2024, 12, 4), 8)
         ]
-        
+
         homepage = HomepageData.create(
             today_articles=articles,
             archive_dates=archive_dates
         )
-        
+
         assert homepage.today  # Should be formatted date string
         assert len(homepage.today_articles) == 1
         assert len(homepage.archive_dates) == 2

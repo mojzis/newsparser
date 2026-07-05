@@ -22,23 +22,18 @@ def _(mo):
     Make sure you have your R2 credentials configured in your environment variables.
     """
     )
-    return
 
 
 @app.cell
 def _():
     # Import required libraries
-    import asyncio
-    import json
-    from datetime import date, datetime, timedelta
-    from typing import List
+    from datetime import date, datetime
 
     import pandas as pd
 
     # Import our modules
     from src.bluesky.collector import BlueskyDataCollector
     from src.config.settings import get_settings
-    from src.models.post import BlueskyPost
 
 
     return BlueskyDataCollector, date, datetime, get_settings, pd
@@ -108,17 +103,17 @@ def _(mo, pd, posts):
     posts_data = []
     for post in posts:
         posts_data.append({
-            'id': post.id,
-            'author': post.author,
-            'content': post.content,
-            'created_at': post.created_at,
-            'likes': post.engagement_metrics.likes,
-            'reposts': post.engagement_metrics.reposts,
-            'replies': post.engagement_metrics.replies,
-            'total_engagement': post.engagement_metrics.likes + post.engagement_metrics.reposts + post.engagement_metrics.replies,
-            'has_links': len(post.links) > 0,
-            'link_count': len(post.links),
-            'content_length': len(post.content),
+            "id": post.id,
+            "author": post.author,
+            "content": post.content,
+            "created_at": post.created_at,
+            "likes": post.engagement_metrics.likes,
+            "reposts": post.engagement_metrics.reposts,
+            "replies": post.engagement_metrics.replies,
+            "total_engagement": post.engagement_metrics.likes + post.engagement_metrics.reposts + post.engagement_metrics.replies,
+            "has_links": len(post.links) > 0,
+            "link_count": len(post.links),
+            "content_length": len(post.content),
             "tags": post.tags
         })
 
@@ -131,7 +126,6 @@ def _(mo, pd, posts):
 @app.cell
 def _(df, mo):
     mo.ui.table(df,page_size=20)
-    return
 
 
 @app.cell
@@ -142,25 +136,25 @@ def _(df, mo):
             data={
                 "Metric": [
                     "Total Posts",
-                    "Unique Authors", 
+                    "Unique Authors",
                     "Avg Content Length",
                     "Posts with Links",
                     "Total Likes",
-                    "Total Reposts", 
+                    "Total Reposts",
                     "Total Replies",
                     "Most Active Author",
                     "Highest Engagement Post"
                 ],
                 "Value": [
                     len(df),
-                    df['author'].nunique(),
+                    df["author"].nunique(),
                     f"{df['content_length'].mean():.1f} chars",
                     f"{df['has_links'].sum()} ({df['has_links'].mean()*100:.1f}%)",
-                    df['likes'].sum(),
-                    df['reposts'].sum(),
-                    df['replies'].sum(),
-                    df['author'].value_counts().index[0] if len(df) > 0 else "N/A",
-                    df.loc[df['total_engagement'].idxmax(), 'author'] if len(df) > 0 else "N/A"
+                    df["likes"].sum(),
+                    df["reposts"].sum(),
+                    df["replies"].sum(),
+                    df["author"].value_counts().index[0] if len(df) > 0 else "N/A",
+                    df.loc[df["total_engagement"].idxmax(), "author"] if len(df) > 0 else "N/A"
                 ]
             },
             label="📊 Data Overview"
@@ -168,14 +162,13 @@ def _(df, mo):
         stats_table
     else:
         mo.md("No statistics to display.")
-    return
 
 
 @app.cell
 def _(df, mo):
     # Top authors by post count
     if not df.empty:
-        top_authors = df['author'].value_counts().head(10)
+        top_authors = df["author"].value_counts().head(10)
 
         author_table_data = {
             "Author": top_authors.index.tolist(),
@@ -189,21 +182,20 @@ def _(df, mo):
         author_table
     else:
         mo.md("No author data to display.")
-    return
 
 
 @app.cell
 def _(df, mo):
     # Engagement analysis
     if not df.empty:
-        engagement_stats = df[['likes', 'reposts', 'replies', 'total_engagement']].describe()
+        engagement_stats = df[["likes", "reposts", "replies", "total_engagement"]].describe()
 
         engagement_table_data = {
             "Metric": engagement_stats.index.tolist(),
-            "Likes": engagement_stats['likes'].round(2).tolist(),
-            "Reposts": engagement_stats['reposts'].round(2).tolist(), 
-            "Replies": engagement_stats['replies'].round(2).tolist(),
-            "Total": engagement_stats['total_engagement'].round(2).tolist()
+            "Likes": engagement_stats["likes"].round(2).tolist(),
+            "Reposts": engagement_stats["reposts"].round(2).tolist(),
+            "Replies": engagement_stats["replies"].round(2).tolist(),
+            "Total": engagement_stats["total_engagement"].round(2).tolist()
         }
 
         engagement_table = mo.ui.table(
@@ -213,22 +205,21 @@ def _(df, mo):
         engagement_table
     else:
         mo.md("No engagement data to display.")
-    return
 
 
 @app.cell
 def _(df, mo):
     # Most engaging posts
     if not df.empty and len(df) > 0:
-        top_posts = df.nlargest(5, 'total_engagement')[['author', 'content', 'total_engagement', 'likes', 'reposts', 'replies']]
+        top_posts = df.nlargest(5, "total_engagement")[["author", "content", "total_engagement", "likes", "reposts", "replies"]]
 
         top_posts_data = {
-            "Author": top_posts['author'].tolist(),
-            "Content (truncated)": [content[:80] + "..." if len(content) > 80 else content for content in top_posts['content'].tolist()],
-            "Total": top_posts['total_engagement'].tolist(),
-            "❤️": top_posts['likes'].tolist(),
-            "🔄": top_posts['reposts'].tolist(),
-            "💬": top_posts['replies'].tolist()
+            "Author": top_posts["author"].tolist(),
+            "Content (truncated)": [content[:80] + "..." if len(content) > 80 else content for content in top_posts["content"].tolist()],
+            "Total": top_posts["total_engagement"].tolist(),
+            "❤️": top_posts["likes"].tolist(),
+            "🔄": top_posts["reposts"].tolist(),
+            "💬": top_posts["replies"].tolist()
         }
 
         top_posts_table = mo.ui.table(
@@ -238,7 +229,6 @@ def _(df, mo):
         top_posts_table
     else:
         mo.md("No post engagement data to display.")
-    return
 
 
 @app.cell
@@ -248,11 +238,11 @@ def _(df, mo):
         # Analyze content characteristics
         content_stats = {
             "Average Length": f"{df['content_length'].mean():.1f} characters",
-            "Median Length": f"{df['content_length'].median():.1f} characters", 
+            "Median Length": f"{df['content_length'].median():.1f} characters",
             "Shortest Post": f"{df['content_length'].min()} characters",
             "Longest Post": f"{df['content_length'].max()} characters",
             "Posts with Links": f"{df['has_links'].sum()} ({df['has_links'].mean()*100:.1f}%)",
-            "Total Links": df['link_count'].sum()
+            "Total Links": df["link_count"].sum()
         }
 
         content_table_data = {
@@ -267,7 +257,6 @@ def _(df, mo):
         content_table
     else:
         mo.md("No content analysis to display.")
-    return
 
 
 @app.cell
@@ -278,13 +267,13 @@ def _(df, mo):
 
         # Add filters
         author_filter = mo.ui.multiselect(
-            options=sorted(df['author'].unique().tolist()),
+            options=sorted(df["author"].unique().tolist()),
             label="Filter by authors:"
         )
 
         min_engagement = mo.ui.slider(
-            start=0, 
-            stop=int(df['total_engagement'].max()) if len(df) > 0 else 100,
+            start=0,
+            stop=int(df["total_engagement"].max()) if len(df) > 0 else 100,
             value=0,
             label="Minimum engagement:"
         )
@@ -303,18 +292,18 @@ def _(author_filter, df, min_engagement, mo):
         filtered_df = df.copy()
 
         if author_filter.value:
-            filtered_df = filtered_df[filtered_df['author'].isin(author_filter.value)]
+            filtered_df = filtered_df[filtered_df["author"].isin(author_filter.value)]
 
         if min_engagement.value > 0:
-            filtered_df = filtered_df[filtered_df['total_engagement'] >= min_engagement.value]
+            filtered_df = filtered_df[filtered_df["total_engagement"] >= min_engagement.value]
 
         if len(filtered_df) > 0:
             # Display filtered results
-            display_columns = ['author', 'content', 'total_engagement', 'likes', 'reposts', 'replies', 'has_links']
+            display_columns = ["author", "content", "total_engagement", "likes", "reposts", "replies", "has_links"]
 
             # Truncate content for display
             display_df = filtered_df[display_columns].copy()
-            display_df['content'] = display_df['content'].apply(
+            display_df["content"] = display_df["content"].apply(
                 lambda x: x[:100] + "..." if len(x) > 100 else x
             )
 
@@ -359,7 +348,6 @@ def _(df, mo):
 @app.cell
 def _(filtered_df):
     filtered_df
-    return
 
 
 @app.cell
@@ -397,7 +385,6 @@ def _(
         export_button
     else:
         mo.md("No data available for export.")
-    return
 
 
 @app.cell
@@ -424,7 +411,6 @@ def _(mo):
 
     Or collect data directly from this notebook (if credentials are configured):
     """)
-    return
 
 
 @app.cell
@@ -453,7 +439,6 @@ def _(collect_date, max_posts_input, mo, settings):
         collect_button
     else:
         mo.md("Configure credentials to enable data collection.")
-    return
 
 
 if __name__ == "__main__":

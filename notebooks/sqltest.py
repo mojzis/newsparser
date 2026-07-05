@@ -6,10 +6,10 @@ app = marimo.App()
 
 @app.cell
 def _():
-    import marimo as mo
-    import duckdb
     from pathlib import Path
-    from datetime import date
+
+    import duckdb
+    import marimo as mo
     import pandas as pd
 
     return Path, duckdb, mo, pd
@@ -51,9 +51,9 @@ def _(Path, conn, latest_date):
     if latest_date and parquet_dir.exists():
         # Try to load by-run-date files
         stages = [
-            ('collect', 'posts'),
-            ('fetch', 'fetched'),
-            ('evaluate', 'evaluated')
+            ("collect", "posts"),
+            ("fetch", "fetched"),
+            ("evaluate", "evaluated")
         ]
 
         for stage, table_name in stages:
@@ -105,10 +105,10 @@ def _(conn, mo):
         ("Top MCP content", "SELECT title, relevance_score, perex FROM evaluated WHERE is_mcp_related = true ORDER BY relevance_score DESC LIMIT 10;"),
         ("Authors sharing MCP content", "SELECT p.author, COUNT(DISTINCT e.url) as mcp_articles FROM posts p JOIN fetched f ON f.url = ANY(p.links) JOIN evaluated e ON e.url = f.url WHERE e.is_mcp_related = true GROUP BY p.author ORDER BY mcp_articles DESC LIMIT 20;")
     ]
-    
+
     # Test all queries and collect results
     results = []
-    
+
     for i, (name, query) in enumerate(queries, 1):
         try:
             result = conn.execute(query).fetchall()
@@ -117,29 +117,28 @@ def _(conn, mo):
             else:
                 results.append(f"⚪ **Query {i}: {name}**\n   - Query: `{query}`\n   - Success: 0 rows returned\n")
         except Exception as e:
-            results.append(f"❌ **Query {i}: {name}**\n   - Query: `{query}`\n   - Error: {str(e)}\n")
-    
+            results.append(f"❌ **Query {i}: {name}**\n   - Query: `{query}`\n   - Error: {e!s}\n")
+
     # Prepare summary
     total_queries = len(queries)
     successful_queries = len([r for r in results if r.startswith("✅") or r.startswith("⚪")])
     failed_queries = total_queries - successful_queries
-    
+
     summary = f"""## Query Test Results
 
 **Summary**: {successful_queries}/{total_queries} queries successful, {failed_queries} failed
 
 {chr(10).join(results)}"""
-    
+
     # CORRECT PATTERN: mo.md() OUTSIDE control blocks, BEFORE return
     mo.md(summary)
-    return
 
 
 @app.cell
 def _(conn, mo, tables_loaded):
     # Schema inspection
     schema_info = []
-    
+
     try:
         for table_name_iter, _ in tables_loaded:
             try:
@@ -153,22 +152,21 @@ def _(conn, mo, tables_loaded):
                 schema_info.append(f"### Table: {table_name_iter}")
                 schema_info.append(f"- Error: {e}")
                 schema_info.append("")
-        
+
         content = "## Table Schemas\n\n" + "\n".join(schema_info)
     except Exception as e:
         content = f"## Table Schemas\n\nError inspecting schemas: {e}"
-    
+
     # CORRECT PATTERN: mo.md() OUTSIDE try/except, BEFORE return
     mo.md(content)
-    return
 
 
-@app.cell  
+@app.cell
 def _(conn, mo):
     # Show some sample data from each table
     sample_data = []
     tables = ["posts", "fetched", "evaluated"]
-    
+
     try:
         for table in tables:
             try:
@@ -183,14 +181,13 @@ def _(conn, mo):
                 sample_data.append(f"### Sample data from {table}")
                 sample_data.append(f"Error: {e}")
                 sample_data.append("")
-        
+
         content = "## Sample Data\n\n" + "\n".join(sample_data)
     except Exception as e:
         content = f"## Sample Data\n\nError getting sample data: {e}"
-    
+
     # CORRECT PATTERN: mo.md() OUTSIDE try/except, BEFORE return
     mo.md(content)
-    return
 
 
 if __name__ == "__main__":

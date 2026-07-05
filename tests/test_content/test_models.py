@@ -18,14 +18,14 @@ class TestExtractedContent:
             language="en",
             domain="example.com",
         )
-        
+
         assert str(content.url) == "https://example.com/article"
         assert content.title == "Test Article"
         assert content.word_count == 6
         assert content.language == "en"
         assert content.domain == "example.com"
         assert isinstance(content.extraction_timestamp, datetime)
-    
+
     def test_minimal_extracted_content(self):
         """Test creating minimal extracted content."""
         content = ExtractedContent(
@@ -34,11 +34,11 @@ class TestExtractedContent:
             word_count=1,
             domain="example.com",
         )
-        
+
         assert content.title is None
         assert content.language is None
         assert content.word_count == 1
-    
+
     def test_negative_word_count_fails(self):
         """Test that negative word count fails validation."""
         with pytest.raises(ValidationError):
@@ -48,7 +48,7 @@ class TestExtractedContent:
                 word_count=-1,
                 domain="example.com",
             )
-    
+
     def test_invalid_url_fails(self):
         """Test that invalid URL fails validation."""
         with pytest.raises(ValidationError):
@@ -69,13 +69,13 @@ class TestArticleContent:
             status_code=200,
             headers={"content-type": "text/html"},
         )
-        
+
         assert str(content.url) == "https://example.com/article"
         assert content.html == "<html><body>Test</body></html>"
         assert content.status_code == 200
         assert content.headers == {"content-type": "text/html"}
         assert isinstance(content.fetch_timestamp, datetime)
-    
+
     def test_minimal_article_content(self):
         """Test creating minimal article content."""
         content = ArticleContent(
@@ -83,7 +83,7 @@ class TestArticleContent:
             html="<html>Test</html>",
             status_code=200,
         )
-        
+
         assert content.headers == {}
         assert isinstance(content.fetch_timestamp, datetime)
 
@@ -96,12 +96,12 @@ class TestContentError:
             error_type="fetch",
             error_message="Connection timeout",
         )
-        
+
         assert str(error.url) == "https://example.com/article"
         assert error.error_type == "fetch"
         assert error.error_message == "Connection timeout"
         assert isinstance(error.timestamp, datetime)
-    
+
     def test_content_error_serialization(self):
         """Test content error can be serialized to JSON."""
         error = ContentError(
@@ -109,7 +109,7 @@ class TestContentError:
             error_type="fetch",
             error_message="Connection timeout",
         )
-        
+
         json_data = error.model_dump()
         assert str(json_data["url"]) == "https://example.com/article"
         assert json_data["error_type"] == "fetch"

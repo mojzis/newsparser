@@ -7,6 +7,7 @@ app = marimo.App(width="full")
 @app.cell
 def _():
     import marimo as mo
+
     from src.models.evaluation import ArticleEvaluation
     from src.models.post import BlueskyPost
 
@@ -30,7 +31,6 @@ def _(mo, posts):
         .sort_values("num_rows", ascending=False)
                 )
     mo.ui.table(tag_stats,page_size=30)
-    return
 
 
 @app.cell
@@ -50,7 +50,6 @@ def _():
 @app.cell
 def _(parq):
     parq
-    return
 
 
 @app.cell
@@ -64,7 +63,6 @@ def _(evals, mo):
         .sort_values("num_rows",ascending=False)
     )
     mo.ui.table(kt,page_size=30)
-    return
 
 
 if __name__ == "__main__":

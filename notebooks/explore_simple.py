@@ -6,10 +6,11 @@ app = marimo.App()
 
 @app.cell
 def _():
-    import marimo as mo
-    import pandas as pd
     import sys
     from pathlib import Path
+
+    import marimo as mo
+    import pandas as pd
 
     sys.path.append(str(Path(__file__).parent.parent / "src"))
 
@@ -22,7 +23,6 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""# Simple Data Explorer""")
-    return
 
 
 @app.cell
@@ -36,7 +36,6 @@ def _(R2Client, Settings, mo):
 @app.cell
 def _(settings):
     settings
-    return
 
 
 @app.cell
@@ -56,7 +55,7 @@ def _(mo, r2_client):
         # Check each file type
         file_patterns = {
             "posts": f"parquet/collect/by-run-date/{date_str}_last_7_days.parquet",
-            "fetched": f"parquet/fetch/by-run-date/{date_str}_last_7_days.parquet", 
+            "fetched": f"parquet/fetch/by-run-date/{date_str}_last_7_days.parquet",
             "evaluated": f"parquet/evaluate/by-run-date/{date_str}_last_7_days.parquet"
         }
 
@@ -83,13 +82,11 @@ def _(mo, r2_client):
 def _(file_patterns):
     file_patterns
 
-    return
 
 
 @app.cell
 def _(r2_client):
     r2_client.file_exists("parquet/collect/by-run-date/2025-06-26_last_7_days.parquet")
-    return
 
 
 @app.cell
@@ -121,7 +118,6 @@ def _(df, mo):
 
     # Display OUTSIDE control blocks
     display_element
-    return
 
 
 if __name__ == "__main__":

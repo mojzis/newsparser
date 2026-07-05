@@ -244,7 +244,7 @@ class TestBlueskyDataCollectorRetrievePosts:
         # Mock file_exists to say parquet doesn't exist but JSON does
         with patch.object(collector.r2_client, "file_exists") as mock_exists:
             mock_exists.side_effect = lambda path: path.endswith(".json")
-            
+
             with patch.object(
                 collector.r2_client, "download_bytes", return_value=json_data
             ):
@@ -269,7 +269,7 @@ class TestBlueskyDataCollectorRetrievePosts:
         # Mock file_exists to say only JSON exists
         with patch.object(collector.r2_client, "file_exists") as mock_exists:
             mock_exists.side_effect = lambda path: path.endswith(".json")
-            
+
             with patch.object(
                 collector.r2_client, "download_bytes", return_value=b"invalid json"
             ):
@@ -289,7 +289,7 @@ class TestBlueskyDataCollectorRetrievePosts:
         # Mock file_exists to say only JSON exists
         with patch.object(collector.r2_client, "file_exists") as mock_exists:
             mock_exists.side_effect = lambda path: path.endswith(".json")
-            
+
             with patch.object(
                 collector.r2_client, "download_bytes", return_value=json_data
             ):

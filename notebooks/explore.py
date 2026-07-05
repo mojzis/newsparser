@@ -6,10 +6,11 @@ app = marimo.App()
 
 @app.cell
 def _():
-    import marimo as mo
-    import pandas as pd
     import sys
     from pathlib import Path
+
+    import marimo as mo
+    import pandas as pd
 
     sys.path.append(str(Path(__file__).parent.parent / "src"))
 
@@ -22,7 +23,6 @@ def _():
 @app.cell
 def _(mo):
     mo.md("""# Data Exploration Notebook""")
-    return
 
 
 @app.cell
@@ -46,8 +46,8 @@ def _(mo, r2_client):
     mo.md(f"""
     ## Available Files
 
-    **Posts**: {len(posts_files)} files  
-    **Fetched**: {len(fetched_files)} files  
+    **Posts**: {len(posts_files)} files
+    **Fetched**: {len(fetched_files)} files
     **Evaluated**: {len(evaluated_files)} files
 
     ### Recent Files:
@@ -74,9 +74,9 @@ def _(evaluated_files, fetched_files, mo, pd, posts_files, r2_client):
                 r2_client.download_file(key, tmp.name)
                 df_temp = pd.read_parquet(tmp.name)
                 datasets[category] = {
-                    'df': df_temp,
-                    'file': key,
-                    'shape': df_temp.shape
+                    "df": df_temp,
+                    "file": key,
+                    "shape": df_temp.shape
                 }
 
     summary_parts = ["## Loaded Datasets"]
@@ -90,8 +90,8 @@ def _(evaluated_files, fetched_files, mo, pd, posts_files, r2_client):
 
 @app.cell
 def _(datasets, mo):
-    if 'posts' in datasets:
-        posts_df = datasets['posts']['df']
+    if "posts" in datasets:
+        posts_df = datasets["posts"]["df"]
         posts_table = mo.ui.table(
             posts_df.head(15),
             selection="multi",
@@ -100,13 +100,12 @@ def _(datasets, mo):
         posts_table
     else:
         mo.md("Posts data not available")
-    return
 
 
 @app.cell
 def _(datasets, mo):
-    if 'fetched' in datasets:
-        fetched_df = datasets['fetched']['df']
+    if "fetched" in datasets:
+        fetched_df = datasets["fetched"]["df"]
         fetched_table = mo.ui.table(
             fetched_df.head(15),
             selection="multi",
@@ -115,13 +114,12 @@ def _(datasets, mo):
         fetched_table
     else:
         mo.md("Fetched data not available")
-    return
 
 
 @app.cell
 def _(datasets, mo):
-    if 'evaluated' in datasets:
-        evaluated_df = datasets['evaluated']['df']
+    if "evaluated" in datasets:
+        evaluated_df = datasets["evaluated"]["df"]
         evaluated_table = mo.ui.table(
             evaluated_df.head(15),
             selection="multi",
@@ -130,7 +128,6 @@ def _(datasets, mo):
         evaluated_table
     else:
         mo.md("Evaluated data not available")
-    return
 
 
 @app.cell
@@ -138,7 +135,7 @@ def _(datasets, mo):
     analysis_parts = ["## Quick Analysis"]
 
     for dataset_name, dataset_info in datasets.items():
-        df_analysis = dataset_info['df']
+        df_analysis = dataset_info["df"]
         analysis_parts.append(f"### {dataset_name.title()} Dataset")
         analysis_parts.append(f"- **Rows**: {df_analysis.shape[0]:,}")
         analysis_parts.append(f"- **Columns**: {df_analysis.shape[1]}")
@@ -146,7 +143,6 @@ def _(datasets, mo):
         analysis_parts.append("")
 
     mo.md(chr(10).join(analysis_parts))
-    return
 
 
 @app.cell
@@ -157,7 +153,7 @@ def _(mo):
 
     ### Available DataFrames:
     - `posts_df` - Recent posts data
-    - `fetched_df` - Recent fetched articles data  
+    - `fetched_df` - Recent fetched articles data
     - `evaluated_df` - Recent evaluated content data
 
     ### Example Operations:
@@ -178,7 +174,6 @@ def _(mo):
     Add new cells below to explore the data!
     """
     )
-    return
 
 
 if __name__ == "__main__":

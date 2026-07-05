@@ -3,8 +3,8 @@
 import click
 from rich.console import Console
 
-from src.cli.stage_commands import stages
 from src.cli.config_commands import config
+from src.cli.stage_commands import stages
 from src.config.config_manager import get_config_manager
 
 console = Console()
@@ -47,7 +47,7 @@ def collect(target_date, max_posts, search, config_path, expand_urls, threads, m
     """Collect posts using stage-based architecture."""
     from src.cli.stage_commands import collect as stage_collect
     ctx = click.Context(stage_collect)
-    ctx.invoke(stage_collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path, 
+    ctx.invoke(stage_collect, target_date=target_date, max_posts=max_posts, search=search, config_path=config_path,
                expand_urls=expand_urls, threads=threads, max_thread_depth=max_thread_depth, max_parent_height=max_parent_height, export_parquet=export_parquet, expand_references=expand_references, max_reference_depth=max_reference_depth)
 
 

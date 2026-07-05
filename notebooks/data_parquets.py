@@ -6,7 +6,6 @@ app = marimo.App(width="full")
 
 @app.cell
 def _():
-    import marimo as mo
     import pandas as pd
     return (pd,)
 
@@ -26,19 +25,16 @@ def _(pd):
 @app.cell
 def _(fetch):
     fetch
-    return
 
 
 @app.cell
 def _(coll):
     coll
-    return
 
 
 @app.cell
 def _(coll):
     coll.groupby("author").size().sort_values(ascending=False)
-    return
 
 
 if __name__ == "__main__":

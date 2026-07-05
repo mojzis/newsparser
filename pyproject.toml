@@ -49,7 +49,7 @@ build-backend = "hatchling.build"
 packages = ["src"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 line-length = 88
 
 [tool.ruff.lint]
@@ -127,6 +127,16 @@ ignore = [
     "SLF001",  # private-member-access (needed for testing formatter internals)
     "N805",    # invalid-first-argument-name-for-class-method (pydantic validators use cls)
     "RUF012",  # mutable-class-default (pydantic config pattern)
+    # --- Triage of the migration ruleset bump (deliberately not chasing to zero) ---
+    "E501",    # line-too-long (formatter wraps code; remainder is urls/strings/comments)
+    "ANN001",  # missing-type-function-argument (high-volume, low value here)
+    "ANN202",  # missing-return-type-private-function (high-volume, low value here)
+    "G004",    # logging-f-string (harmless, pervasive pattern)
+    "FBT001",  # boolean-positional-arg (common in the click CLI)
+    "FBT002",  # boolean-default-positional-arg (common in the click CLI)
+    "FBT003",  # boolean-positional-value-in-call
+    "PLC0415", # import-outside-top-level (intentional lazy imports)
+    "TRY300",  # try-consider-else (stylistic)
 ]
 
 [tool.ruff.format]
@@ -141,6 +151,21 @@ line-ending = "auto"
     "ANN",     # type annotations
     "ARG",     # unused arguments
     "PLR2004", # magic value comparison
+]
+# marimo notebooks: cell-based style trips many rules that don't apply to them
+"notebooks/**/*" = [
+    "ANN",     # annotations
+    "B018",    # useless-expression (bare cell output, e.g. mo.md(...))
+    "N802",    # invalid-function-name (marimo cell funcs)
+    "N803",    # invalid-argument-name
+    "N806",    # non-lowercase-variable-in-function
+    "N807",    # dunder-function-name (marimo cell funcs)
+    "INP001",  # implicit-namespace-package
+    "COM818",  # trailing-comma-on-bare-tuple
+    "T20",     # print
+    "PD011",   # pandas-use-of-dot-values
+    "ARG",     # unused arguments (cell signature deps)
+    "F401",    # unused-import (cross-cell imports)
 ]
 
 [tool.ty]

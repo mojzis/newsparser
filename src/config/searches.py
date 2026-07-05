@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Any, Union
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -11,7 +10,7 @@ logger = get_logger(__name__)
 
 class SearchDefinition(BaseModel):
     """Configuration for a single search definition."""
-    
+
     name: str = Field(..., description="Human-readable name for the search")
     description: str = Field(..., description="Description of what this search targets")
     include_terms: list[str] = Field(..., description="Terms that must be present")
@@ -19,7 +18,7 @@ class SearchDefinition(BaseModel):
     sort: str = Field(default="latest", description="Sort order: latest, top")
     enabled: bool = Field(default=True, description="Whether this search is active")
     query_syntax: str = Field(default="native", description="Query syntax type: native, lucene")
-    
+
     @model_validator(mode="after")
     def validate_sort_option(self) -> "SearchDefinition":
         """Validate sort option is supported."""
@@ -27,7 +26,7 @@ class SearchDefinition(BaseModel):
         if self.sort not in valid_sorts:
             raise ValueError(f"Sort must be one of {valid_sorts}, got: {self.sort}")
         return self
-    
+
     @model_validator(mode="after")
     def validate_query_syntax(self) -> "SearchDefinition":
         """Validate query syntax is supported."""
@@ -35,8 +34,8 @@ class SearchDefinition(BaseModel):
         if self.query_syntax not in valid_syntaxes:
             raise ValueError(f"Query syntax must be one of {valid_syntaxes}, got: {self.query_syntax}")
         return self
-    
-    @field_validator('exclude_terms', mode='before')
+
+    @field_validator("exclude_terms", mode="before")
     @classmethod
     def validate_exclude_terms(cls, v):
         """Clean up exclude terms before validation."""
@@ -46,8 +45,8 @@ class SearchDefinition(BaseModel):
             # Filter out None, empty strings, and whitespace-only strings
             return [term for term in v if term is not None and isinstance(term, str) and term.strip()]
         return v
-    
-    @model_validator(mode="after") 
+
+    @model_validator(mode="after")
     def validate_terms(self) -> "SearchDefinition":
         """Validate that include terms are provided."""
         if not self.include_terms:
@@ -57,9 +56,9 @@ class SearchDefinition(BaseModel):
 
 class SearchConfig(BaseModel):
     """Configuration for all search definitions."""
-    
+
     searches: dict[str, SearchDefinition] = Field(..., description="Search definitions by key")
-    
+
     @model_validator(mode="after")
     def validate_searches(self) -> "SearchConfig":
         """Validate that at least one search is enabled."""
@@ -67,38 +66,38 @@ class SearchConfig(BaseModel):
         if not enabled_searches:
             raise ValueError("At least one search definition must be enabled")
         return self
-    
+
     def get_enabled_searches(self) -> dict[str, SearchDefinition]:
         """Get only enabled search definitions."""
         return {key: search for key, search in self.searches.items() if search.enabled}
-    
+
     def get_search(self, key: str) -> SearchDefinition | None:
         """Get a specific search definition by key."""
         return self.searches.get(key)
-    
+
     @classmethod
     def load_from_file(cls, file_path: str | Path) -> "SearchConfig":
         """Load search configuration from YAML file."""
         file_path = Path(file_path)
-        
+
         if not file_path.exists():
             raise FileNotFoundError(f"Search configuration file not found: {file_path}")
-        
+
         try:
             with file_path.open("r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-            
+
             if not isinstance(data, dict):
                 raise ValueError("Search configuration must be a YAML object")
-            
+
             logger.info(f"Loaded search configuration from {file_path}")
             return cls.model_validate(data)
-            
+
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in search configuration: {e}") from e
         except Exception as e:
             raise ValueError(f"Failed to load search configuration: {e}") from e
-    
+
     @classmethod
     def get_default_config(cls) -> "SearchConfig":
         """Get default search configuration."""
@@ -119,11 +118,11 @@ class SearchConfig(BaseModel):
                 enabled=True
             ),
             "mcp_tools": SearchDefinition(
-                name="MCP Tools and Implementations", 
+                name="MCP Tools and Implementations",
                 description="Posts about MCP tools and implementations",
                 include_terms=[
                     "mcp tool",
-                    "mcp server", 
+                    "mcp server",
                     "mcp client",
                     "mcp implementation"
                 ],
@@ -134,17 +133,17 @@ class SearchConfig(BaseModel):
                 enabled=True
             )
         }
-        
+
         return cls(searches=default_searches)
 
 
 def load_search_config(config_path: str | Path | None = None) -> SearchConfig:
     """
     Load search configuration from file or return default.
-    
+
     Args:
         config_path: Path to YAML configuration file. If None, tries default locations first.
-        
+
     Returns:
         SearchConfig instance
     """
@@ -158,11 +157,11 @@ def load_search_config(config_path: str | Path | None = None) -> SearchConfig:
                 return SearchConfig.load_from_file(default_yaml_path)
             except Exception as e:
                 logger.warning(f"Failed to load default search config from {default_yaml_path}: {e}")
-        
+
         # Fall back to hardcoded defaults
         logger.info("Using hardcoded default search configuration as fallback")
         return SearchConfig.get_default_config()
-    
+
     # Use specified path
     try:
         return SearchConfig.load_from_file(config_path)
