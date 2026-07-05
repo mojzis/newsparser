@@ -64,7 +64,7 @@ def __(pd, stage_stats):
     # Create summary table data
     summary_data = []
     all_dates_summary = set()
-    for summary_stage_name, summary_stage_dates in stage_stats.items():
+    for summary_stage_dates in stage_stats.values():
         all_dates_summary.update(summary_stage_dates.keys())
 
     all_dates_summary = sorted(all_dates_summary, reverse=True)

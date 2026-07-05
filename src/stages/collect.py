@@ -84,8 +84,8 @@ class CollectStage(InputStage):
                 logger.info(f"Collected {len(posts)} total posts ({len(search_posts)} from search)")
                 return posts
 
-        except Exception as e:
-            logger.exception(f"Failed to collect posts")
+        except Exception:
+            logger.exception("Failed to collect posts")
             return []
 
     async def _expand_post_urls(self, posts: list[BlueskyPost]) -> list[BlueskyPost]:
@@ -265,10 +265,7 @@ class CollectStage(InputStage):
         """Generate filename for a post."""
         # Extract short ID from AT protocol URI
         post_id = post.id
-        if post_id.startswith("at://"):
-            short_id = post_id.split("/")[-1]
-        else:
-            short_id = post_id
+        short_id = post_id.split("/")[-1] if post_id.startswith("at://") else post_id
 
         return f"post_{short_id}.md"
 
@@ -352,7 +349,7 @@ class CollectStage(InputStage):
 
                     processed += 1
 
-                except Exception as e:
+                except Exception:
                     failed += 1
                     logger.exception(f"Failed to save post {post.id}")
 

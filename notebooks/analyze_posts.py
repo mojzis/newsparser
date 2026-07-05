@@ -352,7 +352,7 @@ def _(mo, posts_data):
     )
 
     # Get unique authors for dropdown
-    authors = ["All"] + sorted(posts_data["author"].unique().tolist())
+    authors = ["All", *sorted(posts_data["author"].unique().tolist())]
     author_filter = mo.ui.dropdown(
         options=authors,
         value="All",

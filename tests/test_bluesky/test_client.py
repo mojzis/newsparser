@@ -280,7 +280,7 @@ class TestBlueskyClientSearch:
         mock_response.cursor = None
         bluesky_client.client.app.bsky.feed.search_posts.return_value = mock_response
 
-        posts, cursor = await bluesky_client.search_posts("mcp")
+        posts, _cursor = await bluesky_client.search_posts("mcp")
 
         # Should only return the valid post, invalid one skipped
         assert len(posts) == 1
@@ -297,7 +297,7 @@ class TestBlueskyClientSearch:
         mock_response.cursor = None
         bluesky_client.client.app.bsky.feed.search_posts.return_value = mock_response
 
-        posts, cursor = await bluesky_client.search_mcp_mentions(limit=5)
+        posts, _cursor = await bluesky_client.search_mcp_mentions(limit=5)
 
         assert len(posts) == 1
         bluesky_client.client.app.bsky.feed.search_posts.assert_called_once_with(

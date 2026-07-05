@@ -3,7 +3,7 @@
 import logging
 from datetime import date
 from pathlib import Path
-from typing import TYPE_CHECKING, Optional, TypeVar
+from typing import TYPE_CHECKING, Optional
 
 from src.models.analytics import AnalyticsBase
 
@@ -12,10 +12,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar("T", bound=AnalyticsBase)
 
-
-async def export_stage_to_parquet(
+async def export_stage_to_parquet[T: AnalyticsBase](
     stage_name: str,
     model_class: type[T],
     target_date: date,
@@ -61,7 +59,7 @@ async def export_stage_to_parquet(
         if upload_to_r2:
             await upload_parquet_to_r2(output_file, stage_name, target_date, days_back, settings)
 
-    except Exception as e:
+    except Exception:
         logger.exception(f"Failed to export {stage_name} stage to Parquet")
 
 
@@ -115,8 +113,8 @@ async def upload_parquet_to_r2(
         else:
             logger.error(f"Failed to upload {local_file_path} to R2")
 
-    except Exception as e:
-        logger.exception(f"Error uploading parquet file to R2")
+    except Exception:
+        logger.exception("Error uploading parquet file to R2")
         # Don't raise the exception as we don't want to fail the entire export process
         # if R2 upload fails
 

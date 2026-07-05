@@ -127,8 +127,8 @@ class URLRegistry:
 
         # Calculate evaluation stats
         evaluated = self.df["evaluated"].sum()
-        mcp_related = self.df[self.df["is_mcp_related"] == True].shape[0]
-        avg_relevance = self.df[self.df["evaluated"] == True]["relevance_score"].mean()
+        mcp_related = self.df[self.df["is_mcp_related"] == True].shape[0]  # noqa: E712  NaN-safe pandas mask
+        avg_relevance = self.df[self.df["evaluated"] == True]["relevance_score"].mean()  # noqa: E712  NaN-safe pandas mask
 
         return {
             "total_urls": len(self.df),

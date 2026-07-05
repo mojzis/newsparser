@@ -121,7 +121,7 @@ def _(conn, mo):
 
     # Prepare summary
     total_queries = len(queries)
-    successful_queries = len([r for r in results if r.startswith("✅") or r.startswith("⚪")])
+    successful_queries = len([r for r in results if r.startswith(("✅", "⚪"))])
     failed_queries = total_queries - successful_queries
 
     summary = f"""## Query Test Results

@@ -246,7 +246,7 @@ def _(evaluated_content, mo):
     )
 
     # Get unique domains for dropdown
-    domains = ["All"] + sorted(evaluated_content["domain"].unique().tolist())
+    domains = ["All", *sorted(evaluated_content["domain"].unique().tolist())]
     domain_filter = mo.ui.dropdown(
         options=domains,
         value="All",

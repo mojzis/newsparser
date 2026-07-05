@@ -98,8 +98,7 @@ class ContentExtractor:
                     # Clean up author name
                     author = re.sub(r"^by\s+", "", author, flags=re.IGNORECASE)
                     author = re.sub(r"\s+", " ", author)
-                    author = author[:100]  # Reasonable author name length
-                    return author
+                    return author[:100]  # Reasonable author name length
 
         return None
 
@@ -128,8 +127,7 @@ class ContentExtractor:
                 if medium and len(medium) > 1:
                     # Clean up medium name
                     medium = re.sub(r"\s+", " ", medium)
-                    medium = medium[:100]  # Reasonable medium name length
-                    return medium
+                    return medium[:100]  # Reasonable medium name length
 
         return None
 
@@ -158,8 +156,7 @@ class ContentExtractor:
                 if title and len(title) > 3:
                     # Clean up title
                     title = re.sub(r"\s+", " ", title)
-                    title = title[:200]  # Reasonable title length
-                    return title
+                    return title[:200]  # Reasonable title length
 
         return None
 
@@ -327,8 +324,8 @@ class ContentExtractor:
                     logger.info(f"Fixed HTML preview: {fixed_html[:200]}...")
 
                 markdown_content = self.html2text.handle(fixed_html).strip()
-            except Exception as e:
-                logger.exception(f"HTML2Text conversion failed")
+            except Exception:
+                logger.exception("HTML2Text conversion failed")
                 # Fallback: extract text directly from BeautifulSoup
                 soup = BeautifulSoup(content_html, "html.parser")
                 markdown_content = soup.get_text(separator="\n\n").strip()

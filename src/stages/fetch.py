@@ -161,7 +161,7 @@ class FetchStage(ProcessingStage):
                     processed_urls.append(str(output_path))
                     logger.info(f"Fetched and saved: {url} -> {output_path.name}")
 
-                except Exception as e:
+                except Exception:
                     logger.exception(f"Failed to process URL {url}")
 
             if processed_urls:
@@ -169,7 +169,7 @@ class FetchStage(ProcessingStage):
 
             return None
 
-        except Exception as e:
+        except Exception:
             logger.exception(f"Failed to process {input_path}")
             return None
 
@@ -284,12 +284,12 @@ class FetchStage(ProcessingStage):
 
                                     logger.info(f"Fetched new URL: {url} -> {output_path.name}")
 
-                                except Exception as e:
+                                except Exception:
                                     logger.exception(f"Failed to fetch URL {url}")
 
                             processed_posts += 1
 
-                        except Exception as e:
+                        except Exception:
                             failed_posts += 1
                             logger.exception(f"Failed to process {input_path}")
 

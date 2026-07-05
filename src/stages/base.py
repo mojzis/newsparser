@@ -89,7 +89,7 @@ class Stage(ABC):
                 else:
                     skipped += 1
 
-            except Exception as e:
+            except Exception:
                 failed += 1
                 logger.exception(f"Failed to process {input_path}")
 

@@ -70,7 +70,7 @@ class R2Client:
             logger.info(f"Successfully uploaded {file_path} to {key}")
             return True
 
-        except (ClientError, BotoCoreError, OSError) as e:
+        except (ClientError, BotoCoreError, OSError):
             logger.exception(f"Failed to upload {file_path} to {key}")
             return False
 
@@ -99,7 +99,7 @@ class R2Client:
             logger.info(f"Successfully uploaded bytes to {key}")
             return True
 
-        except (ClientError, BotoCoreError) as e:
+        except (ClientError, BotoCoreError):
             logger.exception(f"Failed to upload bytes to {key}")
             return False
 
@@ -122,7 +122,7 @@ class R2Client:
             logger.info(f"Successfully downloaded {key} to {file_path}")
             return True
 
-        except (ClientError, BotoCoreError) as e:
+        except (ClientError, BotoCoreError):
             logger.exception(f"Failed to download {key} to {file_path}")
             return False
 
@@ -142,7 +142,7 @@ class R2Client:
             logger.info(f"Successfully downloaded bytes from {key}")
             return data
 
-        except (ClientError, BotoCoreError) as e:
+        except (ClientError, BotoCoreError):
             logger.exception(f"Failed to download bytes from {key}")
             return None
 
@@ -191,7 +191,7 @@ class R2Client:
             logger.info(f"Listed {len(keys)} files with prefix '{prefix}'")
             return keys
 
-        except (ClientError, BotoCoreError) as e:
+        except (ClientError, BotoCoreError):
             logger.exception(f"Failed to list files with prefix '{prefix}'")
             return []
 
@@ -210,7 +210,7 @@ class R2Client:
             logger.info(f"Successfully deleted {key}")
             return True
 
-        except (ClientError, BotoCoreError) as e:
+        except (ClientError, BotoCoreError):
             logger.exception(f"Failed to delete {key}")
             return False
 
@@ -236,8 +236,8 @@ class R2Client:
                     return registry
                 return None
 
-        except Exception as e:
-            logger.exception(f"Failed to download URL registry")
+        except Exception:
+            logger.exception("Failed to download URL registry")
             return None
 
         finally:
@@ -274,8 +274,8 @@ class R2Client:
 
                 return success
 
-        except Exception as e:
-            logger.exception(f"Failed to upload URL registry")
+        except Exception:
+            logger.exception("Failed to upload URL registry")
             return False
 
         finally:

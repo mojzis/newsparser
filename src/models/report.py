@@ -1,7 +1,7 @@
 """Report data models for HTML generation."""
 
-from datetime import date as date_type
 from datetime import UTC, datetime, timedelta
+from datetime import date as date_type
 
 from pydantic import BaseModel, Field, HttpUrl
 

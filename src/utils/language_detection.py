@@ -6,10 +6,10 @@ to identify posts containing significant amounts of non-Latin characters.
 """
 
 import unicodedata
-from enum import Enum
+from enum import Enum, StrEnum
 
 
-class LanguageType(str, Enum):
+class LanguageType(StrEnum):
     """Enumeration of detected language types based on character analysis."""
 
     LATIN = "latin"      # <30% non-Latin characters
@@ -75,11 +75,7 @@ def is_latin_character(char: str) -> bool:
     code_point = ord(char)
 
     # Check Latin ranges
-    for start, end in LATIN_RANGES:
-        if start <= code_point <= end:
-            return True
-
-    return False
+    return any(start <= code_point <= end for start, end in LATIN_RANGES)
 
 
 def is_neutral_character(char: str) -> bool:
@@ -108,10 +104,7 @@ def is_neutral_character(char: str) -> bool:
 
     # Also treat ASCII punctuation and whitespace as neutral
     category = unicodedata.category(char)
-    if category.startswith("P") or category.startswith("Z") or category.startswith("S"):
-        return True
-
-    return False
+    return bool(category.startswith(("P", "Z", "S")))
 
 
 def calculate_non_latin_percentage(text: str) -> float:

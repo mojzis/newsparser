@@ -36,7 +36,7 @@ class EvaluateStage(ProcessingStage):
             output_path = self.get_output_path(input_path, target_date)
             return not output_path.exists()
 
-        except Exception as e:
+        except Exception:
             logger.exception(f"Error checking if {input_path} should be processed")
             return False
 
@@ -133,7 +133,7 @@ This content was evaluated for MCP relevance.
             logger.info(f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})")
             return output_path
 
-        except Exception as e:
+        except Exception:
             logger.exception(f"Failed to evaluate {input_path}")
             return None
 
@@ -265,11 +265,11 @@ This content was evaluated for MCP relevance.
 
                             logger.info(f"Evaluated and saved: {output_path.name} (relevance: {evaluation.relevance_score})")
 
-                        except Exception as e:
+                        except Exception:
                             failed += 1
                             logger.exception(f"Failed to evaluate {url}")
 
-                    except Exception as e:
+                    except Exception:
                         failed += 1
                         logger.exception(f"Failed to process {input_path}")
 

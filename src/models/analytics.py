@@ -60,7 +60,7 @@ class AnalyticsBase(BaseModel):
         """
         result = {}
 
-        for field_name, field_info in self.model_fields.items():
+        for field_name in self.model_fields:
             value = getattr(self, field_name)
 
             if value is None:
@@ -161,9 +161,8 @@ class AnalyticsBase(BaseModel):
 
         # Create DataFrame and optimize dtypes
         df = pd.DataFrame(records)
-        df = cls._optimize_dtypes(df)
+        return cls._optimize_dtypes(df)
 
-        return df
 
     @classmethod
     def _optimize_dtypes(cls, df: pd.DataFrame) -> pd.DataFrame:

@@ -67,10 +67,10 @@ class ThreadCollector:
             logger.info(f"Extracted {len(posts)} posts from thread")
             return posts
 
-        except AtProtocolError as e:
+        except AtProtocolError:
             logger.exception(f"Failed to fetch thread for {post_uri}")
             return []
-        except Exception as e:
+        except Exception:
             logger.exception(f"Unexpected error fetching thread for {post_uri}")
             return []
 
@@ -193,9 +193,8 @@ class ThreadCollector:
         temp_client = BlueskyClient.__new__(BlueskyClient)
 
         # Convert using existing logic
-        post = temp_client._convert_post_to_model(post_data)
+        return temp_client._convert_post_to_model(post_data)
 
-        return post
 
     def _find_thread_root_uri(self, posts: list[BlueskyPost]) -> str | None:
         """

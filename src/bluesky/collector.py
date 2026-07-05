@@ -67,8 +67,8 @@ class BlueskyDataCollector:
                 logger.info(f"Collected {len(posts)} posts using definition '{search_definition.name}'")
                 return posts
 
-        except Exception as e:
-            logger.exception(f"Failed to collect posts")
+        except Exception:
+            logger.exception("Failed to collect posts")
             return []
 
     async def collect_daily_posts(
@@ -106,8 +106,8 @@ class BlueskyDataCollector:
                 logger.info(f"Collected {len(posts)} posts")
                 return posts
 
-        except Exception as e:
-            logger.exception(f"Failed to collect posts")
+        except Exception:
+            logger.exception("Failed to collect posts")
             return []
 
     async def store_posts(self, posts: list[BlueskyPost], target_date: date) -> bool:
@@ -169,8 +169,8 @@ class BlueskyDataCollector:
                 logger.error(f"Failed to store posts to {file_path}")
                 return False
 
-        except Exception as e:
-            logger.exception(f"Error storing posts")
+        except Exception:
+            logger.exception("Error storing posts")
             return False
 
     async def collect_and_store_by_definition(
@@ -248,8 +248,8 @@ class BlueskyDataCollector:
                 if not success:
                     logger.error("Failed to upload updated URL registry")
 
-        except Exception as e:
-            logger.exception(f"Error tracking URLs")
+        except Exception:
+            logger.exception("Error tracking URLs")
 
     async def collect_and_store(
         self, target_date: date | None = None, max_posts: int = 100
@@ -378,8 +378,8 @@ class BlueskyDataCollector:
                 logger.warning(f"No stored posts found for {target_date}")
                 return []
 
-        except Exception as e:
-            logger.exception(f"Error retrieving stored posts")
+        except Exception:
+            logger.exception("Error retrieving stored posts")
             return []
 
     def check_stored_data(self, target_date: date) -> bool:
@@ -429,6 +429,6 @@ class BlueskyDataCollector:
             except RuntimeError:
                 # No event loop running, we can use asyncio.run directly
                 return asyncio.run(self.get_stored_posts(target_date))
-        except Exception as e:
-            logger.exception(f"Error in sync get_stored_posts")
+        except Exception:
+            logger.exception("Error in sync get_stored_posts")
             return []

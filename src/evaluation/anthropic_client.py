@@ -106,7 +106,7 @@ class AnthropicEvaluator:
             )
 
         except Exception as e:
-            logger.exception(f"Failed to evaluate article")
+            logger.exception("Failed to evaluate article")
 
             # Return evaluation with error
             return ArticleEvaluation(
@@ -179,8 +179,8 @@ class AnthropicEvaluator:
                 "language": str(data.get("language", "en"))
             }
 
-        except json.JSONDecodeError as e:
-            logger.exception(f"Failed to parse JSON response")
+        except json.JSONDecodeError:
+            logger.exception("Failed to parse JSON response")
             logger.debug(f"Response text: {response_text}")
 
             # Return default values

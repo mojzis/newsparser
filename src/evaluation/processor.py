@@ -115,7 +115,7 @@ class EvaluationProcessor:
                         evaluation.relevance_score
                     )
 
-                except Exception as e:
+                except Exception:
                     logger.exception(f"Error processing {url}")
                     # Still track in registry as attempted
                     registry.add_url(url, post_id, author)
@@ -180,8 +180,8 @@ class EvaluationProcessor:
 
                 return success
 
-        except Exception as e:
-            logger.exception(f"Failed to store evaluations")
+        except Exception:
+            logger.exception("Failed to store evaluations")
             return False
 
     def get_stored_evaluations(self, target_date: date) -> list[ArticleEvaluation]:
@@ -224,6 +224,6 @@ class EvaluationProcessor:
                 logger.info(f"Retrieved {len(evaluations)} evaluations for {target_date}")
                 return evaluations
 
-        except Exception as e:
-            logger.exception(f"Failed to retrieve evaluations")
+        except Exception:
+            logger.exception("Failed to retrieve evaluations")
             return []

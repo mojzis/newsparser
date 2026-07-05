@@ -2,7 +2,7 @@ from datetime import date
 from enum import Enum
 from typing import TypeAlias
 
-DatePath: TypeAlias = str  # Format: "YYYY/MM/DD"
+type DatePath = str  # Format: "YYYY/MM/DD"
 FileType = Enum("FileType", ["PARQUET", "HTML", "JSON"])
 
 

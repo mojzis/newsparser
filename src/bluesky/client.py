@@ -48,11 +48,11 @@ class BlueskyClient:
             logger.info(f"Successfully authenticated as {self.settings.bluesky_handle}")
             return True
 
-        except AtProtocolError as e:
-            logger.exception(f"Authentication failed")
+        except AtProtocolError:
+            logger.exception("Authentication failed")
             return False
-        except Exception as e:
-            logger.exception(f"Unexpected authentication error")
+        except Exception:
+            logger.exception("Unexpected authentication error")
             return False
 
     async def close(self) -> None:
@@ -186,11 +186,11 @@ class BlueskyClient:
 
             return posts, next_cursor
 
-        except AtProtocolError as e:
-            logger.exception(f"Search failed")
+        except AtProtocolError:
+            logger.exception("Search failed")
             return [], None
-        except Exception as e:
-            logger.exception(f"Unexpected search error")
+        except Exception:
+            logger.exception("Unexpected search error")
             return [], None
 
     async def search_by_definition(
@@ -226,7 +226,7 @@ class BlueskyClient:
                 sort=search_definition.sort
             )
 
-        except Exception as e:
+        except Exception:
             logger.exception(f"Failed to search with definition '{search_definition.name}'")
             return [], None
 
@@ -377,10 +377,10 @@ class BlueskyClient:
             logger.info(f"Successfully fetched thread for URI: {uri}")
             return response
 
-        except AtProtocolError as e:
+        except AtProtocolError:
             logger.exception(f"Failed to fetch thread for {uri}")
             return None
-        except Exception as e:
+        except Exception:
             logger.exception(f"Unexpected error fetching thread for {uri}")
             return None
 
@@ -414,6 +414,6 @@ class BlueskyClient:
             logger.info(f"Collected {len(thread_posts)} posts from {len(posts)} initial posts")
             return thread_posts
 
-        except Exception as e:
-            logger.exception(f"Error collecting threads")
+        except Exception:
+            logger.exception("Error collecting threads")
             return posts  # Return original posts if thread collection fails
