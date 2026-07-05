@@ -1,6 +1,6 @@
 """Base model for analytics-enabled Pydantic models."""
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Self, TypeVar, get_args, get_origin
@@ -109,7 +109,7 @@ class AnalyticsBase(BaseModel):
             DataFrame with all records from the specified days
         """
         base_path = Path("stages") / stage_name
-        end_date = date.today()
+        end_date = datetime.now(UTC).date()
         start_date = end_date - timedelta(days=days_back - 1)
 
         all_files = []

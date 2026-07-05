@@ -1,6 +1,6 @@
 """Tests for post filtering utilities."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -25,7 +25,7 @@ def create_test_post(content: str, language: LanguageType = LanguageType.LATIN,
         id=f"test_{hash(content)}",
         author="test_user",
         content=content,
-        created_at=datetime.now(),
+        created_at=datetime.now(UTC),
         links=["https://example.com"] if has_links else [],
         tags=["test"] if has_tags else [],
         language=language,

@@ -206,7 +206,7 @@ class FetchStage(ProcessingStage):
         logger.info(f"Found {len(fetched_urls)} already fetched URLs")
 
         # Now scan posts from the last N days
-        end_date = date.today()
+        end_date = datetime.now(UTC).date()
         start_date = end_date - timedelta(days=days_back)
 
         processed_posts = 0
@@ -250,7 +250,7 @@ class FetchStage(ProcessingStage):
                                     # Use the post's publication date
                                     post_created = md_file.get_frontmatter_value("created_at")
                                     if post_created:
-                                        post_date = datetime.fromisoformat(post_created.replace("Z", "+00:00")).date()
+                                        post_date = datetime.fromisoformat(post_created).date()
                                     else:
                                         post_date = current_date
 
@@ -316,7 +316,7 @@ class FetchStage(ProcessingStage):
             from src.models.fetch import FetchResult
 
             # Export all fetched data as a single parquet file with 7 days of history
-            run_date = date.today()
+            run_date = datetime.now(UTC).date()
             await export_stage_to_parquet("fetch", FetchResult, run_date, self.export_parquet, days_back=7)
 
         return result

@@ -1,6 +1,6 @@
 import json
 import tempfile
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -46,7 +46,7 @@ class BlueskyDataCollector:
             List of collected BlueskyPost instances
         """
         if target_date is None:
-            target_date = date.today()
+            target_date = datetime.now(UTC).date()
 
         logger.info(f"Starting collection for {target_date} using definition '{search_definition.name}'")
 
@@ -87,7 +87,7 @@ class BlueskyDataCollector:
             List of collected BlueskyPost instances
         """
         if target_date is None:
-            target_date = date.today()
+            target_date = datetime.now(UTC).date()
 
         logger.info(f"Starting collection for {target_date}")
 
@@ -190,7 +190,7 @@ class BlueskyDataCollector:
             Tuple of (number_of_posts_collected, storage_success)
         """
         if target_date is None:
-            target_date = date.today()
+            target_date = datetime.now(UTC).date()
 
         logger.info(f"Starting collect and store operation for {target_date} using definition '{search_definition.name}'")
 
@@ -267,7 +267,7 @@ class BlueskyDataCollector:
             Tuple of (number_of_posts_collected, storage_success)
         """
         if target_date is None:
-            target_date = date.today()
+            target_date = datetime.now(UTC).date()
 
         logger.info(f"Starting collect and store operation for {target_date}")
 
@@ -362,7 +362,7 @@ class BlueskyDataCollector:
                         # Handle datetime conversion
                         if isinstance(post_data.get("created_at"), str):
                             post_data["created_at"] = datetime.fromisoformat(
-                                post_data["created_at"].replace("Z", "+00:00")
+                                post_data["created_at"]
                             )
 
                         post = BlueskyPost.model_validate(post_data)

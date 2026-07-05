@@ -117,7 +117,7 @@ class BlueskyClient:
         created_at = post.record.created_at
         if isinstance(created_at, str):
             # Parse ISO format datetime string
-            created_at = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            created_at = datetime.fromisoformat(created_at)
 
         # Validate content is not empty
         content = post.record.text or ""

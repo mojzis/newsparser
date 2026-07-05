@@ -40,10 +40,10 @@ def _(settings):
 
 @app.cell
 def _(mo, r2_client):
-    from datetime import date, timedelta
+    from datetime import UTC, date, datetime, timedelta
 
     # Try today's date first, then yesterday
-    today = date.today()
+    today = datetime.now(UTC).date()
     yesterday = today - timedelta(days=1)
 
     dates_to_try = [today, yesterday]

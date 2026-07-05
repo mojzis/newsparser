@@ -113,8 +113,8 @@ class TestBlueskyDataCollectorCollectPosts:
             mock_client.__aenter__.return_value = mock_client
             mock_client_class.return_value = mock_client
 
-            with patch("src.bluesky.collector.date") as mock_date:
-                mock_date.today.return_value = date(2024, 1, 15)
+            with patch("src.bluesky.collector.datetime") as mock_datetime:
+                mock_datetime.now.return_value.date.return_value = date(2024, 1, 15)
 
                 test_collector = BlueskyDataCollector(collector.settings)
                 result = await test_collector.collect_daily_posts()
@@ -220,8 +220,8 @@ class TestBlueskyDataCollectorCollectAndStore:
         with patch.object(
             collector, "collect_daily_posts", return_value=sample_posts
         ) as mock_collect, patch.object(collector, "store_posts", return_value=True):
-            with patch("src.bluesky.collector.date") as mock_date:
-                mock_date.today.return_value = date(2024, 1, 15)
+            with patch("src.bluesky.collector.datetime") as mock_datetime:
+                mock_datetime.now.return_value.date.return_value = date(2024, 1, 15)
 
                 await collector.collect_and_store()
 

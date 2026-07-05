@@ -1,6 +1,6 @@
 """Tests for URL registry models."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -13,7 +13,7 @@ class TestURLEntry:
 
     def test_url_entry_creation(self):
         """Test creating a URL entry with all fields."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         entry = URLEntry(
             url="https://example.com/article",
             first_seen=now,
@@ -34,7 +34,7 @@ class TestURLEntry:
 
     def test_url_entry_minimal(self):
         """Test creating URL entry with minimal required fields."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         entry = URLEntry(
             url="https://example.com",
             first_seen=now,
@@ -48,7 +48,7 @@ class TestURLEntry:
 
     def test_url_entry_validation(self):
         """Test URL entry validation."""
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         # Invalid URL
         with pytest.raises(ValidationError):
@@ -77,7 +77,7 @@ class TestURLEntry:
 
     def test_url_entry_serialization(self):
         """Test URL entry serialization."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         entry = URLEntry(
             url="https://example.com/article",
             first_seen=now,

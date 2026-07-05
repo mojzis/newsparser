@@ -175,7 +175,7 @@ This content was evaluated for MCP relevance.
             logger.info("Regenerate mode: will re-evaluate all content")
 
         # Now scan fetched content from the last N days
-        end_date = date.today()
+        end_date = datetime.now(UTC).date()
         start_date = end_date - timedelta(days=days_back)
 
         processed = 0
@@ -300,7 +300,7 @@ This content was evaluated for MCP relevance.
             from src.models.evaluation import ArticleEvaluation
 
             # Export all evaluated data as a single parquet file with 7 days of history
-            run_date = date.today()
+            run_date = datetime.now(UTC).date()
             await export_stage_to_parquet("evaluate", ArticleEvaluation, run_date, self.export_parquet, days_back=7, settings=self.settings)
 
         return result

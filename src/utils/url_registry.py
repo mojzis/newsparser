@@ -1,6 +1,6 @@
 """URL registry utilities for managing URL tracking."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pandas as pd
 from pydantic import HttpUrl
@@ -46,7 +46,7 @@ class URLRegistry:
     def add_url(self, url: str | HttpUrl, post_id: str, author: str) -> bool:
         """Add URL to registry or increment times_seen. Returns True if new URL."""
         url_str = normalize_url(url)
-        now = datetime.now()
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         # Check if URL exists
         if not self.df.empty and (self.df["url"] == url_str).any():
@@ -100,7 +100,7 @@ class URLRegistry:
     ) -> None:
         """Mark URL as evaluated with results."""
         url_str = normalize_url(url)
-        now = datetime.now()
+        now = datetime.now(UTC).replace(tzinfo=None)
 
         if not self.df.empty and (self.df["url"] == url_str).any():
             idx = self.df[self.df["url"] == url_str].index[0]

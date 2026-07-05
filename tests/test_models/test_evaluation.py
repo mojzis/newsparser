@@ -1,6 +1,6 @@
 """Tests for article evaluation models."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from pydantic import ValidationError
@@ -13,7 +13,7 @@ class TestArticleEvaluation:
 
     def test_evaluation_creation(self):
         """Test creating an evaluation with all fields."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com/article",
             is_mcp_related=True,
@@ -49,7 +49,7 @@ class TestArticleEvaluation:
 
     def test_evaluation_minimal(self):
         """Test creating evaluation with minimal required fields."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com",
             is_mcp_related=False,
@@ -78,7 +78,7 @@ class TestArticleEvaluation:
 
     def test_evaluation_with_error(self):
         """Test evaluation with error."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com",
             is_mcp_related=False,
@@ -104,7 +104,7 @@ class TestArticleEvaluation:
 
     def test_evaluation_validation(self):
         """Test evaluation validation."""
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         # Invalid relevance score (too high)
         with pytest.raises(ValidationError):
@@ -168,7 +168,7 @@ class TestArticleEvaluation:
 
     def test_evaluation_serialization(self):
         """Test evaluation serialization."""
-        now = datetime.now()
+        now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com/article",
             is_mcp_related=True,

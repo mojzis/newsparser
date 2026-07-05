@@ -1,6 +1,6 @@
 """Tests for BlueskyPost language detection functionality."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from src.models.post import BlueskyPost, EngagementMetrics
 from src.utils.language_detection import LanguageType
@@ -15,7 +15,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="Hello world! This is an English post #MCP",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -28,7 +28,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="你好世界！这是一个中文帖子！很长的中文内容测试语言检测功能",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -42,7 +42,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="你好 中文 测试 内容 Hello English mixed",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -54,7 +54,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="你好世界！这是中文内容",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             language=LanguageType.LATIN,  # Explicitly set (incorrect but should be preserved)
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
@@ -68,7 +68,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="!",  # Just punctuation
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -80,7 +80,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="Check out this #MCP tool 你好 #技术 https://example.com",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             links=["https://example.com"],
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
@@ -97,7 +97,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="Привет мир! Как дела сегодня?",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -114,7 +114,7 @@ class TestBlueskyPostLanguageDetection:
             id="123",
             author="user",
             content="Hello world!",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -164,7 +164,7 @@ class TestLanguageDetectionEdgeCases:
             id="123",
             author="user",
             content="https://example.com https://test.org",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -176,7 +176,7 @@ class TestLanguageDetectionEdgeCases:
             id="123",
             author="user",
             content="😀😂🚀❤️🎉",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -188,7 +188,7 @@ class TestLanguageDetectionEdgeCases:
             id="123",
             author="user",
             content="123 + 456 = 579 !@#$%",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -201,7 +201,7 @@ class TestLanguageDetectionEdgeCases:
             id="1",
             author="user",
             content="Love this new AI tool! #AI #人工智能",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -215,7 +215,7 @@ class TestLanguageDetectionEdgeCases:
             id="2",
             author="user",
             content="Изучаю Machine Learning и Data Science сегодня!",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -229,7 +229,7 @@ class TestLanguageDetectionEdgeCases:
             id="1",
             author="user",
             content="def hello(): # This prints hello\n    print('Hello!')",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -240,7 +240,7 @@ class TestLanguageDetectionEdgeCases:
             id="2",
             author="user",
             content="function sayHello() { // 这个函数打印问候语\n  console.log('你好世界'); }",
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -260,7 +260,7 @@ class TestLanguageDetectionPerformance:
             id="123",
             author="user",
             content=long_content,
-            created_at=datetime.now(),
+            created_at=datetime.now(UTC),
             engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
         )
 
@@ -283,7 +283,7 @@ class TestLanguageDetectionPerformance:
                 id=str(i),
                 author="user",
                 content=content,
-                created_at=datetime.now(),
+                created_at=datetime.now(UTC),
                 engagement_metrics=EngagementMetrics(likes=1, reposts=0, replies=0)
             )
             posts.append(post)

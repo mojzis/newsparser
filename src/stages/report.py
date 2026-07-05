@@ -401,7 +401,7 @@ class ReportStage(ProcessingStage):
         """
 
         if output_date is None:
-            output_date = date.today()
+            output_date = datetime.now(UTC).date()
 
         logger.info(f"Running report stage, scanning evaluated content from last {days_back} days")
 
@@ -583,7 +583,7 @@ class ReportStage(ProcessingStage):
         from datetime import timedelta
 
         if output_date is None:
-            output_date = date.today()
+            output_date = datetime.now(UTC).date()
 
         logger.info(f"Running bulk report generation, scanning last {days_back} days from {output_date}")
 
@@ -713,7 +713,7 @@ class ReportStage(ProcessingStage):
 
         day_sections = []
         total_articles = 0
-        today = date.today()
+        today = datetime.now(UTC).date()
 
         logger.info(f"Collecting homepage articles with minimum {min_articles} articles")
 

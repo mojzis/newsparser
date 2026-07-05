@@ -1,7 +1,7 @@
 """Report data models for HTML generation."""
 
 from datetime import date as date_type
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -107,7 +107,7 @@ class ArchiveLink(BaseModel):
     def create(cls, report_date: date_type, article_count: int) -> "ArchiveLink":
         """Create archive link with formatted date and path."""
         # Format as "December 6" (no year for current year)
-        if report_date.year == date_type.today().year:
+        if report_date.year == datetime.now(UTC).date().year:
             formatted = report_date.strftime("%B %-d")
         else:
             formatted = report_date.strftime("%B %-d, %Y")
@@ -134,7 +134,7 @@ class DaySection(BaseModel):
     def create(cls, report_date: date_type, articles: list[ReportArticle]) -> "DaySection":
         """Create a day section."""
         # Format as "Today (June 16, 2025)" or "Yesterday (June 15, 2025)" or just "June 14, 2025"
-        today = date_type.today()
+        today = datetime.now(UTC).date()
         if report_date == today:
             formatted_date = f"Today ({report_date.strftime('%B %-d, %Y')})"
         elif report_date == today - timedelta(days=1):
@@ -164,7 +164,7 @@ class HomepageData(BaseModel):
         archive_dates: list[ArchiveLink]
     ) -> "HomepageData":
         """Create homepage data."""
-        today = date_type.today().strftime("%B %-d, %Y")
+        today = datetime.now(UTC).date().strftime("%B %-d, %Y")
 
         return cls(
             today=today,
@@ -181,12 +181,12 @@ class HomepageData(BaseModel):
     ) -> "HomepageData":
         """Create enhanced homepage data with day sections."""
 
-        today = date_type.today().strftime("%B %-d, %Y")
+        today = datetime.now(UTC).date().strftime("%B %-d, %Y")
 
         # Extract today's articles for backward compatibility
         today_articles = []
         for section in day_sections:
-            if section.date == date_type.today():
+            if section.date == datetime.now(UTC).date():
                 today_articles = section.articles
                 break
 

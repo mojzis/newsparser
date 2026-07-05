@@ -2,7 +2,7 @@
 
 import json
 import tempfile
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -50,7 +50,7 @@ class EvaluationProcessor:
             Tuple of (new_evaluations, total_urls)
         """
         if target_date is None:
-            target_date = date.today()
+            target_date = datetime.now(UTC).date()
 
         # Download URL registry
         registry = self.r2_client.download_url_registry()

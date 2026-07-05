@@ -296,7 +296,7 @@ class CollectStage(InputStage):
         logger.info("Running collect stage")
 
         # Collect posts from Bluesky
-        posts = await self.collect_posts(target_date or date.today())
+        posts = await self.collect_posts(target_date or datetime.now(UTC).date())
 
         processed = 0
         failed = 0
@@ -358,7 +358,7 @@ class CollectStage(InputStage):
 
         result = {
             "stage": self.stage_name,
-            "run_date": date.today(),
+            "run_date": datetime.now(UTC).date(),
             "processed": processed,
             "failed": failed,
             "total": len(posts),
@@ -375,7 +375,7 @@ class CollectStage(InputStage):
             from src.models.post import BlueskyPost
 
             # Export all collected data as a single parquet file with 7 days of history
-            run_date = date.today()
+            run_date = datetime.now(UTC).date()
             await export_stage_to_parquet("collect", BlueskyPost, run_date, self.export_parquet, days_back=7, settings=self.settings)
 
         return result

@@ -2,7 +2,7 @@
 
 import asyncio
 import sys
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import click
@@ -28,7 +28,7 @@ def parse_date(date_str: str | None) -> date:
         except ValueError:
             console.print(f"❌ Invalid date format: {date_str}. Use YYYY-MM-DD", style="red")
             sys.exit(1)
-    return date.today()
+    return datetime.now(UTC).date()
 
 
 @click.group()
