@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import yaml
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel
 
 
 class PathsConfig(BaseModel):

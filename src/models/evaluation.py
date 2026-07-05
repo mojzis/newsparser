@@ -41,10 +41,3 @@ class ArticleEvaluation(AnalyticsBase):
     model_id: str = Field(..., description="Model identifier used")
     model_version: str = Field(..., description="Model version")
     config_branch: str = Field(..., description="Configuration branch used")
-    
-    model_config = {
-        "json_encoders": {
-            datetime: lambda v: v.isoformat(),
-            HttpUrl: str
-        }
-    }

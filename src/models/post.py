@@ -122,10 +122,3 @@ class BlueskyPost(AnalyticsBase):
         self.thread_depth = depth
         self.parent_post_uri = parent_uri
         return self
-
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat(), 
-            HttpUrl: str,
-            LanguageType: str
-        }
