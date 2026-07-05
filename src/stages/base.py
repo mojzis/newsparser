@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Stage(ABC):
     """Base class for all processing stages."""
 
-    def __init__(self, stage_name: str, base_path: Path = Path("stages")):
+    def __init__(self, stage_name: str, base_path: Path = Path("stages")) -> None:
         self.stage_name = stage_name
         self.base_path = base_path
         self.stage_path = base_path / stage_name
@@ -118,7 +118,7 @@ class InputStage(Stage):
 class ProcessingStage(Stage):
     """Base class for stages that process outputs from previous stages."""
 
-    def __init__(self, stage_name: str, input_stage_name: str, base_path: Path = Path("stages")):
+    def __init__(self, stage_name: str, input_stage_name: str, base_path: Path = Path("stages")) -> None:
         super().__init__(stage_name, base_path)
         self.input_stage_name = input_stage_name
         self.input_stage_path = base_path / input_stage_name

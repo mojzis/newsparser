@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 
 from atproto import AsyncClient, models
 from atproto.exceptions import AtProtocolError
@@ -64,12 +64,12 @@ class BlueskyClient:
             self.client = None
             logger.info("Bluesky client session closed")
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         await self.authenticate()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         """Async context manager exit."""
         await self.close()
 

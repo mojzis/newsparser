@@ -32,7 +32,7 @@ def parse_date(date_str: str | None) -> date:
 
 
 @click.group()
-def stages():
+def stages() -> None:
     """Stage-based processing commands"""
 
 
@@ -50,7 +50,7 @@ def stages():
 @click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
 def collect(target_date: str | None, max_posts: int, search: str, config_path: str | None,
            expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, export_parquet: bool,
-           expand_references: bool, max_reference_depth: int):
+           expand_references: bool, max_reference_depth: int) -> None:
     """Collect posts from Bluesky. Posts are organized by their publication date."""
 
     parsed_date = parse_date(target_date)
@@ -119,7 +119,7 @@ def collect(target_date: str | None, max_posts: int, search: str, config_path: s
 @stages.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-def fetch(days_back: int, export_parquet: bool):
+def fetch(days_back: int, export_parquet: bool) -> None:
     """Fetch full content from URLs found in collected posts from the last N days."""
 
     console.print(f"🌐 Fetching content from posts in the last {days_back} days...")
@@ -151,7 +151,7 @@ def fetch(days_back: int, export_parquet: bool):
 @click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-def evaluate(days_back: int, regenerate: bool, export_parquet: bool):
+def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
     """Evaluate content relevance using Anthropic API for fetched content from the last N days."""
 
     if regenerate:
@@ -199,7 +199,7 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool):
 @click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
 @click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-def report(days_back: int, regenerate: bool, output_date: str | None, bulk: bool, debug: bool, sitemap: bool, rss: bool):
+def report(days_back: int, regenerate: bool, output_date: str | None, bulk: bool, debug: bool, sitemap: bool, rss: bool) -> None:
     """Generate report from evaluated content in the last N days."""
 
     parsed_output_date = parse_date(output_date)
@@ -250,7 +250,7 @@ def report(days_back: int, regenerate: bool, output_date: str | None, bulk: bool
 
 
 @stages.command()
-def render_stats():
+def render_stats() -> None:
     """Generate statistics pages from marimo notebooks."""
     import re
     import subprocess
@@ -349,7 +349,7 @@ def render_stats():
 
 
 @stages.command()
-def render_about():
+def render_about() -> None:
     """Render about page from markdown file."""
     from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -423,7 +423,7 @@ def render_about():
 @click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
 @click.option("--publish/--no-publish", default=True, help="Publish DuckDB query interface (default: True)")
-def run_all(target_date: str | None, max_posts: int, search: str, config_path: str | None, expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int, sitemap: bool, rss: bool, publish: bool):
+def run_all(target_date: str | None, max_posts: int, search: str, config_path: str | None, expand_urls: bool, threads: bool, max_thread_depth: int, max_parent_height: int, days_back: int, regenerate_reports: bool, regenerate_evaluations: bool, export_parquet: bool, expand_references: bool, max_reference_depth: int, sitemap: bool, rss: bool, publish: bool) -> None:
     """Run all stages in sequence. Posts organized by publication date."""
 
     # Store reference to publish command before parameter shadows it
@@ -471,7 +471,7 @@ def run_all(target_date: str | None, max_posts: int, search: str, config_path: s
 
 @stages.command()
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
-def status(target_date: str | None):
+def status(target_date: str | None) -> None:
     """Show status of all stages for a date."""
 
     parsed_date = parse_date(target_date)
@@ -505,7 +505,7 @@ def status(target_date: str | None):
 @click.argument("stage_name", type=click.Choice(["collect", "fetch", "evaluate", "report"]))
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
 @click.option("--limit", default=10, help="Maximum number of files to list")
-def list_files(stage_name: str, target_date: str | None, limit: int):
+def list_files(stage_name: str, target_date: str | None, limit: int) -> None:
     """List files in a specific stage."""
 
     parsed_date = parse_date(target_date)
@@ -543,7 +543,7 @@ def list_files(stage_name: str, target_date: str | None, limit: int):
 @click.argument("stage_name", type=click.Choice(["collect", "fetch", "evaluate", "report"]))
 @click.option("--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today")
 @click.option("--confirm", is_flag=True, help="Skip confirmation prompt")
-def clean(stage_name: str, target_date: str | None, confirm: bool):
+def clean(stage_name: str, target_date: str | None, confirm: bool) -> None:
     """Clean (remove) all files from a specific stage."""
 
     parsed_date = parse_date(target_date)
@@ -578,7 +578,7 @@ def clean(stage_name: str, target_date: str | None, confirm: bool):
 
 
 @stages.command()
-def publish():
+def publish() -> None:
     """Publish DuckDB query interface and metadata to output directory."""
     import shutil
 
@@ -644,7 +644,7 @@ def publish():
 @stages.command()
 @click.option("--port", default=8000, help="Port to serve on (default: 8000)")
 @click.option("--host", default="localhost", help="Host to bind to (default: localhost)")
-def present(port: int, host: str):
+def present(port: int, host: str) -> None:
     """Start HTTP server to view generated HTML reports."""
     import subprocess
     import time

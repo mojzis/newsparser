@@ -24,7 +24,7 @@ logger = get_logger(__name__)
 class EvaluationProcessor:
     """Processes articles for evaluation, managing URL registry and storage."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
         """Initialize processor with settings."""
         self.settings = settings
         self.r2_client = R2Client(settings)

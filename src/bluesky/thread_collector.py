@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 class ThreadCollector:
     """Service for collecting complete Bluesky threads."""
 
-    def __init__(self, client: AsyncClient):
+    def __init__(self, client: AsyncClient) -> None:
         """
         Initialize thread collector with authenticated atproto client.
 

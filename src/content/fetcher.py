@@ -1,7 +1,7 @@
 """Article fetching client using httpx."""
 import asyncio
 from datetime import UTC, datetime
-from typing import Any
+from typing import Self
 from urllib.parse import urlparse
 
 import httpx
@@ -65,11 +65,11 @@ class ArticleFetcher:
         """Close the HTTP client."""
         await self.client.aclose()
 
-    async def __aenter__(self) -> "ArticleFetcher":
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         """Async context manager exit."""
         await self.close()
 

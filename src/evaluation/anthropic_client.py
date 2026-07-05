@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 class AnthropicEvaluator:
     """Evaluates articles using Anthropic API."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings) -> None:
         """Initialize evaluator with API settings."""
         self.settings = settings
         self.client = Anthropic(api_key=settings.anthropic_api_key)

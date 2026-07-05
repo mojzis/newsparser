@@ -3,6 +3,7 @@
 import logging
 from datetime import UTC, date, datetime
 from pathlib import Path
+from typing import Self
 
 from src.content.extractor import ContentExtractor
 from src.content.fetcher import ArticleFetcher
@@ -16,17 +17,17 @@ logger = logging.getLogger(__name__)
 class FetchStage(ProcessingStage):
     """Fetches full content from URLs found in posts."""
 
-    def __init__(self, base_path: Path = Path("stages"), export_parquet: bool = True):
+    def __init__(self, base_path: Path = Path("stages"), export_parquet: bool = True) -> None:
         super().__init__("fetch", "collect", base_path)
         self.export_parquet = export_parquet
         self.fetcher = ArticleFetcher()
         self.extractor = ContentExtractor()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         """Async context manager exit."""
         await self.fetcher.close()
 

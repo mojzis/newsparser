@@ -10,7 +10,7 @@ import yaml
 class MarkdownFile:
     """Represents a Markdown file with YAML frontmatter."""
 
-    def __init__(self, frontmatter: dict[str, Any], content: str):
+    def __init__(self, frontmatter: dict[str, Any], content: str) -> None:
         self.frontmatter = frontmatter
         self.content = content
 

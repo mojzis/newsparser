@@ -26,7 +26,7 @@ class CollectStage(InputStage):
     def __init__(self, settings: Settings, search_definition: SearchDefinition | None = None,
                  max_posts: int = 100, expand_urls: bool = True, collect_threads: bool = False,
                  max_thread_depth: int = 6, max_parent_height: int = 80, base_path: Path = Path("stages"),
-                 export_parquet: bool = True, expand_references: bool = True, max_reference_depth: int = 2):
+                 export_parquet: bool = True, expand_references: bool = True, max_reference_depth: int = 2) -> None:
         super().__init__("collect", base_path)
         self.settings = settings
         self.search_definition = search_definition or SearchConfig.get_default_config().searches["mcp_mentions"]

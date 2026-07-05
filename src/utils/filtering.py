@@ -101,7 +101,7 @@ class PostLanguageFilter:
         max_content_length: int | None = None,
         require_links: bool | None = None,
         require_tags: bool | None = None
-    ):
+    ) -> None:
         """
         Initialize the filter with criteria.
 

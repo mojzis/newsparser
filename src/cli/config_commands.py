@@ -10,13 +10,13 @@ console = Console()
 
 
 @click.group()
-def config():
+def config() -> None:
     """Configuration management commands."""
 
 
 @config.command()
 @click.option("--branch", default="base", help="Configuration branch to validate")
-def validate(branch: str):
+def validate(branch: str) -> None:
     """Validate configuration files."""
     import os
 
@@ -40,7 +40,7 @@ def validate(branch: str):
 
 @config.command()
 @click.option("--branch", default="base", help="Configuration branch to show")
-def show(branch: str):
+def show(branch: str) -> None:
     """Show current configuration."""
     import os
 
@@ -96,14 +96,14 @@ def show(branch: str):
 @config.command()
 @click.argument("branch1")
 @click.argument("branch2")
-def diff(branch1: str, branch2: str):
+def diff(branch1: str, branch2: str) -> None:
     """Compare two configuration branches."""
     console.print(f"Comparing {branch1} vs {branch2}")
     console.print("⚠️  Configuration diff not yet implemented")
 
 
 @config.command()
-def list_branches():
+def list_branches() -> None:
     """List available configuration branches."""
     from pathlib import Path
 

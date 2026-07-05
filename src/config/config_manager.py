@@ -99,7 +99,7 @@ class ExperimentConfig(BaseModel):
 class ConfigManager:
     """Manages loading and merging of configuration files."""
 
-    def __init__(self, config_path: str | Path | None = None, branch: str = "base"):
+    def __init__(self, config_path: str | Path | None = None, branch: str = "base") -> None:
         """Initialize configuration manager.
 
         Args:
@@ -251,7 +251,7 @@ def get_config_manager() -> ConfigManager:
     return _config_manager
 
 
-def reset_config_manager():
+def reset_config_manager() -> None:
     """Reset global configuration manager (for testing)."""
     global _config_manager
     _config_manager = None

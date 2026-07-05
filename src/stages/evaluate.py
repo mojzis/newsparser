@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class EvaluateStage(ProcessingStage):
     """Evaluates content relevance using Anthropic API."""
 
-    def __init__(self, settings: Settings, base_path: Path = Path("stages"), export_parquet: bool = True):
+    def __init__(self, settings: Settings, base_path: Path = Path("stages"), export_parquet: bool = True) -> None:
         super().__init__("evaluate", "fetch", base_path)
         self.settings = settings
         self.export_parquet = export_parquet

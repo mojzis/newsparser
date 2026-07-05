@@ -20,7 +20,7 @@ def normalize_url(url: str | HttpUrl) -> str:
 class URLRegistry:
     """Manages URL registry operations using pandas DataFrame."""
 
-    def __init__(self, df: pd.DataFrame | None = None):
+    def __init__(self, df: pd.DataFrame | None = None) -> None:
         """Initialize registry with optional existing DataFrame."""
         if df is None:
             self.df = pd.DataFrame(columns=[

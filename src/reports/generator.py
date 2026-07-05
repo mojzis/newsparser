@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class ReportGenerator:
     """Generates HTML reports from collected data."""
 
-    def __init__(self, template_dir: Path | None = None, output_dir: Path | None = None):
+    def __init__(self, template_dir: Path | None = None, output_dir: Path | None = None) -> None:
         """
         Initialize report generator.
 

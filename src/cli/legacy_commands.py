@@ -12,13 +12,13 @@ console = Console()
 
 
 @click.group()
-def legacy_cli():
+def legacy_cli() -> None:
     """Legacy utilities for Bluesky MCP Monitor - use 'nsp' for main commands"""
 
 
 @legacy_cli.command()
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-def list_searches(config_path: str | None):
+def list_searches(config_path: str | None) -> None:
     """List available search definitions."""
     try:
         search_config = load_search_config(config_path)
@@ -61,7 +61,7 @@ def list_searches(config_path: str | None):
 
 @legacy_cli.command()
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
-def validate_config(config_path: str | None):
+def validate_config(config_path: str | None) -> None:
     """Validate search configuration file."""
     try:
         search_config = load_search_config(config_path)
@@ -97,7 +97,7 @@ def validate_config(config_path: str | None):
 @legacy_cli.command()
 @click.option("--config", "config_path", help="Path to search configuration YAML file")
 @click.option("--query", help="Search definition key to compare")
-def compare_syntaxes(config_path: str | None, query: str | None):
+def compare_syntaxes(config_path: str | None, query: str | None) -> None:
     """Compare native and Lucene query syntaxes side by side."""
     try:
         from src.bluesky.query_builders import QueryBuilderFactory
@@ -161,7 +161,7 @@ def compare_syntaxes(config_path: str | None, query: str | None):
 
 
 @legacy_cli.command()
-def notebook():
+def notebook() -> None:
     """Launch marimo notebook for data exploration."""
     console.print("🚀 Launching marimo notebook...")
     console.print("This will open the data exploration notebook in your browser.")

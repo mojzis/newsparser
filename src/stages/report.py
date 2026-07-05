@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 class ReportStage(ProcessingStage):
     """Generates daily reports from evaluated content."""
 
-    def __init__(self, template_dir: Path | None = None, base_path: Path = Path("stages")):
+    def __init__(self, template_dir: Path | None = None, base_path: Path = Path("stages")) -> None:
         super().__init__("report", "evaluate", base_path)
 
         # Set up templates

@@ -37,7 +37,7 @@ class SearchDefinition(BaseModel):
 
     @field_validator("exclude_terms", mode="before")
     @classmethod
-    def validate_exclude_terms(cls, v):
+    def validate_exclude_terms(cls, v: object) -> object:
         """Clean up exclude terms before validation."""
         if v is None:
             return []

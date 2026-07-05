@@ -11,7 +11,7 @@ console = Console()
 
 
 @click.group()
-def cli():
+def cli() -> None:
     """Bluesky MCP Monitor - Stage-based Processing"""
     # Validate configuration on startup
     try:
@@ -43,7 +43,7 @@ cli.add_command(config)
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
 @click.option("--expand-references/--no-expand-references", default=True, help="Expand Bluesky post references into new posts (default: True)")
 @click.option("--max-reference-depth", default=2, help="Maximum depth for reference expansion (default: 2)")
-def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, export_parquet, expand_references, max_reference_depth):
+def collect(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, export_parquet, expand_references, max_reference_depth) -> None:
     """Collect posts using stage-based architecture."""
     from src.cli.stage_commands import collect as stage_collect
     ctx = click.Context(stage_collect)
@@ -54,7 +54,7 @@ def collect(target_date, max_posts, search, config_path, expand_urls, threads, m
 @cli.command()
 @click.option("--days-back", default=7, help="Number of days to look back for unfetched URLs (default: 7)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-def fetch(days_back, export_parquet):
+def fetch(days_back, export_parquet) -> None:
     """Fetch content from URLs found in posts from the last N days."""
     from src.cli.stage_commands import fetch as stage_fetch
     ctx = click.Context(stage_fetch)
@@ -65,7 +65,7 @@ def fetch(days_back, export_parquet):
 @click.option("--days-back", default=7, help="Number of days to look back for unevaluated content (default: 7)")
 @click.option("--regenerate/--no-regenerate", default=False, help="Re-evaluate existing evaluations (default: False)")
 @click.option("--export-parquet/--no-export-parquet", default=True, help="Export data to Parquet files for analytics (default: True)")
-def evaluate(days_back, regenerate, export_parquet):
+def evaluate(days_back, regenerate, export_parquet) -> None:
     """Evaluate content from fetched URLs in the last N days."""
     from src.cli.stage_commands import evaluate as stage_evaluate
     ctx = click.Context(stage_evaluate)
@@ -80,7 +80,7 @@ def evaluate(days_back, regenerate, export_parquet):
 @click.option("--debug/--no-debug", default=False, help="Show debug information including evaluation filenames")
 @click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss):
+def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss) -> None:
     """Generate report from evaluated content in the last N days."""
     from src.cli.stage_commands import report as stage_report
     ctx = click.Context(stage_report)
@@ -88,7 +88,7 @@ def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss):
 
 
 @cli.command()
-def publish():
+def publish() -> None:
     """Publish DuckDB query interface to output directory."""
     from src.cli.stage_commands import publish as stage_publish
     ctx = click.Context(stage_publish)
@@ -113,7 +113,7 @@ def publish():
 @click.option("--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)")
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
 @click.option("--publish/--no-publish", default=True, help="Publish DuckDB query interface (default: True)")
-def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth, sitemap, rss, publish):
+def run_all(target_date, max_posts, search, config_path, expand_urls, threads, max_thread_depth, max_parent_height, days_back, regenerate_reports, regenerate_evaluations, export_parquet, expand_references, max_reference_depth, sitemap, rss, publish) -> None:
     """Run all stages in sequence. Posts are organized by their publication date."""
     from src.cli.stage_commands import run_all as stage_run_all
     ctx = click.Context(stage_run_all)
@@ -122,7 +122,7 @@ def run_all(target_date, max_posts, search, config_path, expand_urls, threads, m
 
 @cli.command()
 @click.option("--date", "target_date", help="Date to check status for (YYYY-MM-DD), defaults to today")
-def status(target_date):
+def status(target_date) -> None:
     """Show status of all stages for a date."""
     from src.cli.stage_commands import status as stage_status
     ctx = click.Context(stage_status)
@@ -132,7 +132,7 @@ def status(target_date):
 @cli.command()
 @click.option("--port", default=8000, help="Port to serve on (default: 8000)")
 @click.option("--host", default="localhost", help="Host to bind to (default: localhost)")
-def present(port, host):
+def present(port, host) -> None:
     """Start HTTP server to view generated HTML reports."""
     from src.cli.stage_commands import present as stage_present
     ctx = click.Context(stage_present)

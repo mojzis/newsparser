@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from typing import Self
 from urllib.parse import urlparse
 
 import httpx
@@ -26,7 +27,7 @@ class URLExpander:
         timeout: float = 10.0,
         max_redirects: int = 10,
         user_agent: str = "Mozilla/5.0 (compatible; URLExpander/1.0)"
-    ):
+    ) -> None:
         """
         Initialize URL expander.
 
@@ -50,15 +51,15 @@ class URLExpander:
             limits=httpx.Limits(max_keepalive_connections=10, max_connections=20)
         )
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the HTTP client."""
         await self.client.aclose()
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         """Async context manager entry."""
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         """Async context manager exit."""
         await self.close()
 
