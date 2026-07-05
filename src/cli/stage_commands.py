@@ -247,7 +247,7 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
         console.print(f"  • Previously evaluated: {result['previously_evaluated']}")
         console.print(f"  • Skipped: {result['skipped']}")
         console.print(f"  • Failed: {result['failed']}")
-        console.print(f"  • MCP related: {result['mcp_related']}")
+        console.print(f"  • Relevant: {result['relevant']}")
         console.print(f"  • Avg relevance: {result['avg_relevance_score']}")
 
         # Show evaluations by date if any were processed

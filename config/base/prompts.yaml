@@ -9,17 +9,17 @@ prompts:
     version: "1.0"
     compatible_models: ["mcp_evaluator_v1", "mcp_evaluator_sonnet"]
     template: |
-      Analyze this article for relevance to Model Context Protocol (MCP).
+      Analyze this article for relevance to {topic_name}.
 
-      MCP is a protocol for AI tool integration that allows language models to access external tools and data sources.
+      {topic_description}
 
       Article:{title_part}{hints_part}
       Content:
       {content}
 
       Evaluate and respond with JSON containing:
-      1. is_mcp_related (boolean): Is this article about MCP, AI tool integration, or related topics?
-      2. relevance_score (0.0-1.0): How relevant is this to MCP? 0=unrelated, 1=directly about MCP
+      1. is_relevant (boolean): Is this article about {topic_name} or closely related topics?
+      2. relevance_score (0.0-1.0): How relevant is this to {topic_name}? 0=unrelated, 1=directly about MCP
       3. summary (string, max 200 chars): Write as the author would - direct, engaging content without meta-language like "This article" or "The piece describes"
       4. perex (string, max 150 chars): Witty, engaging summary for display - slightly funny but informative, avoid exclamation marks
       5. key_topics (array of strings): Extract 2-5 specific technical topics, tools, services, or implementation details. Focus on concrete technologies, not abstract concepts. Examples of GOOD topics: "Claude API", "OpenAI GPT-4", "TypeScript SDK", "PostgreSQL integration", "Slack bot", "GitHub Actions", "Visual Studio Code extension", "WebSocket transport", "JSON-RPC protocol", "Docker containers", "AWS Lambda", "React components". Examples of BAD topics to avoid: "AI", "MCP", "integration", "development", "tools", "technology"
@@ -34,4 +34,8 @@ prompts:
       - name: hints_part
         required: false
       - name: content
+        required: true
+      - name: topic_name
+        required: true
+      - name: topic_description
         required: true

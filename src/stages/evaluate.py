@@ -92,7 +92,7 @@ class EvaluateStage(ProcessingStage):
 
             # Create minimal evaluation file with only essential data
             evaluation_data = {
-                "is_mcp_related": evaluation.is_mcp_related,
+                "is_relevant": evaluation.is_relevant,
                 "relevance_score": evaluation.relevance_score,
                 "summary": evaluation.summary,
                 "perex": evaluation.perex,
@@ -118,10 +118,10 @@ class EvaluateStage(ProcessingStage):
             # Create minimal content (just reference to fetch stage)
             evaluation_content = f"""# Evaluation Results
 
-This content was evaluated for MCP relevance.
+This content was evaluated for relevance.
 
 **Relevance Score:** {evaluation.relevance_score}
-**MCP Related:** {"Yes" if evaluation.is_mcp_related else "No"}
+**Relevant:** {"Yes" if evaluation.is_relevant else "No"}
 **Content Type:** {evaluation.content_type}
 **Language:** {evaluation.language}
 
@@ -191,7 +191,7 @@ This content was evaluated for MCP relevance.
         skipped = 0
         failed = 0
         new_evaluations = 0
-        mcp_related = 0
+        relevant = 0
         total_relevance_score = 0.0
         evaluations_by_date = {}
 
@@ -240,7 +240,7 @@ This content was evaluated for MCP relevance.
 
                             # Add evaluation to frontmatter
                             evaluation_data = {
-                                "is_mcp_related": evaluation.is_mcp_related,
+                                "is_relevant": evaluation.is_relevant,
                                 "relevance_score": evaluation.relevance_score,
                                 "summary": evaluation.summary,
                                 "perex": evaluation.perex,
@@ -273,9 +273,9 @@ This content was evaluated for MCP relevance.
                             new_evaluations += 1
                             processed += 1
 
-                            # Track MCP-related content
-                            if evaluation.is_mcp_related:
-                                mcp_related += 1
+                            # Track relevant content
+                            if evaluation.is_relevant:
+                                relevant += 1
 
                             total_relevance_score += evaluation.relevance_score
 
@@ -313,7 +313,7 @@ This content was evaluated for MCP relevance.
             "total": processed + skipped + failed,
             "new_evaluations": new_evaluations,
             "previously_evaluated": len(evaluated_urls) - new_evaluations,
-            "mcp_related": mcp_related,
+            "relevant": relevant,
             "avg_relevance_score": round(avg_relevance, 3),
             "evaluations_by_date": evaluations_by_date,
         }

@@ -16,7 +16,7 @@ class TestArticleEvaluation:
         now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com/article",
-            is_mcp_related=True,
+            is_relevant=True,
             relevance_score=0.85,
             summary="Article about MCP tools and integration",
             perex="A comprehensive guide to understanding Model Context Protocol (MCP) and its integration with AI tools.",
@@ -39,7 +39,7 @@ class TestArticleEvaluation:
         )
 
         assert str(evaluation.url) == "https://example.com/article"
-        assert evaluation.is_mcp_related is True
+        assert evaluation.is_relevant is True
         assert evaluation.relevance_score == 0.85
         assert evaluation.summary == "Article about MCP tools and integration"
         assert len(evaluation.key_topics) == 3
@@ -52,7 +52,7 @@ class TestArticleEvaluation:
         now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com",
-            is_mcp_related=False,
+            is_relevant=False,
             relevance_score=0.0,
             summary="Not related to MCP",
             perex="This article discusses general technology topics but does not mention MCP or related protocols.",
@@ -81,7 +81,7 @@ class TestArticleEvaluation:
         now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com",
-            is_mcp_related=False,
+            is_relevant=False,
             relevance_score=0.0,
             summary="Error: Failed to fetch",  # Minimum 10 chars
             perex="Unable to retrieve article content due to access errors.",
@@ -100,7 +100,7 @@ class TestArticleEvaluation:
 
         assert evaluation.error == "Failed to fetch article: 404 Not Found"
         assert evaluation.relevance_score == 0.0
-        assert evaluation.is_mcp_related is False
+        assert evaluation.is_relevant is False
 
     def test_evaluation_validation(self):
         """Test evaluation validation."""
@@ -110,7 +110,7 @@ class TestArticleEvaluation:
         with pytest.raises(ValidationError):
             ArticleEvaluation(
                 url="https://example.com",
-                is_mcp_related=True,
+                is_relevant=True,
                 relevance_score=1.5,  # > 1.0
                 summary="Test",
                 perex="Test perex for validation test case.",
@@ -125,7 +125,7 @@ class TestArticleEvaluation:
         with pytest.raises(ValidationError):
             ArticleEvaluation(
                 url="https://example.com",
-                is_mcp_related=True,
+                is_relevant=True,
                 relevance_score=-0.5,  # < 0.0
                 summary="Test",
                 perex="Test perex for negative score validation.",
@@ -140,7 +140,7 @@ class TestArticleEvaluation:
         with pytest.raises(ValidationError):
             ArticleEvaluation(
                 url="https://example.com",
-                is_mcp_related=True,
+                is_relevant=True,
                 relevance_score=0.5,
                 summary="Short",  # < 10 chars
                 perex="Test perex for short summary validation.",
@@ -155,7 +155,7 @@ class TestArticleEvaluation:
         with pytest.raises(ValidationError):
             ArticleEvaluation(
                 url="not-a-url",
-                is_mcp_related=True,
+                is_relevant=True,
                 relevance_score=0.5,
                 summary="Test summary",
                 perex="Test perex for invalid URL validation.",
@@ -171,7 +171,7 @@ class TestArticleEvaluation:
         now = datetime.now(UTC)
         evaluation = ArticleEvaluation(
             url="https://example.com/article",
-            is_mcp_related=True,
+            is_relevant=True,
             relevance_score=0.75,
             summary="Test article about MCP",
             perex="A test article exploring MCP concepts and practical applications for testing purposes.",
@@ -191,11 +191,11 @@ class TestArticleEvaluation:
         # Test dict serialization
         data = evaluation.model_dump()
         assert str(data["url"]) == "https://example.com/article"
-        assert data["is_mcp_related"] is True
+        assert data["is_relevant"] is True
         assert data["relevance_score"] == 0.75
         assert len(data["key_topics"]) == 2
 
         # Test JSON serialization
         json_data = evaluation.model_dump_json()
-        assert '"is_mcp_related":true' in json_data
+        assert '"is_relevant":true' in json_data
         assert '"relevance_score":0.75' in json_data

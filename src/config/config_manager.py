@@ -43,6 +43,14 @@ class MetadataConfig(BaseModel):
     description: str
 
 
+class TopicConfig(BaseModel):
+    """Configuration for the topic being monitored."""
+
+    name: str
+    description: str
+    min_relevance_score: float = 0.3
+
+
 class AppConfig(BaseModel):
     """Main application configuration."""
 
@@ -51,6 +59,7 @@ class AppConfig(BaseModel):
     paths: PathsConfig
     processing: ProcessingConfig
     ui: UIConfig
+    topic: TopicConfig
 
 
 class ModelConfig(BaseModel):
@@ -221,6 +230,10 @@ class ConfigManager:
             raise ValueError(f"Prompt configuration not found: {prompt_id}")
 
         return prompts.prompts[prompt_id]
+
+    def get_topic_config(self) -> TopicConfig:
+        """Get topic configuration."""
+        return self.load_app_config().topic
 
     def validate_config(self) -> bool:
         """Validate all configuration files."""

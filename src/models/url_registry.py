@@ -21,9 +21,9 @@ class URLEntry(BaseModel):
     # Evaluation tracking
     evaluated: bool = Field(default=False, description="Whether URL has been evaluated")
     evaluated_at: datetime | None = Field(None, description="When URL was evaluated")
-    is_mcp_related: bool | None = Field(
-        None, description="Whether article is MCP-related"
+    is_relevant: bool | None = Field(
+        None, description="Whether article is relevant to the topic"
     )
     relevance_score: float | None = Field(
-        None, ge=0.0, le=1.0, description="MCP relevance score"
+        None, ge=0.0, le=1.0, description="Relevance score for the topic"
     )

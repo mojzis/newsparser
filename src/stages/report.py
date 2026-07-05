@@ -26,6 +26,11 @@ from src.stages.markdown import MarkdownFile
 logger = logging.getLogger(__name__)
 
 
+def _is_relevant(evaluation: dict) -> bool:
+    """Read relevance from an evaluation dict, falling back to the old field name."""
+    return bool(evaluation.get("is_relevant", evaluation.get("is_mcp_related", False)))
+
+
 class ReportStage(ProcessingStage):
     """Generates daily reports from evaluated content."""
 
@@ -145,8 +150,8 @@ class ReportStage(ProcessingStage):
                         md_file = MarkdownFile.load(input_path)
                         evaluation = md_file.get_frontmatter_value("evaluation", {})
 
-                        # Only include MCP-related articles above threshold
-                        if not evaluation.get("is_mcp_related", False):
+                        # Only include relevant articles above threshold
+                        if not _is_relevant(evaluation):
                             continue
 
                         relevance_score = evaluation.get("relevance_score", 0.0)
@@ -300,8 +305,8 @@ class ReportStage(ProcessingStage):
                 md_file = MarkdownFile.load(input_path)
                 evaluation = md_file.get_frontmatter_value("evaluation", {})
 
-                # Only include MCP-related articles above threshold
-                if not evaluation.get("is_mcp_related", False):
+                # Only include relevant articles above threshold
+                if not _is_relevant(evaluation):
                     continue
 
                 relevance_score = evaluation.get("relevance_score", 0.0)
@@ -514,7 +519,7 @@ class ReportStage(ProcessingStage):
             metadata = {
                 "date": output_date.isoformat(),
                 "days_scanned": days_back,
-                "mcp_related_articles": 0,
+                "relevant_articles": 0,
                 "report_generated_at": datetime.now(UTC)
                 .replace(tzinfo=None)
                 .isoformat()
@@ -631,7 +636,7 @@ class ReportStage(ProcessingStage):
         metadata = {
             "date": output_date.isoformat(),
             "days_scanned": days_back,
-            "mcp_related_articles": len(articles),
+            "relevant_articles": len(articles),
             "report_generated_at": datetime.now(UTC).replace(tzinfo=None).isoformat()
             + "Z",
             "stage": "reported",

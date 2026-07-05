@@ -21,3 +21,8 @@ ui:
   site_title: "MCP Monitor"
   site_tagline: "Daily digest of Model Context Protocol mentions"
   theme: "default"
+
+topic:
+  name: "Model Context Protocol (MCP)"
+  description: "MCP is a protocol for AI tool integration that allows language models to access external tools and data sources."
+  min_relevance_score: 0.3
