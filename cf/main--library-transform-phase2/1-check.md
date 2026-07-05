@@ -35,3 +35,11 @@ paths; `duckdb` is a distinct topic/ui; unknown-name raises; no out-of-scope fil
 ## Report
 Return ONLY this JSON:
 {"verified": true, "evidence": "what you observed (paste output)", "deviations": ["..."], "issues": ["..."]}
+
+## Deviations from earlier steps
+- phase 1 dev: EvaluationSelection uses a Field alias (model_config_name -> YAML key model_config) with populate_by_name=True, per context.md's suggested approach.
+- phase 1 dev: Committed the untracked cf/ orchestration files alongside the code changes since the brief specifies `git add -A`.
+
+## Additional verification (post-review fixes)
+Verify each of these findings was addressed:
+- test_mcp_matches_base_app_config extended to assert ui, evaluation, and searches keys match config/base/app.yaml and config/base/searches.yaml, not just three topic.* fields.

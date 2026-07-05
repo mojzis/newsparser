@@ -6,6 +6,7 @@ from anthropic import Anthropic
 from anthropic.types import TextBlock
 from pydantic import HttpUrl
 
+from src.config.collection import CollectionConfig
 from src.config.config_manager import get_config_manager
 from src.config.settings import Settings
 from src.content.models import ExtractedContent
@@ -18,16 +19,33 @@ logger = get_logger(__name__)
 class AnthropicEvaluator:
     """Evaluates articles using Anthropic API."""
 
-    def __init__(self, settings: Settings) -> None:
-        """Initialize evaluator with API settings."""
+    def __init__(
+        self, settings: Settings, collection: CollectionConfig | None = None
+    ) -> None:
+        """Initialize evaluator with API settings.
+
+        Args:
+            settings: API settings.
+            collection: If given, resolve topic/prompt/model from the collection's
+                own config instead of today's global defaults.
+        """
         self.settings = settings
         self.client = Anthropic(api_key=settings.anthropic_api_key)
         self.config_manager = get_config_manager()
 
         # Load model, prompt and topic configurations
-        self.model_config = self.config_manager.get_model_config()
-        self.prompt_config = self.config_manager.get_prompt_config()
-        self.topic = self.config_manager.get_topic_config()
+        if collection is not None:
+            self.topic = collection.topic
+            self.model_config = self.config_manager.get_model_config(
+                collection.evaluation.model_config_name
+            )
+            self.prompt_config = self.config_manager.get_prompt_config(
+                collection.evaluation.prompt_config
+            )
+        else:
+            self.model_config = self.config_manager.get_model_config()
+            self.prompt_config = self.config_manager.get_prompt_config()
+            self.topic = self.config_manager.get_topic_config()
 
     def evaluate_article(
         self, content: ExtractedContent, url: str | HttpUrl

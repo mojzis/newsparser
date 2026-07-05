@@ -4,6 +4,7 @@ import logging
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from src.config.collection import CollectionConfig
 from src.config.settings import Settings
 from src.content.models import ExtractedContent
 from src.evaluation.anthropic_client import AnthropicEvaluator
@@ -21,11 +22,12 @@ class EvaluateStage(ProcessingStage):
         settings: Settings,
         base_path: Path = Path("stages"),
         export_parquet: bool = True,
+        collection: CollectionConfig | None = None,
     ) -> None:
         super().__init__("evaluate", "fetch", base_path)
         self.settings = settings
         self.export_parquet = export_parquet
-        self.evaluator = AnthropicEvaluator(settings)
+        self.evaluator = AnthropicEvaluator(settings, collection=collection)
 
     def should_process_item(self, input_path: Path, target_date: date) -> bool:
         """Check if item should be processed - only successful fetches."""

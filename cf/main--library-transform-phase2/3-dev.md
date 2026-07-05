@@ -49,3 +49,7 @@ Unconstrained delivery. Make it work and clean enough to commit. Don't worry abo
 ## Report
 Return ONLY this JSON:
 {"commit_shas": ["..."], "summary": "one sentence", "deviations": ["..."], "unresolved_issues": ["..."]}
+
+## Deviations from earlier steps
+- phase 1 dev: EvaluationSelection uses a Field alias (model_config_name -> YAML key model_config) with populate_by_name=True, per context.md's suggested approach.
+- phase 1 dev: Committed the untracked cf/ orchestration files alongside the code changes since the brief specifies `git add -A`.

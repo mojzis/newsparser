@@ -35,9 +35,13 @@ class ReportStage(ProcessingStage):
     """Generates daily reports from evaluated content."""
 
     def __init__(
-        self, template_dir: Path | None = None, base_path: Path = Path("stages")
+        self,
+        template_dir: Path | None = None,
+        base_path: Path = Path("stages"),
+        output_base: Path = Path("output"),
     ) -> None:
         super().__init__("report", "evaluate", base_path)
+        self.output_base = output_base
 
         # Set up templates
         if template_dir is None:
@@ -67,7 +71,7 @@ class ReportStage(ProcessingStage):
         # Search for the fetch file across multiple days (content might be fetched on different dates)
         for days_back in range(10):  # Search up to 10 days back
             search_date = target_date - timedelta(days=days_back)
-            fetch_dir = Path("stages/fetch") / search_date.strftime("%Y-%m-%d")
+            fetch_dir = self.base_path / "fetch" / search_date.strftime("%Y-%m-%d")
 
             if not fetch_dir.exists():
                 continue
@@ -195,9 +199,11 @@ class ReportStage(ProcessingStage):
                                     search_date = reference_date - timedelta(
                                         days=search_days_back
                                     )
-                                    collect_dir = Path(
-                                        "stages/collect"
-                                    ) / search_date.strftime("%Y-%m-%d")
+                                    collect_dir = (
+                                        self.base_path
+                                        / "collect"
+                                        / search_date.strftime("%Y-%m-%d")
+                                    )
                                     post_file = (
                                         collect_dir / f"post_{actual_post_id}.md"
                                     )
@@ -339,8 +345,10 @@ class ReportStage(ProcessingStage):
 
                         for search_days_back in range(10):  # Search up to 10 days back
                             search_date = target_date - timedelta(days=search_days_back)
-                            collect_dir = Path("stages/collect") / search_date.strftime(
-                                "%Y-%m-%d"
+                            collect_dir = (
+                                self.base_path
+                                / "collect"
+                                / search_date.strftime("%Y-%m-%d")
                             )
                             post_file = collect_dir / f"post_{actual_post_id}.md"
 
@@ -442,7 +450,7 @@ class ReportStage(ProcessingStage):
     def get_report_output_path(self, target_date: date) -> Path:
         """Get output path for the daily report."""
         # Reports go to output/reports/ directory with simple date format
-        reports_dir = Path("output") / "reports" / target_date.strftime("%Y-%m-%d")
+        reports_dir = self.output_base / "reports" / target_date.strftime("%Y-%m-%d")
         reports_dir.mkdir(parents=True, exist_ok=True)
         return reports_dir / "report.html"
 
@@ -548,7 +556,7 @@ class ReportStage(ProcessingStage):
         report_day = ReportDay.create(output_date, articles)
 
         # Generate HTML report using ReportGenerator for consistency
-        generator = ReportGenerator()
+        generator = ReportGenerator(output_dir=self.output_base)
         html_content = None
         homepage_content = None
 
@@ -784,7 +792,7 @@ class ReportStage(ProcessingStage):
                 )
 
                 # Generate homepage
-                generator = ReportGenerator()
+                generator = ReportGenerator(output_dir=self.output_base)
                 homepage_path = generator.generate_homepage(homepage_data)
                 logger.info(
                     f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}"

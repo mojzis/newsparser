@@ -11,7 +11,7 @@ import markdown
 from rich.console import Console
 from rich.table import Table
 
-from src.config.searches import load_search_config
+from src.config.collection import CollectionConfig, load_collection
 from src.config.settings import get_settings
 from src.stages.collect import CollectStage
 from src.stages.evaluate import EvaluateStage
@@ -34,6 +34,15 @@ def parse_date(date_str: str | None) -> date:
     return datetime.now(UTC).date()
 
 
+def load_collection_or_exit(collection_name: str) -> CollectionConfig:
+    """Load a collection, exiting with a friendly error if it's not found."""
+    try:
+        return load_collection(collection_name)
+    except FileNotFoundError as e:
+        console.print(f"❌ {e}", style="red")
+        sys.exit(1)
+
+
 @click.group()
 def stages() -> None:
     """Stage-based processing commands"""
@@ -46,8 +55,14 @@ def stages() -> None:
     help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.",
 )
 @click.option("--max-posts", default=400, help="Maximum posts to collect")
-@click.option("--search", default="mcp_tag", help="Search definition to use")
-@click.option("--config", "config_path", help="Path to search configuration YAML file")
+@click.option(
+    "--search",
+    default=None,
+    help="Search definition to use (defaults to the collection's default_search)",
+)
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
 @click.option(
     "--expand-urls/--no-expand-urls",
     default=True,
@@ -86,8 +101,8 @@ def stages() -> None:
 def collect(
     target_date: str | None,
     max_posts: int,
-    search: str,
-    config_path: str | None,
+    search: str | None,
+    collection_name: str,
     expand_urls: bool,
     threads: bool,
     max_thread_depth: int,
@@ -99,15 +114,19 @@ def collect(
     """Collect posts from Bluesky. Posts are organized by their publication date."""
 
     parsed_date = parse_date(target_date)
-    mode_text = "threads" if threads else "posts"
-    console.print(f"🔍 Collecting {mode_text} using search '{search}'...")
-
-    if threads:
-        console.print(
-            f"   Thread collection enabled: depth={max_thread_depth}, parent_height={max_parent_height}"
-        )
 
     try:
+        collection = load_collection(collection_name)
+        search_key = search or collection.default_search
+
+        mode_text = "threads" if threads else "posts"
+        console.print(f"🔍 Collecting {mode_text} using search '{search_key}'...")
+
+        if threads:
+            console.print(
+                f"   Thread collection enabled: depth={max_thread_depth}, parent_height={max_parent_height}"
+            )
+
         settings = get_settings()
 
         if not settings.has_bluesky_credentials:
@@ -117,18 +136,18 @@ def collect(
             )
             sys.exit(1)
 
-        # Load search configuration
-        search_config = load_search_config(config_path)
-        search_definition = search_config.get_search(search)
+        search_definition = collection.searches.get_search(search_key)
 
         if not search_definition:
-            console.print(f"❌ Search definition '{search}' not found", style="red")
-            available_searches = list(search_config.searches.keys())
+            console.print(f"❌ Search definition '{search_key}' not found", style="red")
+            available_searches = list(collection.searches.searches.keys())
             console.print(f"Available searches: {', '.join(available_searches)}")
             sys.exit(1)
 
         if not search_definition.enabled:
-            console.print(f"❌ Search definition '{search}' is disabled", style="red")
+            console.print(
+                f"❌ Search definition '{search_key}' is disabled", style="red"
+            )
             sys.exit(1)
 
         # Create and run collect stage
@@ -143,6 +162,7 @@ def collect(
             export_parquet=export_parquet,
             expand_references=expand_references,
             max_reference_depth=max_reference_depth,
+            base_path=collection.stages_base,
         )
 
         result = asyncio.run(collect_stage.run_collection(parsed_date))
@@ -176,13 +196,19 @@ def collect(
     default=True,
     help="Export data to Parquet files for analytics (default: True)",
 )
-def fetch(days_back: int, export_parquet: bool) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def fetch(days_back: int, export_parquet: bool, collection_name: str) -> None:
     """Fetch full content from URLs found in collected posts from the last N days."""
 
     console.print(f"🌐 Fetching content from posts in the last {days_back} days...")
 
     try:
-        fetch_stage = FetchStage(export_parquet=export_parquet)
+        collection = load_collection(collection_name)
+        fetch_stage = FetchStage(
+            export_parquet=export_parquet, base_path=collection.stages_base
+        )
         result = asyncio.run(fetch_stage.run_fetch(days_back))
 
         console.print("✅ Fetch completed:", style="green")
@@ -220,7 +246,12 @@ def fetch(days_back: int, export_parquet: bool) -> None:
     default=True,
     help="Export data to Parquet files for analytics (default: True)",
 )
-def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def evaluate(
+    days_back: int, regenerate: bool, export_parquet: bool, collection_name: str
+) -> None:
     """Evaluate content relevance using Anthropic API for fetched content from the last N days."""
 
     if regenerate:
@@ -229,6 +260,7 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
         console.print(f"🤖 Evaluating new content from the last {days_back} days...")
 
     try:
+        collection = load_collection(collection_name)
         settings = get_settings()
 
         if not settings.anthropic_api_key:
@@ -236,7 +268,12 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
             console.print("Set ANTHROPIC_API_KEY environment variable")
             sys.exit(1)
 
-        evaluate_stage = EvaluateStage(settings, export_parquet=export_parquet)
+        evaluate_stage = EvaluateStage(
+            settings,
+            base_path=collection.stages_base,
+            export_parquet=export_parquet,
+            collection=collection,
+        )
         result = asyncio.run(
             evaluate_stage.run_evaluate(days_back, regenerate=regenerate)
         )
@@ -291,6 +328,9 @@ def evaluate(days_back: int, regenerate: bool, export_parquet: bool) -> None:
     "--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)"
 )
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
 def report(
     days_back: int,
     regenerate: bool,
@@ -299,6 +339,7 @@ def report(
     debug: bool,
     sitemap: bool,
     rss: bool,
+    collection_name: str,
 ) -> None:
     """Generate report from evaluated content in the last N days."""
 
@@ -320,7 +361,10 @@ def report(
         )
 
     try:
-        report_stage = ReportStage()
+        collection = load_collection(collection_name)
+        report_stage = ReportStage(
+            base_path=collection.stages_base, output_base=collection.output_base
+        )
 
         if bulk:
             result = asyncio.run(
@@ -552,8 +596,14 @@ def render_about() -> None:
     help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.",
 )
 @click.option("--max-posts", default=500, help="Maximum posts to collect")
-@click.option("--search", default="mcp_tag", help="Search definition to use")
-@click.option("--config", "config_path", help="Path to search configuration YAML file")
+@click.option(
+    "--search",
+    default=None,
+    help="Search definition to use (defaults to the collection's default_search)",
+)
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
 @click.option(
     "--expand-urls/--no-expand-urls",
     default=True,
@@ -614,8 +664,8 @@ def render_about() -> None:
 def run_all(
     target_date: str | None,
     max_posts: int,
-    search: str,
-    config_path: str | None,
+    search: str | None,
+    collection_name: str,
     expand_urls: bool,
     threads: bool,
     max_thread_depth: int,
@@ -646,7 +696,7 @@ def run_all(
         target_date=target_date,
         max_posts=max_posts,
         search=search,
-        config_path=config_path,
+        collection_name=collection_name,
         expand_urls=expand_urls,
         threads=threads,
         max_thread_depth=max_thread_depth,
@@ -659,7 +709,12 @@ def run_all(
     # Stage 2: Fetch
     console.print("\n[bold blue]Stage 2: Fetch[/bold blue]")
     ctx = click.Context(fetch)
-    ctx.invoke(fetch, days_back=days_back, export_parquet=export_parquet)
+    ctx.invoke(
+        fetch,
+        days_back=days_back,
+        export_parquet=export_parquet,
+        collection_name=collection_name,
+    )
 
     # Stage 3: Evaluate
     console.print("\n[bold blue]Stage 3: Evaluate[/bold blue]")
@@ -669,6 +724,7 @@ def run_all(
         days_back=days_back,
         regenerate=regenerate_evaluations,
         export_parquet=export_parquet,
+        collection_name=collection_name,
     )
 
     # Stage 4: Report
@@ -681,6 +737,7 @@ def run_all(
         output_date=target_date,
         sitemap=sitemap,
         rss=rss,
+        collection_name=collection_name,
     )
 
     # Stage 5: Render Stats
@@ -706,13 +763,17 @@ def run_all(
 @click.option(
     "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
 )
-def status(target_date: str | None) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def status(target_date: str | None, collection_name: str) -> None:
     """Show status of all stages for a date."""
 
     parsed_date = parse_date(target_date)
+    collection = load_collection_or_exit(collection_name)
 
     # Check each stage directory
-    stages_base = Path("stages")
+    stages_base = collection.stages_base
     stage_names = ["collect", "fetch", "evaluate", "report"]
 
     table = Table(title=f"Stage Status for {parsed_date}")
@@ -744,11 +805,17 @@ def status(target_date: str | None) -> None:
     "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
 )
 @click.option("--limit", default=10, help="Maximum number of files to list")
-def list_files(stage_name: str, target_date: str | None, limit: int) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def list_files(
+    stage_name: str, target_date: str | None, limit: int, collection_name: str
+) -> None:
     """List files in a specific stage."""
 
     parsed_date = parse_date(target_date)
-    stage_dir = Path("stages") / stage_name / parsed_date.strftime("%Y-%m-%d")
+    collection = load_collection_or_exit(collection_name)
+    stage_dir = collection.stages_base / stage_name / parsed_date.strftime("%Y-%m-%d")
 
     if not stage_dir.exists():
         console.print(f"❌ Stage directory does not exist: {stage_dir}", style="red")
@@ -786,11 +853,17 @@ def list_files(stage_name: str, target_date: str | None, limit: int) -> None:
     "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
 )
 @click.option("--confirm", is_flag=True, help="Skip confirmation prompt")
-def clean(stage_name: str, target_date: str | None, confirm: bool) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def clean(
+    stage_name: str, target_date: str | None, confirm: bool, collection_name: str
+) -> None:
     """Clean (remove) all files from a specific stage."""
 
     parsed_date = parse_date(target_date)
-    stage_dir = Path("stages") / stage_name / parsed_date.strftime("%Y-%m-%d")
+    collection = load_collection_or_exit(collection_name)
+    stage_dir = collection.stages_base / stage_name / parsed_date.strftime("%Y-%m-%d")
 
     if not stage_dir.exists():
         console.print(f"❌ Stage directory does not exist: {stage_dir}", style="red")

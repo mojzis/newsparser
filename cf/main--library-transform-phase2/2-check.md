@@ -42,3 +42,7 @@ with a working default fallback.
 ## Report
 Return ONLY this JSON:
 {"verified": true, "evidence": "what you observed (paste output)", "deviations": ["..."], "issues": ["..."]}
+
+## Deviations from earlier steps
+- phase 1 dev: EvaluationSelection uses a Field alias (model_config_name -> YAML key model_config) with populate_by_name=True, per context.md's suggested approach.
+- phase 1 dev: Committed the untracked cf/ orchestration files alongside the code changes since the brief specifies `git add -A`.
