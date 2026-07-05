@@ -1,6 +1,6 @@
 """Collection stage - collects posts from Bluesky and stores as individual markdown files."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterator, Optional
 import logging
@@ -247,7 +247,7 @@ class CollectStage(InputStage):
             "links": [str(link) for link in post.links],
             "tags": post.tags,
             "stage": "collected",
-            "collected_at": datetime.utcnow().isoformat() + 'Z'
+            "collected_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z'
         }
         
         # Add thread metadata if available
@@ -341,7 +341,7 @@ class CollectStage(InputStage):
                             existing_engagement.get("replies") != new_engagement.get("replies")):
                             
                             # Update the post with new metrics
-                            md_file.frontmatter["updated_at"] = datetime.utcnow().isoformat() + 'Z'
+                            md_file.frontmatter["updated_at"] = datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z'
                             md_file.save(output_path)
                             updated_posts += 1
                             logger.debug(f"Updated post metrics: {filename}")

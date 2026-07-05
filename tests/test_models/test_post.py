@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from hypothesis import given
@@ -53,7 +53,7 @@ class TestEngagementMetrics:
 class TestBlueskyPost:
     def test_valid_post(self):
         """Test creating a valid post."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=10, reposts=5, replies=3)
         post = BlueskyPost(
             id="123456",
@@ -75,7 +75,7 @@ class TestBlueskyPost:
 
     def test_empty_content_rejected(self):
         """Test that empty content is rejected."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
 
         with pytest.raises(ValidationError) as exc_info:
@@ -91,7 +91,7 @@ class TestBlueskyPost:
 
     def test_whitespace_only_content_rejected(self):
         """Test that whitespace-only content is rejected."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
 
         with pytest.raises(ValidationError) as exc_info:
@@ -107,7 +107,7 @@ class TestBlueskyPost:
 
     def test_multiple_links(self):
         """Test post with multiple links."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -124,7 +124,7 @@ class TestBlueskyPost:
 
     def test_no_links(self):
         """Test post with no links."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -139,7 +139,7 @@ class TestBlueskyPost:
 
     def test_json_serialization(self):
         """Test JSON serialization of post."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=10, reposts=5, replies=3)
         post = BlueskyPost(
             id="123",
@@ -185,7 +185,7 @@ class TestBlueskyPost:
         self, post_id, author, content, likes, reposts, replies
     ):
         """Property-based test for valid posts."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=likes, reposts=reposts, replies=replies)
 
         post = BlueskyPost(
@@ -206,7 +206,7 @@ class TestBlueskyPost:
 class TestHashtagExtraction:
     def test_extract_single_hashtag(self):
         """Test extracting a single hashtag."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -221,7 +221,7 @@ class TestHashtagExtraction:
 
     def test_extract_multiple_hashtags(self):
         """Test extracting multiple hashtags."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -236,7 +236,7 @@ class TestHashtagExtraction:
 
     def test_extract_hashtags_case_insensitive(self):
         """Test hashtag extraction is case insensitive."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -252,7 +252,7 @@ class TestHashtagExtraction:
 
     def test_no_hashtags(self):
         """Test content with no hashtags."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -267,7 +267,7 @@ class TestHashtagExtraction:
 
     def test_hashtags_with_numbers_and_underscores(self):
         """Test hashtags containing numbers and underscores."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",
@@ -282,7 +282,7 @@ class TestHashtagExtraction:
 
     def test_explicit_tags_override_extraction(self):
         """Test that explicitly provided tags override extraction."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         metrics = EngagementMetrics(likes=0, reposts=0, replies=0)
         post = BlueskyPost(
             id="123",

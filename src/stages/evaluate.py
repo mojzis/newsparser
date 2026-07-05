@@ -1,6 +1,6 @@
 """Evaluate stage - evaluates content relevance using Anthropic API."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterator, Optional
 import logging
@@ -61,7 +61,7 @@ class EvaluateStage(ProcessingStage):
             word_count=frontmatter.get("word_count", 0),
             domain=frontmatter.get("domain", ""),
             published_date=datetime.fromisoformat(frontmatter["published_date"].rstrip('Z')) if frontmatter.get("published_date") else None,
-            extract_timestamp=datetime.utcnow()
+            extract_timestamp=datetime.now(timezone.utc).replace(tzinfo=None)
         )
     
     async def process_item(self, input_path: Path, target_date: date) -> Optional[Path]:

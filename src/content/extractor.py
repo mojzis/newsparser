@@ -1,6 +1,6 @@
 """Content extraction from HTML to Markdown."""
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import html2text
@@ -404,7 +404,7 @@ class ContentExtractor:
                 domain=domain,
                 author=author,
                 medium=medium,
-                extraction_timestamp=datetime.utcnow(),
+                extraction_timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
             )
         
         except Exception as e:

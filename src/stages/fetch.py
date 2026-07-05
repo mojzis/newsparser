@@ -1,6 +1,6 @@
 """Fetch stage - fetches full content from URLs found in posts."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterator, Optional
 import logging
@@ -61,7 +61,7 @@ class FetchStage(ProcessingStage):
             # Handle fetch error
             frontmatter = {
                 "url": url,
-                "fetched_at": datetime.utcnow().isoformat() + 'Z',
+                "fetched_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
                 "fetch_status": "error",
                 "error_type": result.error_type,
                 "error_message": result.error_message,
@@ -78,7 +78,7 @@ class FetchStage(ProcessingStage):
                 # Handle extraction error
                 frontmatter = {
                     "url": url,
-                    "fetched_at": datetime.utcnow().isoformat() + 'Z',
+                    "fetched_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
                     "fetch_status": "error",
                     "error_type": extracted.error_type,
                     "error_message": extracted.error_message,
@@ -90,7 +90,7 @@ class FetchStage(ProcessingStage):
             # Success - create comprehensive frontmatter
             frontmatter = {
                 "url": url,
-                "fetched_at": datetime.utcnow().isoformat() + 'Z',
+                "fetched_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
                 "fetch_status": "success",
                 "word_count": extracted.word_count,
                 "title": extracted.title or "Untitled",
@@ -110,7 +110,7 @@ class FetchStage(ProcessingStage):
             logger.error(f"Unexpected error extracting content from {url}: {e}")
             frontmatter = {
                 "url": url,
-                "fetched_at": datetime.utcnow().isoformat() + 'Z',
+                "fetched_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
                 "fetch_status": "error",
                 "error_type": "extraction",
                 "error_message": str(e),

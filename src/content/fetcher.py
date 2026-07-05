@@ -1,6 +1,6 @@
 """Article fetching client using httpx."""
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
@@ -187,7 +187,7 @@ class ArticleFetcher:
                     html=content,
                     status_code=response.status_code,
                     headers=dict(response.headers),
-                    fetch_timestamp=datetime.utcnow(),
+                    fetch_timestamp=datetime.now(timezone.utc).replace(tzinfo=None),
                 )
             
             except httpx.TimeoutException:

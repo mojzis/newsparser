@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from hypothesis import given
@@ -175,7 +175,7 @@ class TestArticleEvaluation:
 
     def test_default_timestamp(self):
         """Test that evaluation_timestamp has a default value."""
-        before = datetime.utcnow()
+        before = datetime.now(timezone.utc).replace(tzinfo=None)
         eval = ArticleEvaluation(
             url="https://example.com",
             content_summary="Summary",
@@ -183,7 +183,7 @@ class TestArticleEvaluation:
             relevance_score=0.5,
             key_topics=["MCP"],
         )
-        after = datetime.utcnow()
+        after = datetime.now(timezone.utc).replace(tzinfo=None)
 
         assert before <= eval.evaluation_timestamp <= after
 

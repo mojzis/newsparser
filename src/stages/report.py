@@ -1,6 +1,6 @@
 """Report stage - generates daily reports from evaluated content."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterator, Optional, List
 import logging
@@ -144,7 +144,7 @@ class ReportStage(ProcessingStage):
                         
                         # Get original post data to extract correct author and timestamp
                         author = "unknown"
-                        created_at = datetime.utcnow()  # fallback
+                        created_at = datetime.now(timezone.utc).replace(tzinfo=None)  # fallback
                         post_id = None
                         
                         if found_in_posts:
@@ -262,7 +262,7 @@ class ReportStage(ProcessingStage):
                 
                 # Get original post data to extract correct author and timestamp
                 author = "unknown"
-                created_at = datetime.utcnow()  # fallback
+                created_at = datetime.now(timezone.utc).replace(tzinfo=None)  # fallback
                 post_id = None
                 
                 if found_in_posts:
@@ -428,7 +428,7 @@ class ReportStage(ProcessingStage):
                 "date": output_date.isoformat(),
                 "days_scanned": days_back,
                 "mcp_related_articles": 0,
-                "report_generated_at": datetime.utcnow().isoformat() + 'Z',
+                "report_generated_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
                 "stage": "reported",
                 "articles": []
             }
@@ -532,7 +532,7 @@ class ReportStage(ProcessingStage):
             "date": output_date.isoformat(),
             "days_scanned": days_back,
             "mcp_related_articles": len(articles),
-            "report_generated_at": datetime.utcnow().isoformat() + 'Z',
+            "report_generated_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
             "stage": "reported",
             "articles": article_summaries
         }

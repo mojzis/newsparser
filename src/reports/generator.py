@@ -1,6 +1,6 @@
 """HTML report generator."""
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Optional, List
 import xml.etree.ElementTree as ET
@@ -138,7 +138,7 @@ class ReportGenerator:
         ET.SubElement(url_elem, "loc").text = base_url + "/index.html"
         ET.SubElement(url_elem, "changefreq").text = "daily"
         ET.SubElement(url_elem, "priority").text = "1.0"
-        ET.SubElement(url_elem, "lastmod").text = datetime.utcnow().strftime("%Y-%m-%d")
+        ET.SubElement(url_elem, "lastmod").text = datetime.now(timezone.utc).replace(tzinfo=None).strftime("%Y-%m-%d")
         
         # Scan for report dates if not provided
         if report_dates is None:
@@ -199,7 +199,7 @@ class ReportGenerator:
         ET.SubElement(channel, "link").text = feed_link
         ET.SubElement(channel, "description").text = feed_description
         ET.SubElement(channel, "language").text = "en-us"
-        ET.SubElement(channel, "lastBuildDate").text = datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S +0000")
+        ET.SubElement(channel, "lastBuildDate").text = datetime.now(timezone.utc).replace(tzinfo=None).strftime("%a, %d %b %Y %H:%M:%S +0000")
         
         # Add atom:link for feed autodiscovery
         atom_link = ET.SubElement(channel, "{http://www.w3.org/2005/Atom}link")

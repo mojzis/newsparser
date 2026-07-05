@@ -3,7 +3,7 @@
 import yaml
 from pathlib import Path
 from typing import Any, Dict, Tuple
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class MarkdownFile:
@@ -48,7 +48,7 @@ class MarkdownFile:
     def set_stage(self, stage_name: str) -> None:
         """Set the current stage in frontmatter."""
         self.frontmatter['stage'] = stage_name
-        self.frontmatter['updated_at'] = datetime.utcnow().isoformat() + 'Z'
+        self.frontmatter['updated_at'] = datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z'
 
 
 def parse_frontmatter(text: str) -> Tuple[Dict[str, Any], str]:

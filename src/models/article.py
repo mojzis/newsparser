@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
@@ -16,10 +16,10 @@ class ArticleEvaluation(BaseModel):
         ..., ge=0.0, le=1.0, description="MCP relevance score from 0.0 to 1.0"
     )
     key_topics: list[str] = Field(
-        ..., min_items=1, description="Key MCP-related topics identified in the article"
+        ..., min_length=1, description="Key MCP-related topics identified in the article"
     )
     evaluation_timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="When the evaluation was performed"
+        default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None), description="When the evaluation was performed"
     )
 
     @field_validator("content_summary")
@@ -43,6 +43,3 @@ class ArticleEvaluation(BaseModel):
         if not cleaned_topics:
             raise ValueError("At least one non-empty topic is required")
         return cleaned_topics
-
-    class Config:
-        json_encoders = {datetime: lambda v: v.isoformat(), HttpUrl: str}

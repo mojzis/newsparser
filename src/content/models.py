@@ -1,5 +1,5 @@
 """Data models for content processing."""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import BaseModel, Field, HttpUrl
@@ -17,9 +17,8 @@ class ExtractedContent(BaseModel):
     domain: str = Field(..., description="Domain of the URL")
     author: str | None = Field(default=None, description="Article author if available")
     medium: str | None = Field(default=None, description="Publication/source name")
-    extraction_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    extraction_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat(), HttpUrl: str}}
 
 
 class ArticleContent(BaseModel):
@@ -29,9 +28,8 @@ class ArticleContent(BaseModel):
     html: str
     status_code: int
     headers: dict[str, Any] = Field(default_factory=dict)
-    fetch_timestamp: datetime = Field(default_factory=datetime.utcnow)
+    fetch_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat(), HttpUrl: str}}
 
 
 class ContentError(BaseModel):
@@ -40,6 +38,4 @@ class ContentError(BaseModel):
     url: HttpUrl
     error_type: str = Field(..., description="Type of error (fetch, extraction, etc.)")
     error_message: str = Field(..., description="Detailed error message")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-    model_config = {"json_encoders": {datetime: lambda v: v.isoformat(), HttpUrl: str}}
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
