@@ -7,7 +7,7 @@ topic:
 
 ui:
   site_title: "MCP Monitor"
-  site_tagline: "Daily digest of Model Context Protocol mentions"
+  site_tagline: "Daily digest of Model Context Protocol discussions from Bluesky"
   theme: "default"
 
 evaluation:
