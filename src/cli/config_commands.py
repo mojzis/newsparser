@@ -35,7 +35,7 @@ def validate(branch: str):
             raise click.Abort()
     except Exception as e:
         console.print(f"❌ Configuration error: {e}")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config.command()
@@ -90,7 +90,7 @@ def show(branch: str):
 
     except Exception as e:
         console.print(f"❌ Error loading configuration: {e}")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @config.command()

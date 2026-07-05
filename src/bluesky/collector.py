@@ -68,7 +68,7 @@ class BlueskyDataCollector:
                 return posts
 
         except Exception as e:
-            logger.exception(f"Failed to collect posts: {e}")
+            logger.exception(f"Failed to collect posts")
             return []
 
     async def collect_daily_posts(
@@ -107,7 +107,7 @@ class BlueskyDataCollector:
                 return posts
 
         except Exception as e:
-            logger.exception(f"Failed to collect posts: {e}")
+            logger.exception(f"Failed to collect posts")
             return []
 
     async def store_posts(self, posts: list[BlueskyPost], target_date: date) -> bool:
@@ -170,7 +170,7 @@ class BlueskyDataCollector:
                 return False
 
         except Exception as e:
-            logger.exception(f"Error storing posts: {e}")
+            logger.exception(f"Error storing posts")
             return False
 
     async def collect_and_store_by_definition(
@@ -249,7 +249,7 @@ class BlueskyDataCollector:
                     logger.error("Failed to upload updated URL registry")
 
         except Exception as e:
-            logger.exception(f"Error tracking URLs: {e}")
+            logger.exception(f"Error tracking URLs")
 
     async def collect_and_store(
         self, target_date: date | None = None, max_posts: int = 100
@@ -379,7 +379,7 @@ class BlueskyDataCollector:
                 return []
 
         except Exception as e:
-            logger.exception(f"Error retrieving stored posts: {e}")
+            logger.exception(f"Error retrieving stored posts")
             return []
 
     def check_stored_data(self, target_date: date) -> bool:
@@ -430,5 +430,5 @@ class BlueskyDataCollector:
                 # No event loop running, we can use asyncio.run directly
                 return asyncio.run(self.get_stored_posts(target_date))
         except Exception as e:
-            logger.exception(f"Error in sync get_stored_posts: {e}")
+            logger.exception(f"Error in sync get_stored_posts")
             return []

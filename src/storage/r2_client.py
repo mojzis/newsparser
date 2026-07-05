@@ -71,7 +71,7 @@ class R2Client:
             return True
 
         except (ClientError, BotoCoreError, OSError) as e:
-            logger.exception(f"Failed to upload {file_path} to {key}: {e}")
+            logger.exception(f"Failed to upload {file_path} to {key}")
             return False
 
     def upload_bytes(
@@ -100,7 +100,7 @@ class R2Client:
             return True
 
         except (ClientError, BotoCoreError) as e:
-            logger.exception(f"Failed to upload bytes to {key}: {e}")
+            logger.exception(f"Failed to upload bytes to {key}")
             return False
 
     def download_file(self, key: str, file_path: str | Path) -> bool:
@@ -123,7 +123,7 @@ class R2Client:
             return True
 
         except (ClientError, BotoCoreError) as e:
-            logger.exception(f"Failed to download {key} to {file_path}: {e}")
+            logger.exception(f"Failed to download {key} to {file_path}")
             return False
 
     def download_bytes(self, key: str) -> bytes | None:
@@ -143,7 +143,7 @@ class R2Client:
             return data
 
         except (ClientError, BotoCoreError) as e:
-            logger.exception(f"Failed to download bytes from {key}: {e}")
+            logger.exception(f"Failed to download bytes from {key}")
             return None
 
     def file_exists(self, key: str) -> bool:
@@ -163,7 +163,7 @@ class R2Client:
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return False
-            logger.exception(f"Error checking if {key} exists: {e}")
+            logger.exception(f"Error checking if {key} exists")
             return False
 
     def list_files(self, prefix: str | None = None, max_keys: int = 1000) -> list[str]:
@@ -192,7 +192,7 @@ class R2Client:
             return keys
 
         except (ClientError, BotoCoreError) as e:
-            logger.exception(f"Failed to list files with prefix '{prefix}': {e}")
+            logger.exception(f"Failed to list files with prefix '{prefix}'")
             return []
 
     def delete_file(self, key: str) -> bool:
@@ -211,7 +211,7 @@ class R2Client:
             return True
 
         except (ClientError, BotoCoreError) as e:
-            logger.exception(f"Failed to delete {key}: {e}")
+            logger.exception(f"Failed to delete {key}")
             return False
 
     def download_url_registry(self) -> URLRegistry | None:
@@ -237,7 +237,7 @@ class R2Client:
                 return None
 
         except Exception as e:
-            logger.exception(f"Failed to download URL registry: {e}")
+            logger.exception(f"Failed to download URL registry")
             return None
 
         finally:
@@ -275,7 +275,7 @@ class R2Client:
                 return success
 
         except Exception as e:
-            logger.exception(f"Failed to upload URL registry: {e}")
+            logger.exception(f"Failed to upload URL registry")
             return False
 
         finally:

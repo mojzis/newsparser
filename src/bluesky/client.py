@@ -49,10 +49,10 @@ class BlueskyClient:
             return True
 
         except AtProtocolError as e:
-            logger.exception(f"Authentication failed: {e}")
+            logger.exception(f"Authentication failed")
             return False
         except Exception as e:
-            logger.exception(f"Unexpected authentication error: {e}")
+            logger.exception(f"Unexpected authentication error")
             return False
 
     async def close(self) -> None:
@@ -177,7 +177,7 @@ class BlueskyClient:
                         else:
                             uri = "unknown"
                         logger.warning(f"Failed to convert post {uri}: {e}")
-                    except:
+                    except Exception:
                         logger.warning(f"Failed to convert post (unknown URI): {e}")
                     continue
 
@@ -187,10 +187,10 @@ class BlueskyClient:
             return posts, next_cursor
 
         except AtProtocolError as e:
-            logger.exception(f"Search failed: {e}")
+            logger.exception(f"Search failed")
             return [], None
         except Exception as e:
-            logger.exception(f"Unexpected search error: {e}")
+            logger.exception(f"Unexpected search error")
             return [], None
 
     async def search_by_definition(
@@ -227,7 +227,7 @@ class BlueskyClient:
             )
 
         except Exception as e:
-            logger.error(f"Failed to search with definition '{search_definition.name}': {e}")
+            logger.exception(f"Failed to search with definition '{search_definition.name}'")
             return [], None
 
     async def search_mcp_mentions(
@@ -378,10 +378,10 @@ class BlueskyClient:
             return response
 
         except AtProtocolError as e:
-            logger.error(f"Failed to fetch thread for {uri}: {e}")
+            logger.exception(f"Failed to fetch thread for {uri}")
             return None
         except Exception as e:
-            logger.exception(f"Unexpected error fetching thread for {uri}: {e}")
+            logger.exception(f"Unexpected error fetching thread for {uri}")
             return None
 
     async def get_threads_for_posts(
@@ -415,5 +415,5 @@ class BlueskyClient:
             return thread_posts
 
         except Exception as e:
-            logger.exception(f"Error collecting threads: {e}")
+            logger.exception(f"Error collecting threads")
             return posts  # Return original posts if thread collection fails

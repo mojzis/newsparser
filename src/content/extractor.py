@@ -328,7 +328,7 @@ class ContentExtractor:
 
                 markdown_content = self.html2text.handle(fixed_html).strip()
             except Exception as e:
-                logger.error(f"HTML2Text conversion failed: {e}")
+                logger.exception(f"HTML2Text conversion failed")
                 # Fallback: extract text directly from BeautifulSoup
                 soup = BeautifulSoup(content_html, "html.parser")
                 markdown_content = soup.get_text(separator="\n\n").strip()
@@ -407,7 +407,7 @@ class ContentExtractor:
             )
 
         except Exception as e:
-            logger.exception(f"Failed to extract content from {article_content.url}: {e}")
+            logger.exception(f"Failed to extract content from {article_content.url}")
             return ContentError(
                 url=article_content.url,
                 error_type="extraction_exception",

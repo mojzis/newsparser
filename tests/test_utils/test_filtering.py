@@ -442,9 +442,9 @@ class TestValidation:
             )
 
         # Invalid language type in include
-        with pytest.raises(ValueError, match="Invalid language type"):
+        with pytest.raises(TypeError, match="Invalid language type"):
             validate_language_filter_criteria(include_languages=["invalid"])
 
         # Invalid language type in exclude
-        with pytest.raises(ValueError, match="Invalid language type"):
+        with pytest.raises(TypeError, match="Invalid language type"):
             validate_language_filter_criteria(exclude_languages=["invalid"])

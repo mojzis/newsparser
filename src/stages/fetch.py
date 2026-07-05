@@ -105,7 +105,7 @@ class FetchStage(ProcessingStage):
             return frontmatter, content
 
         except Exception as e:
-            logger.error(f"Unexpected error extracting content from {url}: {e}")
+            logger.exception(f"Unexpected error extracting content from {url}")
             frontmatter = {
                 "url": url,
                 "fetched_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
@@ -161,7 +161,7 @@ class FetchStage(ProcessingStage):
                     logger.info(f"Fetched and saved: {url} -> {output_path.name}")
 
                 except Exception as e:
-                    logger.error(f"Failed to process URL {url}: {e}")
+                    logger.exception(f"Failed to process URL {url}")
 
             if processed_urls:
                 return Path(processed_urls[0])  # Return first processed URL path
@@ -169,7 +169,7 @@ class FetchStage(ProcessingStage):
             return None
 
         except Exception as e:
-            logger.error(f"Failed to process {input_path}: {e}")
+            logger.exception(f"Failed to process {input_path}")
             return None
 
     async def run_fetch(self, days_back: int = 7) -> dict:
@@ -284,13 +284,13 @@ class FetchStage(ProcessingStage):
                                     logger.info(f"Fetched new URL: {url} -> {output_path.name}")
 
                                 except Exception as e:
-                                    logger.error(f"Failed to fetch URL {url}: {e}")
+                                    logger.exception(f"Failed to fetch URL {url}")
 
                             processed_posts += 1
 
                         except Exception as e:
                             failed_posts += 1
-                            logger.error(f"Failed to process {input_path}: {e}")
+                            logger.exception(f"Failed to process {input_path}")
 
                 current_date += timedelta(days=1)
 

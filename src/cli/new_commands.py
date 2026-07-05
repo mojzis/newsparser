@@ -21,7 +21,7 @@ def cli():
             raise click.Abort()
     except Exception as e:
         console.print(f"[red]Configuration error: {e}[/red]")
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 # Add the stage-based commands as the primary interface

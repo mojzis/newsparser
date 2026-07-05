@@ -294,11 +294,11 @@ def validate_language_filter_criteria(
     if include_languages:
         for lang in include_languages:
             if not isinstance(lang, LanguageType):
-                raise ValueError(f"Invalid language type: {lang}")
+                raise TypeError(f"Invalid language type: {lang}")
 
     if exclude_languages:
         for lang in exclude_languages:
             if not isinstance(lang, LanguageType):
-                raise ValueError(f"Invalid language type: {lang}")
+                raise TypeError(f"Invalid language type: {lang}")
 
     return True

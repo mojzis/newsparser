@@ -104,7 +104,7 @@ class ArticleFetcher:
             try:
                 from pydantic import HttpUrl
                 error_url = HttpUrl("https://invalid.url")
-            except:
+            except Exception:
                 error_url = "https://invalid.url"
 
             return ContentError(
@@ -216,7 +216,7 @@ class ArticleFetcher:
                 )
 
             except Exception as e:
-                logger.exception(f"Unexpected error fetching {url_str}: {e}")
+                logger.exception(f"Unexpected error fetching {url_str}")
                 return ContentError(
                     url=url,
                     error_type="unexpected",

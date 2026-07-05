@@ -229,7 +229,7 @@ class ReportStage(ProcessingStage):
                             date_articles += 1
 
                     except Exception as e:
-                        logger.error(f"Failed to process {input_path} for report: {e}")
+                        logger.exception(f"Failed to process {input_path} for report")
 
                 if date_articles > 0:
                     articles_by_date[str(current_date)] = date_articles
@@ -352,7 +352,7 @@ class ReportStage(ProcessingStage):
                 articles.append(article)
 
             except Exception as e:
-                logger.error(f"Failed to process {input_path} for report: {e}")
+                logger.exception(f"Failed to process {input_path} for report")
 
         # Sort by relevance score (highest first)
         articles.sort(key=lambda x: x.relevance_score, reverse=True)
@@ -507,7 +507,7 @@ class ReportStage(ProcessingStage):
                     sitemap_path = generator.generate_sitemap()
                     logger.info(f"Generated sitemap: {sitemap_path}")
                 except Exception as e:
-                    logger.error(f"Failed to generate sitemap: {e}")
+                    logger.exception(f"Failed to generate sitemap")
 
             # Generate RSS feed if requested
             if generate_rss:
@@ -520,10 +520,10 @@ class ReportStage(ProcessingStage):
                     rss_path = generator.generate_rss(all_articles)
                     logger.info(f"Generated RSS feed: {rss_path}")
                 except Exception as e:
-                    logger.error(f"Failed to generate RSS feed: {e}")
+                    logger.exception(f"Failed to generate RSS feed")
 
         except Exception as e:
-            logger.error(f"Failed to generate HTML reports: {e}")
+            logger.exception(f"Failed to generate HTML reports")
             html_content = None
             homepage_content = None
 
@@ -619,7 +619,7 @@ class ReportStage(ProcessingStage):
                         logger.warning(f"⚠️  Failed to generate report for {check_date}")
 
                 except Exception as e:
-                    logger.error(f"❌ Error generating report for {check_date}: {e}")
+                    logger.exception(f"❌ Error generating report for {check_date}")
             else:
                 logger.debug(f"No articles found for {check_date}, skipping")
 
@@ -665,7 +665,7 @@ class ReportStage(ProcessingStage):
                         sitemap_path = generator.generate_sitemap()
                         logger.info(f"✅ Generated sitemap: {sitemap_path}")
                     except Exception as e:
-                        logger.error(f"❌ Failed to generate sitemap: {e}")
+                        logger.exception(f"❌ Failed to generate sitemap")
 
                 # Generate RSS feed if requested
                 if generate_rss:
@@ -678,10 +678,10 @@ class ReportStage(ProcessingStage):
                         rss_path = generator.generate_rss(all_articles)
                         logger.info(f"✅ Generated RSS feed: {rss_path}")
                     except Exception as e:
-                        logger.error(f"❌ Failed to generate RSS feed: {e}")
+                        logger.exception(f"❌ Failed to generate RSS feed")
 
             except Exception as e:
-                logger.error(f"❌ Failed to update homepage: {e}")
+                logger.exception(f"❌ Failed to update homepage")
 
         result = {
             "stage": self.stage_name,

@@ -88,7 +88,7 @@ class SearchConfig(BaseModel):
                 data = yaml.safe_load(f)
 
             if not isinstance(data, dict):
-                raise ValueError("Search configuration must be a YAML object")
+                raise TypeError("Search configuration must be a YAML object")
 
             logger.info(f"Loaded search configuration from {file_path}")
             return cls.model_validate(data)

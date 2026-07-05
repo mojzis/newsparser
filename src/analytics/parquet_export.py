@@ -62,7 +62,7 @@ async def export_stage_to_parquet(
             await upload_parquet_to_r2(output_file, stage_name, target_date, days_back, settings)
 
     except Exception as e:
-        logger.error(f"Failed to export {stage_name} stage to Parquet: {e}")
+        logger.exception(f"Failed to export {stage_name} stage to Parquet")
 
 
 async def upload_parquet_to_r2(
@@ -116,7 +116,7 @@ async def upload_parquet_to_r2(
             logger.error(f"Failed to upload {local_file_path} to R2")
 
     except Exception as e:
-        logger.error(f"Error uploading parquet file to R2: {e}")
+        logger.exception(f"Error uploading parquet file to R2")
         # Don't raise the exception as we don't want to fail the entire export process
         # if R2 upload fails
 

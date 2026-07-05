@@ -85,7 +85,7 @@ class CollectStage(InputStage):
                 return posts
 
         except Exception as e:
-            logger.error(f"Failed to collect posts: {e}")
+            logger.exception(f"Failed to collect posts")
             return []
 
     async def _expand_post_urls(self, posts: list[BlueskyPost]) -> list[BlueskyPost]:
@@ -354,7 +354,7 @@ class CollectStage(InputStage):
 
                 except Exception as e:
                     failed += 1
-                    logger.error(f"Failed to save post {post.id}: {e}")
+                    logger.exception(f"Failed to save post {post.id}")
 
         result = {
             "stage": self.stage_name,

@@ -68,10 +68,10 @@ class ThreadCollector:
             return posts
 
         except AtProtocolError as e:
-            logger.error(f"Failed to fetch thread for {post_uri}: {e}")
+            logger.exception(f"Failed to fetch thread for {post_uri}")
             return []
         except Exception as e:
-            logger.exception(f"Unexpected error fetching thread for {post_uri}: {e}")
+            logger.exception(f"Unexpected error fetching thread for {post_uri}")
             return []
 
     async def collect_threads_from_search(

@@ -91,7 +91,7 @@ class Stage(ABC):
 
             except Exception as e:
                 failed += 1
-                logger.error(f"Failed to process {input_path}: {e}")
+                logger.exception(f"Failed to process {input_path}")
 
         result = {
             "stage": self.stage_name,

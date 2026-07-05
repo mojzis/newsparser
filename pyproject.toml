@@ -137,6 +137,10 @@ ignore = [
     "FBT003",  # boolean-positional-value-in-call
     "PLC0415", # import-outside-top-level (intentional lazy imports)
     "TRY300",  # try-consider-else (stylistic)
+    "BLE001",  # blind-except: `except Exception` is the deliberate log-and-continue
+               # resilience pattern for this daily batch scraper (one bad post/URL/API
+               # response must not abort the run); narrowing 78 catch-alls is churn
+    "TRY301",  # raise-within-try (stylistic; abstracting raises to inner fns is over-engineering here)
 ]
 
 [tool.ruff.format]

@@ -37,7 +37,7 @@ class EvaluateStage(ProcessingStage):
             return not output_path.exists()
 
         except Exception as e:
-            logger.error(f"Error checking if {input_path} should be processed: {e}")
+            logger.exception(f"Error checking if {input_path} should be processed")
             return False
 
     def markdown_to_extracted_content(self, md_file: MarkdownFile) -> ExtractedContent:
@@ -134,7 +134,7 @@ This content was evaluated for MCP relevance.
             return output_path
 
         except Exception as e:
-            logger.error(f"Failed to evaluate {input_path}: {e}")
+            logger.exception(f"Failed to evaluate {input_path}")
             return None
 
     async def run_evaluate(self, days_back: int = 7, regenerate: bool = False) -> dict:
@@ -267,11 +267,11 @@ This content was evaluated for MCP relevance.
 
                         except Exception as e:
                             failed += 1
-                            logger.error(f"Failed to evaluate {url}: {e}")
+                            logger.exception(f"Failed to evaluate {url}")
 
                     except Exception as e:
                         failed += 1
-                        logger.error(f"Failed to process {input_path}: {e}")
+                        logger.exception(f"Failed to process {input_path}")
 
             current_date += timedelta(days=1)
 
