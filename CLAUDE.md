@@ -73,10 +73,10 @@ This is the Bluesky MCP Monitor project - a daily service that parses Bluesky fo
 
 ## CLI Tool
 
-The project provides a command-line interface accessible via the `nsp` command (short for "newsparser"). After installation with Poetry, all operations are performed using:
+The project provides a command-line interface accessible via the `nsp` command (short for "newsparser"). After installation with uv (`uv sync`), all operations are performed using:
 
 ```bash
-poetry run nsp <command> [options]
+uv run nsp <command> [options]
 ```
 
 The CLI provides commands for data collection, search configuration, data exploration, and operational tasks.
@@ -85,34 +85,34 @@ The CLI provides commands for data collection, search configuration, data explor
 
 ### Development Setup
 ```bash
-# Install dependencies
-poetry install
+# Install dependencies (runtime + dev; the dev group syncs by default)
+uv sync
 
-# Install development dependencies
-poetry install --with dev
+# Run a command in the project environment
+uv run <command>
 
-# Activate virtual environment
-poetry shell
+# Or activate the virtualenv directly
+source .venv/bin/activate
 ```
 
 ### Dependency Management
 
-IMPORTANT: Always use Poetry to add new dependencies:
+IMPORTANT: Always use uv to add new dependencies:
 ```bash
 # Add a runtime dependency
-poetry add package-name
+uv add package-name
 
 # Add a development dependency
-poetry add --group dev package-name
+uv add --dev package-name
 
 # Add with version constraints
-poetry add "package-name>=1.0,<2.0"
+uv add "package-name>=1.0,<2.0"
 
-# Update dependencies
-poetry update
+# Update the lock file to latest compatible versions
+uv lock --upgrade
 ```
 
-Never manually edit pyproject.toml to add dependencies. Using `poetry add` ensures:
+Never manually edit pyproject.toml to add dependencies. Using `uv add` ensures:
 - Latest compatible versions are installed
 - Lock file is properly updated
 - Dependency resolution is handled correctly
@@ -121,16 +121,16 @@ Never manually edit pyproject.toml to add dependencies. Using `poetry add` ensur
 ### Testing
 ```bash
 # Run all tests
-poetry run pytest
+uv run pytest
 
 # Run tests with coverage
-poetry run pytest --cov=src --cov-report=html
+uv run pytest --cov=src --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_models/test_post.py
+uv run pytest tests/test_models/test_post.py
 
 # Run tests matching pattern
-poetry run pytest -k "test_post"
+uv run pytest -k "test_post"
 ```
 
 ### CLI Commands (Phase 2.5+)
@@ -142,48 +142,48 @@ The CLI has been restructured for clarity:
 #### Stage-Based Commands (Primary Interface)
 ```bash
 # Top-level convenience commands
-poetry run nsp collect --date 2024-01-15 --max-posts 100 --search mcp_tag
-poetry run nsp collect --date 2024-01-15 --no-expand-urls  # Skip URL expansion
-poetry run nsp fetch --date 2024-01-15
-poetry run nsp evaluate --date 2024-01-15
-poetry run nsp report --date 2024-01-15
+uv run nsp collect --date 2024-01-15 --max-posts 100 --search mcp_tag
+uv run nsp collect --date 2024-01-15 --no-expand-urls  # Skip URL expansion
+uv run nsp fetch --date 2024-01-15
+uv run nsp evaluate --date 2024-01-15
+uv run nsp report --date 2024-01-15
 
 # Run all stages in sequence (most common usage)
-poetry run nsp run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
-poetry run nsp run-all --date 2024-01-15 --no-expand-urls  # Skip URL expansion
+uv run nsp run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
+uv run nsp run-all --date 2024-01-15 --no-expand-urls  # Skip URL expansion
 
 # Show stage status
-poetry run nsp status --date 2024-01-15
+uv run nsp status --date 2024-01-15
 
 # Detailed stage management (via 'stages' subcommand)
-poetry run nsp stages collect --date 2024-01-15 --max-posts 100 --search mcp_tag
-poetry run nsp stages run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
-poetry run nsp stages status --date 2024-01-15          # Show stage progression
-poetry run nsp stages list-files collect --limit 10    # List files in stage
-poetry run nsp stages clean fetch --date 2024-01-15    # Clean stage data
+uv run nsp stages collect --date 2024-01-15 --max-posts 100 --search mcp_tag
+uv run nsp stages run-all --date 2024-01-15 --max-posts 100 --search mcp_tag
+uv run nsp stages status --date 2024-01-15          # Show stage progression
+uv run nsp stages list-files collect --limit 10    # List files in stage
+uv run nsp stages clean fetch --date 2024-01-15    # Clean stage data
 ```
 
 #### Legacy Commands (Backward Compatibility)
 ```bash
 # Access legacy functionality via 'onsp' command
-poetry run onsp collect --date 2024-01-15 --search mcp_tools --max-posts 200
-poetry run onsp list-searches
-poetry run onsp validate-config
-poetry run onsp status --date 2024-01-15
-poetry run onsp list-posts --limit 10
-poetry run onsp notebook
+uv run onsp collect --date 2024-01-15 --search mcp_tools --max-posts 200
+uv run onsp list-searches
+uv run onsp validate-config
+uv run onsp status --date 2024-01-15
+uv run onsp list-posts --limit 10
+uv run onsp notebook
 ```
 
 ### Code Quality
 ```bash
 # Format code with ruff
-poetry run ruff format .
+uv run ruff format .
 
 # Lint and fix code issues
-poetry run ruff check . --fix
+uv run ruff check . --fix
 
 # Type checking with ty (alpha version)
-poetry run ty check src/
+uv run ty check src/
 ```
 
 ### Code Search Guidelines

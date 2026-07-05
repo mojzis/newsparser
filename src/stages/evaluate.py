@@ -96,7 +96,7 @@ class EvaluateStage(ProcessingStage):
                 "content_type": evaluation.content_type,
                 "language": evaluation.language,
                 "evaluated_at": evaluation.evaluated_at.isoformat() + 'Z',
-                "evaluator": "claude-3-haiku-20240307"  # Model used for evaluation
+                "evaluator": "claude-haiku-4-5"  # Model used for evaluation
             }
             
             # Get essential reference data from original file
@@ -233,7 +233,7 @@ This content was evaluated for MCP relevance.
                                 "content_type": evaluation.content_type,
                                 "language": evaluation.language,
                                 "evaluated_at": evaluation.evaluated_at.isoformat() + 'Z',
-                                "evaluator": "claude-3-haiku-20240307"  # Model used for evaluation
+                                "evaluator": "claude-haiku-4-5"  # Model used for evaluation
                             }
                             
                             # Update frontmatter with evaluation

@@ -1,9 +1,16 @@
+import os
 import tempfile
 from pathlib import Path
 
+# moto 5's mock_aws only intercepts recognised AWS hosts by default; R2 uses a
+# custom S3-compatible endpoint, so register it before boto3/moto load.
+os.environ.setdefault(
+    "MOTO_S3_CUSTOM_ENDPOINTS", "https://test.r2.cloudflarestorage.com"
+)
+
 import boto3
 import pytest
-from moto import mock_s3
+from moto import mock_aws
 
 from src.config.settings import Settings
 from src.storage.r2_client import R2Client
@@ -23,7 +30,7 @@ def mock_settings():
 @pytest.fixture
 def mock_r2_client(mock_settings):
     """Create R2Client with mock settings."""
-    with mock_s3():
+    with mock_aws():
         # Create the bucket in the mock S3
         s3 = boto3.client(
             "s3",
@@ -40,7 +47,7 @@ def mock_r2_client(mock_settings):
 class TestR2ClientInit:
     def test_init_with_settings(self, mock_settings):
         """Test R2Client initialization."""
-        with mock_s3():
+        with mock_aws():
             client = R2Client(mock_settings)
             assert client.bucket_name == "test-bucket"
             assert client.settings == mock_settings

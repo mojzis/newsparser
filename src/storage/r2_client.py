@@ -72,7 +72,7 @@ class R2Client:
             logger.info(f"Successfully uploaded {file_path} to {key}")
             return True
 
-        except (ClientError, BotoCoreError) as e:
+        except (ClientError, BotoCoreError, OSError) as e:
             logger.exception(f"Failed to upload {file_path} to {key}: {e}")
             return False
 
