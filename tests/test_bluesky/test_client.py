@@ -146,7 +146,8 @@ class TestBlueskyClientAuthentication:
         await bluesky_client.close()
 
         assert not bluesky_client._session_active
-        bluesky_client.client.close.assert_called_once()
+        # atproto AsyncClient has no close(); close() just resets session state
+        assert bluesky_client.client is None
 
     @pytest.mark.asyncio
     async def test_close_no_client(self, bluesky_client):
@@ -241,7 +242,7 @@ class TestBlueskyClientSearch:
         assert cursor == "next_cursor_123"
 
         bluesky_client.client.app.bsky.feed.search_posts.assert_called_once_with(
-            params={"q": "mcp", "limit": 10, "cursor": None}
+            params={"q": "mcp", "limit": 10, "sort": "latest"}
         )
 
     @pytest.mark.asyncio
@@ -300,7 +301,7 @@ class TestBlueskyClientSearch:
 
         assert len(posts) == 1
         bluesky_client.client.app.bsky.feed.search_posts.assert_called_once_with(
-            params={"q": "mcp", "limit": 5, "cursor": None}
+            params={"q": "mcp", "limit": 5, "sort": "latest"}
         )
 
     @pytest.mark.asyncio

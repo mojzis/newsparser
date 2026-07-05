@@ -17,10 +17,11 @@ def path_to_date(path: DatePath) -> date:
     if len(parts) != 3:
         raise ValueError(f"Invalid date path format: {path}")
 
+    y, m, d = parts
+    if not (len(y) == 4 and len(m) == 2 and len(d) == 2):
+        raise ValueError(f"Invalid date path format: {path}")
+
     try:
-        year = int(parts[0])
-        month = int(parts[1])
-        day = int(parts[2])
-        return date(year, month, day)
+        return date(int(y), int(m), int(d))
     except (ValueError, IndexError) as e:
         raise ValueError(f"Invalid date path format: {path}") from e

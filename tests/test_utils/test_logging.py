@@ -30,7 +30,8 @@ class TestGetLogger:
         logger = get_logger("test_logger", level="DEBUG")
 
         assert logger.level == logging.DEBUG
-        assert logger.handlers[0].level == logging.DEBUG
+        own = [h for h in logger.handlers if getattr(h, "_nsp_handler", False)]
+        assert own[0].level == logging.DEBUG
 
     def test_get_logger_invalid_level_fallback(self):
         """Test logger creation with invalid level falls back to INFO."""
@@ -69,8 +70,10 @@ class TestGetLogger:
         """Test that logger handler is configured correctly."""
         logger = get_logger("test_logger")
 
-        assert len(logger.handlers) == 1
-        handler = logger.handlers[0]
+        # Filter out foreign handlers (e.g. pytest's log-capture handlers)
+        own = [h for h in logger.handlers if getattr(h, "_nsp_handler", False)]
+        assert len(own) == 1
+        handler = own[0]
 
         assert isinstance(handler, logging.StreamHandler)
         assert handler.formatter is not None

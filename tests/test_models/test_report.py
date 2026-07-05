@@ -93,7 +93,9 @@ class TestReportArticle:
             relevance_score=0.5,
             domain="example.com",
             content_type="video",
-            language="fr"
+            language="fr",
+            post_id="123",
+            created_at=datetime(2024, 12, 6, 15, 45)
         )
         assert article.relevance_score == 0.5
         
@@ -125,7 +127,9 @@ class TestReportDay:
                 relevance_score=0.9,
                 domain="example.com",
                 content_type="article",
-                language="en"
+                language="en",
+                post_id="1",
+                created_at=datetime(2024, 12, 6, 13, 0)
             ),
             ReportArticle(
                 url="https://example.com/2",
@@ -137,7 +141,9 @@ class TestReportDay:
                 relevance_score=0.8,
                 domain="example.com",
                 content_type="blog post",
-                language="es"
+                language="es",
+                post_id="2",
+                created_at=datetime(2024, 12, 6, 14, 0)
             )
         ]
         
@@ -201,7 +207,9 @@ class TestHomepageData:
                 relevance_score=0.9,
                 domain="example.com",
                 content_type="newsletter",
-                language="ja"
+                language="ja",
+                post_id="1",
+                created_at=datetime(2024, 12, 6, 13, 0)
             )
         ]
         

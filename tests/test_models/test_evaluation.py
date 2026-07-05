@@ -30,7 +30,12 @@ class TestArticleEvaluation:
             published_date=now,
             evaluated_at=now,
             word_count=1500,
-            truncated=False
+            truncated=False,
+            prompt_version="1.0",
+            prompt_name="default",
+            model_id="claude-sonnet-5",
+            model_version="1.0",
+            config_branch="main"
         )
         
         assert str(evaluation.url) == "https://example.com/article"
@@ -55,9 +60,14 @@ class TestArticleEvaluation:
             language="en",
             domain="example.com",
             evaluated_at=now,
-            word_count=100
+            word_count=100,
+            prompt_version="1.0",
+            prompt_name="default",
+            model_id="claude-sonnet-5",
+            model_version="1.0",
+            config_branch="main"
         )
-        
+
         assert evaluation.title is None
         assert evaluation.author is None
         assert evaluation.medium is None
@@ -80,7 +90,12 @@ class TestArticleEvaluation:
             domain="example.com",
             evaluated_at=now,
             word_count=0,
-            error="Failed to fetch article: 404 Not Found"
+            error="Failed to fetch article: 404 Not Found",
+            prompt_version="1.0",
+            prompt_name="default",
+            model_id="claude-sonnet-5",
+            model_version="1.0",
+            config_branch="main"
         )
         
         assert evaluation.error == "Failed to fetch article: 404 Not Found"
@@ -165,9 +180,14 @@ class TestArticleEvaluation:
             language="en",
             domain="example.com",
             evaluated_at=now,
-            word_count=500
+            word_count=500,
+            prompt_version="1.0",
+            prompt_name="default",
+            model_id="claude-sonnet-5",
+            model_version="1.0",
+            config_branch="main"
         )
-        
+
         # Test dict serialization
         data = evaluation.model_dump()
         assert str(data["url"]) == "https://example.com/article"

@@ -2,6 +2,8 @@ import logging
 import sys
 from functools import cache
 
+from src.config.settings import get_settings
+
 
 @cache
 def get_logger(name: str, level: str | None = None) -> logging.Logger:
@@ -17,37 +19,38 @@ def get_logger(name: str, level: str | None = None) -> logging.Logger:
     """
     logger = logging.getLogger(name)
 
-    # Only configure if logger has no handlers (avoid duplicate configuration)
-    if not logger.handlers:
-        # Get level from settings or use provided level
-        if level is None:
-            try:
-                from src.config.settings import get_settings
+    # Resolve level from settings or the provided override
+    if level is None:
+        try:
+            level = get_settings().log_level
+        except Exception:
+            level = "INFO"
 
-                settings = get_settings()
-                level = settings.log_level
-            except Exception:
-                level = "INFO"
+    # Unknown level names fall back to INFO
+    resolved_level = getattr(logging, level.upper(), logging.INFO)
 
-        # Configure logger
-        logger.setLevel(getattr(logging, level.upper()))
+    # Always apply the level (foreign handlers, e.g. pytest's log capture, must
+    # not prevent reconfiguration)
+    logger.setLevel(resolved_level)
 
-        # Create console handler
+    # Add our console handler once. Identify it by a marker so third-party
+    # handlers don't fool the idempotency check.
+    own_handlers = [h for h in logger.handlers if getattr(h, "_nsp_handler", False)]
+    if not own_handlers:
         handler = logging.StreamHandler(sys.stdout)
-        handler.setLevel(getattr(logging, level.upper()))
-
-        # Create formatter
-        formatter = logging.Formatter(
-            fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
+        handler._nsp_handler = True
+        handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
         )
-        handler.setFormatter(formatter)
-
-        # Add handler to logger
         logger.addHandler(handler)
-
-        # Prevent propagation to root logger
         logger.propagate = False
+        own_handlers = [handler]
+
+    for handler in own_handlers:
+        handler.setLevel(resolved_level)
 
     return logger
 

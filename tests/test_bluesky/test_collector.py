@@ -78,6 +78,8 @@ class TestBlueskyDataCollectorCollectPosts:
         with patch("src.bluesky.collector.BlueskyClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.get_recent_mcp_posts.return_value = sample_posts
+            # collect_daily_posts uses `async with self.bluesky_client as client`
+            mock_client.__aenter__.return_value = mock_client
             mock_client_class.return_value = mock_client
 
             # Create new collector with mocked client
@@ -107,6 +109,8 @@ class TestBlueskyDataCollectorCollectPosts:
         with patch("src.bluesky.collector.BlueskyClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.get_recent_mcp_posts.return_value = sample_posts
+            # collect_daily_posts uses `async with self.bluesky_client as client`
+            mock_client.__aenter__.return_value = mock_client
             mock_client_class.return_value = mock_client
 
             with patch("src.bluesky.collector.date") as mock_date:

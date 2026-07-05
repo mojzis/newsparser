@@ -1,7 +1,7 @@
 """Tests for report generator."""
 
 import tempfile
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
@@ -31,7 +31,9 @@ class TestReportGenerator:
                 relevance_score=0.9,
                 domain="example.com",
                 content_type="article",
-                language="en"
+                language="en",
+                post_id="1",
+                created_at=datetime(2024, 12, 6, 13, 0)
             ),
             ReportArticle(
                 url="https://example.com/article2",
@@ -43,7 +45,9 @@ class TestReportGenerator:
                 relevance_score=0.8,
                 domain="example.com",
                 content_type="blog post",
-                language="en"
+                language="en",
+                post_id="2",
+                created_at=datetime(2024, 12, 6, 14, 0)
             )
         ]
     

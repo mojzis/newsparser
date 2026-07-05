@@ -95,9 +95,13 @@ def is_neutral_character(char: str) -> bool:
     """
     if not char:
         return True
-    
+
+    # Treat all whitespace (spaces, tabs, newlines) as neutral
+    if char.isspace():
+        return True
+
     code_point = ord(char)
-    
+
     # Check neutral ranges (punctuation, symbols, etc.)
     for start, end in NEUTRAL_RANGES:
         if start <= code_point <= end:
