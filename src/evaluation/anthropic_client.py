@@ -175,8 +175,9 @@ class AnthropicEvaluator:
 
             # Validate required fields
             return {
-                # Fallback to the old key in case the model was prompted with a
-                # stale (cached) template that still asked for "is_mcp_related".
+                # Fallback to the old key in case the model still emits the
+                # legacy "is_mcp_related" field (e.g. an in-flight deploy or a
+                # model that hasn't picked up the renamed prompt field yet).
                 "is_relevant": bool(
                     data.get("is_relevant", data.get("is_mcp_related", False))
                 ),
