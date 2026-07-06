@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from src.config.config_manager import TopicConfig, UIConfig
 from src.config.searches import SearchConfig
+from src.sources.registry import KNOWN_SOURCES
 
 
 class EvaluationSelection(BaseModel):
@@ -28,6 +29,7 @@ class CollectionConfig(BaseModel):
     evaluation: EvaluationSelection
     searches: SearchConfig
     default_search: str
+    sources: list[str] = Field(default_factory=lambda: ["bluesky"])
 
     @property
     def stages_base(self) -> Path:
@@ -46,6 +48,15 @@ class CollectionConfig(BaseModel):
             )
         if not search.enabled:
             raise ValueError(f"default_search '{self.default_search}' is not enabled")
+        return self
+
+    @model_validator(mode="after")
+    def validate_sources(self) -> "CollectionConfig":
+        unknown = [s for s in self.sources if s not in KNOWN_SOURCES]
+        if unknown:
+            raise ValueError(
+                f"Unknown source(s) {unknown}; must be one of {sorted(KNOWN_SOURCES)}"
+            )
         return self
 
 

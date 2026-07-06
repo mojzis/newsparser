@@ -128,7 +128,7 @@ def collect(
 
         settings = get_settings()
 
-        if not settings.has_bluesky_credentials:
+        if "bluesky" in collection.sources and not settings.has_bluesky_credentials:
             console.print("❌ Bluesky credentials not configured", style="red")
             console.print(
                 "Set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables"
@@ -162,6 +162,7 @@ def collect(
             expand_references=expand_references,
             max_reference_depth=max_reference_depth,
             base_path=collection.stages_base,
+            sources=collection.sources,
         )
 
         result = asyncio.run(collect_stage.run_collection(parsed_date))

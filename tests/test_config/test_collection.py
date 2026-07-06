@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
-from src.config.collection import load_collection
+from src.config.collection import CollectionConfig, load_collection
 from src.config.config_manager import ConfigManager
 from src.config.searches import SearchDefinition
 
@@ -68,3 +69,57 @@ class TestLoadCollection:
     def test_unknown_collection_raises(self):
         with pytest.raises(FileNotFoundError):
             load_collection("does-not-exist")
+
+
+def _minimal_collection_kwargs(**overrides):
+    kwargs = {
+        "name": "test",
+        "topic": {"name": "Test", "description": "A test topic"},
+        "ui": {},
+        "evaluation": {
+            "prompt_config": "test_prompt",
+            "model_config": "test_model",
+        },
+        "searches": {
+            "searches": {
+                "default": {
+                    "name": "Default search",
+                    "description": "Default",
+                    "include_terms": ["test"],
+                }
+            }
+        },
+        "default_search": "default",
+    }
+    kwargs.update(overrides)
+    return kwargs
+
+
+class TestSources:
+    def test_defaults_to_bluesky(self):
+        collection = CollectionConfig.model_validate(_minimal_collection_kwargs())
+
+        assert collection.sources == ["bluesky"]
+
+    def test_accepts_known_sources(self):
+        collection = CollectionConfig.model_validate(
+            _minimal_collection_kwargs(sources=["bluesky", "hackernews"])
+        )
+
+        assert collection.sources == ["bluesky", "hackernews"]
+
+    def test_rejects_unknown_source(self):
+        with pytest.raises(ValidationError, match="Unknown source"):
+            CollectionConfig.model_validate(
+                _minimal_collection_kwargs(sources=["not-a-real-source"])
+            )
+
+    def test_mcp_defaults_to_bluesky_only(self):
+        collection = load_collection("mcp")
+
+        assert collection.sources == ["bluesky"]
+
+    def test_duckdb_uses_bluesky_and_hackernews(self):
+        collection = load_collection("duckdb")
+
+        assert collection.sources == ["bluesky", "hackernews"]

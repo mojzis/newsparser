@@ -16,6 +16,10 @@ evaluation:
 
 default_search: duckdb_mentions
 
+sources:
+  - bluesky
+  - hackernews
+
 searches:
   searches:
     duckdb_mentions:
