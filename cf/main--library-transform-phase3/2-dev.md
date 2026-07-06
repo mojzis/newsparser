@@ -61,3 +61,9 @@ Unconstrained delivery. Make it work and clean enough to commit. Don't worry abo
 ## Report
 Return ONLY this JSON:
 {"commit_shas": ["..."], "summary": "one sentence", "deviations": ["..."], "unresolved_issues": ["..."]}
+
+## Deviations from earlier steps
+- phase 1 dev: Wired BlueskySource with an optional injected client (defaulting to owning its own when none given) so CollectStage reuses one authenticated Bluesky session instead of logging in twice per collect run; flagged by python-review as a should-fix and addressed within scope.
+
+## Deviations from earlier steps
+- phase 1 check: Confirmed the phase 1 dev deviation (BlueskySource optional injected client) is in-scope and correctly wired; no code changes made by check.

@@ -31,3 +31,9 @@ per-article badge rendered; mcp report unchanged apart from the added badge.
 ## Report
 Return ONLY this JSON:
 {"verified": true, "evidence": "what you observed (paste output)", "deviations": ["..."], "issues": ["..."]}
+
+## Deviations from earlier steps
+- phase 1 dev: Wired BlueskySource with an optional injected client (defaulting to owning its own when none given) so CollectStage reuses one authenticated Bluesky session instead of logging in twice per collect run; flagged by python-review as a should-fix and addressed within scope.
+
+## Deviations from earlier steps
+- phase 1 check: Confirmed the phase 1 dev deviation (BlueskySource optional injected client) is in-scope and correctly wired; no code changes made by check.

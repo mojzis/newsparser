@@ -50,10 +50,10 @@ class TestBlueskySource:
         assert source.name == "bluesky"
 
     @pytest.mark.asyncio
-    async def test_search_returns_bluesky_stamped_posts(
+    async def test_search_delegates_to_client_within_context_manager(
         self, mock_settings, search_definition, sample_posts
     ):
-        """search() returns posts from get_posts_by_definition, stamped as bluesky."""
+        """search() delegates to get_posts_by_definition inside the client's async context."""
         with patch("src.sources.bluesky.BlueskyClient") as mock_client_class:
             mock_client = AsyncMock()
             mock_client.__aenter__.return_value = mock_client
@@ -64,7 +64,6 @@ class TestBlueskySource:
             result = await source.search(search_definition, max_posts=10)
 
             assert result == sample_posts
-            assert all(post.source == "bluesky" for post in result)
             mock_client.get_posts_by_definition.assert_called_once_with(
                 search_definition=search_definition, max_posts=10
             )

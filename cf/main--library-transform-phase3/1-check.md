@@ -34,3 +34,10 @@ out-of-scope behavior change.
 ## Report
 Return ONLY this JSON:
 {"verified": true, "evidence": "what you observed (paste output)", "deviations": ["..."], "issues": ["..."]}
+
+## Deviations from earlier steps
+- phase 1 dev: Wired BlueskySource with an optional injected client (defaulting to owning its own when none given) so CollectStage reuses one authenticated Bluesky session instead of logging in twice per collect run; flagged by python-review as a should-fix and addressed within scope.
+
+## Additional verification (post-review fixes)
+Verify each of these findings was addressed:
+- Misleading test `test_search_returns_bluesky_stamped_posts` in tests/test_sources/test_bluesky.py no longer asserts a no-op source-stamping behavior; either renamed to reflect actual delegation/context behavior or the trivial source assertion was dropped.
