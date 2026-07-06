@@ -88,7 +88,7 @@ class TestCollectStageMultipleSources:
         assert stage.source_names == ["bluesky"]
         assert set(stage.sources.keys()) == {"bluesky"}
 
-    def test_hackernews_only_skips_bluesky_client(self, mock_settings):
+    def test_hackernews_only_skips_bluesky_source(self, mock_settings):
         """When bluesky isn't configured, no Bluesky source is built."""
         stage = CollectStage(settings=mock_settings, sources=["hackernews"])
 

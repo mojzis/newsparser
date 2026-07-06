@@ -28,3 +28,6 @@ Return ONLY this JSON:
 
 ## Deviations from earlier steps
 - phase 1 check: Confirmed the phase 1 dev deviation (BlueskySource optional injected client) is in-scope and correctly wired; no code changes made by check.
+
+## Deviations from earlier steps
+- phase 2 dev: Factored a shared src/sources/registry.py (SOURCE_FACTORIES/KNOWN_SOURCES) used by both CollectStage._build_sources and CollectionConfig source validator, to avoid duplicating the known-source set; added after python-review flagged duplication as a should-fix, within the brief in-scope files.
