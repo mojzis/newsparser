@@ -79,3 +79,52 @@
 ```json
 {"verified": true, "evidence": "1) `uv run poe check`: ruff/ty green, pytest '352 passed, 1 warning in 12.57s'. 2-7) Same collection-flag / path-routing / report.py literals / evaluator-resolution / collector-default-search / git-scope checks as the first pass, all confirmed again live. Additional verification: all 8 stage_commands.py commands now call load_collection_or_exit before their try blocks (status/list_files/clean have no wrapping try at all); test_missing_search_option_uses_collection_default now documents the ordering dependency via an explicit comment. Ran all 4 new/changed test files: 16 passed. No code changes made by the check agent.", "deviations": [], "issues": []}
 ```
+
+## Phase 3 — dev
+- 2026-07-06T00:04:00+02:00
+```json
+{"commit_shas": ["404efaf"], "summary": "Threaded collection.ui's site_title/site_tagline into ReportGenerator and templatized the hardcoded MCP branding in base/daily/homepage/about templates with default fallbacks.", "deviations": ["Dropped the literal 'Bluesky ' prefix from base.html's nav-brand link (was 'Bluesky MCP Monitor'), replacing the whole link text with {{ site_title | default('MCP Monitor') }} per the brief's exact filter expression, rather than keeping 'Bluesky' as a hardcoded prefix.", "Added a ui: UIConfig | None constructor param to ReportStage (defaulting to UIConfig()) since context.md's wiring section only specified output_base for Phase 2; this was the natural place to receive collection.ui and pass it through to ReportGenerator, and it's within the brief's in-scope file list for stage.py.", "Applied a should-fix from the python-review skill: extracted a private ReportGenerator._base_context() helper so all three template.render(...) call sites (daily, homepage, preview_template) build the site_title/site_tagline context consistently instead of three different inline styles.", "Added tests beyond the explicitly named files' existing coverage (test_generate_daily_report_custom_branding, test_generate_homepage_custom_branding in test_generator.py; test_run_report_uses_collection_ui_branding in test_report_stage.py), per the brief's 'Tests as needed' allowance.", "render_about (src/cli/stage_commands.py) still renders about.html through its own bare Jinja Environment without passing site_title, so it always shows default 'MCP Monitor' branding regardless of collection -- left as-is since namespacing/wiring auxiliary output (about/stats/publish) is explicitly out of scope per the brief."], "unresolved_issues": []}
+```
+
+## Deviations from earlier steps
+- phase 1 dev: EvaluationSelection uses a Field alias (model_config_name -> YAML key model_config) with populate_by_name=True, per context.md's suggested approach.
+- phase 1 dev: Committed the untracked cf/ orchestration files alongside the code changes since the brief specifies `git add -A`.
+- phase 2 dev: Dropped the --config/config_path search-config override from collect and run_all in both stage_commands.py and new_commands.py (searches are now sourced solely from the loaded collection); legacy onsp commands in src/cli/legacy_commands.py still keep --config unchanged since they're out of scope.
+- phase 2 dev: Added a small load_collection_or_exit helper in stage_commands.py so status/list_files/clean surface an unknown --collection as a clean CLI error (exit 1) instead of an unhandled FileNotFoundError traceback; collect/fetch/evaluate/report already had a wrapping try/except so load_collection is called directly there.
+- phase 2 dev: Added new test files (tests/test_evaluation/test_anthropic_client.py, tests/test_stages/test_report_stage.py, tests/test_cli/test_stage_commands.py) beyond the explicitly named in-scope files, per the brief's allowance to extend tests as needed for collection-aware paths/evaluator.
+- phase 3 dev: Dropped the literal 'Bluesky ' prefix from base.html's nav-brand link, replacing the whole link text with the site_title default filter.
+- phase 3 dev: Added a ui: UIConfig | None constructor param to ReportStage (defaulting to UIConfig()) to receive collection.ui and pass it through to ReportGenerator.
+- phase 3 dev: Extracted a private ReportGenerator._base_context() helper so all three template.render(...) call sites build the site_title/site_tagline context consistently.
+- phase 3 dev: Added tests beyond the explicitly named files (test_generate_daily_report_custom_branding, test_generate_homepage_custom_branding, test_run_report_uses_collection_ui_branding).
+- phase 3 dev: render_about still renders about.html through its own bare Jinja Environment without passing site_title, so it always shows default 'MCP Monitor' branding regardless of collection -- left as-is, out of scope.
+
+## Phase 3 — check
+- 2026-07-06T00:12:00+02:00
+```json
+{"verified": true, "evidence": "1) `uv run poe check`: ruff/ty green, pytest '355 passed, 1 warning in 14.11s'. 2) grep of MCP Monitor strings in src/templates/ -- all 6 hits are inside default(...) filters, none bare. 3) ReportGenerator.__init__ takes site_title/site_tagline with defaults, stores them, _base_context() helper spread into all three template.render() sites; ReportStage takes ui: UIConfig|None, passes through to ReportGenerator; stage_commands.py threads collection.ui into ReportStage. 4) Offline snippet confirms duckdb collection renders 'DuckDB News' and not 'MCP Monitor'; default (no ui) render still contains 'MCP Monitor'. Existing unit tests confirm the same. 5) git show --stat HEAD (404efaf) touches only in-scope files.", "deviations": ["Confirmed pre-existing phase-3 dev deviation: render_about builds its own bare Jinja Environment without site_title/site_tagline, so it always shows default 'MCP Monitor' branding -- out of scope, explicitly logged.", "Working tree has unstaged modifications to cf/ orchestration docs present at start of this check, not code -- not altered by this check agent."], "issues": []}
+```
+
+## Phase 3 — review
+- 2026-07-06T00:14:00+02:00
+```json
+{"findings": [{"description": "Homepage tagline silently changes for the existing mcp collection. The old homepage.html hardcoded 'Daily digest of Model Context Protocol discussions from Bluesky'; the templatized version now renders collection.ui.site_tagline, which for config/collections/mcp.yaml (and the UIConfig/ReportGenerator default) is 'Daily digest of Model Context Protocol mentions'. So the mcp homepage tagline text changes from '...discussions from Bluesky' to '...mentions'. context.md states the mcp collection must reproduce today's behavior exactly, and unlike the nav-brand 'Bluesky ' drop this tagline change was not logged as a deviation. If exact reproduction is intended, set mcp.yaml's site_tagline (or the homepage default) to the original text; otherwise confirm the change is acceptable.", "file": "src/templates/homepage.html", "severity": "low"}], "dropped": ["About-page mis-branding (render_about never passes site_title) -- explicitly out of scope per brief's focus notes, already logged as deferred by phase-3 dev, no regression for mcp.", "_base_context() docstring wording / dict return annotation -- trivial polish, not actionable.", "Duplicated ReportGenerator(...) construction at two call sites -- MVP-acceptable, not actionable.", "nav-brand text change ('Bluesky MCP Monitor' -> 'MCP Monitor') -- already an explicitly logged phase-3 dev deviation."], "deviations": []}
+```
+
+## Phase 3 — fix
+- 2026-07-06T00:19:00+02:00
+```json
+{"commit_shas": ["fd7c507"], "summary": "Restored the mcp collection's original homepage tagline text by fixing config/base/app.yaml and config/collections/mcp.yaml, which had held stale text since before this refactor.", "deviations": ["Also updated config/base/app.yaml (not just mcp.yaml) to keep the existing test_mcp_matches_base_app_config invariant intact; app.yaml's ui.site_tagline was unused in production (report generation reads collection.ui, not app_config.ui) so this only affects the parity test."], "unresolved_issues": []}
+```
+
+## Phase 3 — check (post-fix re-verification)
+- 2026-07-06T00:22:00+02:00
+```json
+{"verified": true, "evidence": "1) `uv run poe check`: ruff/ty green, pytest '355 passed, 1 warning in 11.93s'. 2) grep confirms no bare 'MCP Monitor' strings remain in src/templates/, only inside default() filters. 3) generator.py/_base_context()/ReportStage/stage_commands.py wiring confirmed as in the first pass. 4) Offline render script confirms duckdb collection renders branded (no MCP Monitor leakage) and default render keeps 'MCP Monitor' fallback; 10 tests pass. 5) git show --stat for both fd7c507 (fix) and 404efaf (phase-3 dev) touch only in-scope files. Post-review fix verification: original pre-refactor homepage.html hardcoded 'Daily digest of Model Context Protocol discussions from Bluesky'; fix commit fd7c507 restores that exact text in config/base/app.yaml and config/collections/mcp.yaml, so mcp now reproduces the original tagline verbatim.", "deviations": [], "issues": []}
+```
+
+## Summary
+- 2026-07-06T00:23:00+02:00 · cml run complete
+- phases: 3
+- commits: 897c53d, ef192b1, fe8a134, 650104a, 404efaf, fd7c507
+- all checks verified: yes
+- unresolved: 0

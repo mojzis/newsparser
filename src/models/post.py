@@ -48,6 +48,13 @@ class BlueskyPost(AnalyticsBase):
     thread_depth: int | None = Field(
         default=None, ge=0, description="Nesting level within the thread (0=root)"
     )
+    source: str = Field(
+        default="bluesky",
+        description=(
+            "Name of the source that produced this post. Defaults to 'bluesky' for"
+            " backward compatibility with data stored before this field existed."
+        ),
+    )
 
     @field_validator("content")
     @classmethod

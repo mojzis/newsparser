@@ -13,6 +13,7 @@ from src.bluesky.url_utils import (
 from src.config.searches import SearchConfig, SearchDefinition
 from src.config.settings import Settings
 from src.models.post import BlueskyPost
+from src.sources.bluesky import BlueskySource
 from src.stages.base import InputStage
 from src.stages.markdown import MarkdownFile
 from src.utils.url_expansion import URLExpander
@@ -53,6 +54,9 @@ class CollectStage(InputStage):
         self.max_reference_depth = max_reference_depth
         self.processed_post_uris = set()  # Track processed posts to avoid duplication
         self.bluesky_client = BlueskyClient(settings)
+        # Share the same client so search and thread/reference expansion reuse
+        # a single authenticated session instead of logging in twice.
+        self.bluesky_source = BlueskySource(settings, client=self.bluesky_client)
 
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
         """Collect posts from Bluesky matching search criteria."""
@@ -67,9 +71,9 @@ class CollectStage(InputStage):
 
         try:
             async with self.bluesky_client as client:
-                # First, get initial search results
-                search_posts = await client.get_posts_by_definition(
-                    search_definition=self.search_definition, max_posts=self.max_posts
+                # First, get initial search results via the Bluesky source
+                search_posts = await self.bluesky_source.search(
+                    self.search_definition, self.max_posts
                 )
 
                 if not search_posts:
@@ -278,6 +282,7 @@ class CollectStage(InputStage):
             },
             "links": [str(link) for link in post.links],
             "tags": post.tags,
+            "source": post.source,
             "stage": "collected",
             "collected_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
         }
