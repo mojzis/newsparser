@@ -13,9 +13,10 @@
         </div>
         <div class="perex">{{ article.perex }}</div>
         <div class="meta">
-            via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
+            via <a href="{{ article.bluesky_url }}">{{ article.author }}</a>
             at {{ article.timestamp }}
-            • {{ article.domain }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
+            • {{ article.domain }}
+            • {{ article.source_label }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
         </div>
     </div>
     {% endfor %}

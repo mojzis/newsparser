@@ -18,13 +18,20 @@ class TestReportStagePaths:
         with tempfile.TemporaryDirectory() as temp_dir:
             yield Path(temp_dir)
 
-    def _write_post(self, base_path: Path, target_date: date, post_id: str) -> None:
+    def _write_post(
+        self,
+        base_path: Path,
+        target_date: date,
+        post_id: str,
+        source: str = "bluesky",
+    ) -> None:
         collect_dir = base_path / "collect" / target_date.strftime("%Y-%m-%d")
         collect_dir.mkdir(parents=True, exist_ok=True)
         post = MarkdownFile(
             {
                 "author": "someone.bsky.social",
                 "created_at": f"{target_date.isoformat()}T12:00:00+00:00",
+                "source": source,
             },
             "# Post",
         )
@@ -95,6 +102,24 @@ class TestReportStagePaths:
 
         assert len(articles) == 1
         assert str(articles[0].url) == url
+        assert articles[0].source == "bluesky"
+
+    def test_collect_mcp_articles_reads_hackernews_source(self, workdir):
+        base_path = workdir / "stages" / "duckdb"
+        target_date = date(2026, 1, 5)
+        url = "https://example.com/article"
+
+        self._write_post(base_path, target_date, post_id="hn_12345", source="hackernews")
+        self._write_fetch(base_path, target_date, url)
+        self._write_evaluation(base_path, target_date, url, post_id="hn_12345")
+
+        stage = ReportStage(base_path=base_path, output_base=workdir / "output")
+
+        articles = stage.collect_mcp_articles(target_date)
+
+        assert len(articles) == 1
+        assert articles[0].source == "hackernews"
+        assert str(articles[0].bluesky_url) == "https://news.ycombinator.com/item?id=12345"
 
     def test_collect_mcp_articles_ignores_other_collections_data(self, workdir):
         """Data under a different collection's base_path must not leak in."""

@@ -58,3 +58,15 @@
 ```json
 {"findings": [{"description": "Test name/behavior mismatch: `test_hackernews_only_skips_bluesky_client` in tests/test_stages/test_collect_stage.py asserts only that `stage.sources` has no 'bluesky' key. But `CollectStage.__init__` (src/stages/collect.py:62) unconditionally constructs `self.bluesky_client = BlueskyClient(settings)` even for hackernews-only collections — the Bluesky *source* is skipped, the *client object* is not. The name implies the client isn't built. Rename to `test_hackernews_only_skips_bluesky_source` (the docstring already correctly says 'no Bluesky source is built') so it doesn't mislead a reader into thinking the client is conditionally constructed. Same class of false-confidence issue the phase-1 review already fixed.", "file": "tests/test_stages/test_collect_stage.py", "severity": "low"}], "dropped": ["python-review suggestion 'BlueskyClient always constructed for HN-only collections' — confirmed the constructor does no I/O; harmless, lazy construction is speculative complexity against MVP guardrails.", "python-review suggestion 'HN engagement remap undocumented' — deliberate documented decision in context.md, not a defect.", "python-review suggestion 'broad except Exception in _hit_to_post' — intentional defensive mapping of untrusted API hits, logs full tracebacks, returns None to skip bad hit.", "python-review suggestion 'sources order reshuffle' — behaviorally irrelevant, run_collection regroups by created_at.date().", "Mixed-source collection with missing Bluesky credentials returns [] entirely, dropping HN results too — out-of-MVP-scope edge case per project CLAUDE.md, credential gate is a deliberate hard gate.", "HN objectID missing would yield id 'hn_None' — unrealistic, wrapped in try/except, not actionable."], "deviations": ["phase 2 dev: Factored src/sources/registry.py (SOURCE_FACTORIES/KNOWN_SOURCES) shared by CollectStage._build_sources and CollectionConfig.validate_sources — verified both consumers import the same frozenset, no duplication, in-scope files only. Correct and in-scope."]}
 ```
+
+## Phase 2 — fix
+- 2026-07-06T11:15:00+02:00
+```json
+{"commit_shas": ["b66d9da"], "summary": "Renamed test_hackernews_only_skips_bluesky_client to test_hackernews_only_skips_bluesky_source to match its actual assertions.", "deviations": [], "unresolved_issues": []}
+```
+
+## Phase 2 — check (post-fix re-verification)
+- 2026-07-06T11:25:00+02:00
+```json
+{"verified": true, "evidence": "1) `uv run poe check`: ruff+ty 'All checks passed!', pytest '378 passed, 1 warning in 15.21s'. 2) HackerNewsSource, CollectionConfig.sources validator, CollectStage dispatch/expansion-isolation/credential-gating all confirmed as in the original phase 2 check. 3) Additional verification: test_hackernews_only_skips_bluesky_source confirmed present (renamed via b66d9da), no leftover old name via grep. git show --stat on all phase-2 commits touches only in-scope files.", "deviations": [], "issues": []}
+```

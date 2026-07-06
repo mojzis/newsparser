@@ -182,6 +182,7 @@ class ReportStage(ProcessingStage):
                         author = "unknown"
                         created_at = datetime.now(UTC).replace(tzinfo=None)  # fallback
                         post_id = None
+                        source = "bluesky"
 
                         if found_in_posts:
                             post_id = found_in_posts[0]
@@ -215,6 +216,9 @@ class ReportStage(ProcessingStage):
                                         post_md = MarkdownFile.load(post_file)
                                         author = post_md.get_frontmatter_value(
                                             "author", "unknown"
+                                        )
+                                        source = post_md.get_frontmatter_value(
+                                            "source", "bluesky"
                                         )
                                         created_at_str = post_md.get_frontmatter_value(
                                             "created_at"
@@ -276,6 +280,7 @@ class ReportStage(ProcessingStage):
                                 created_at=created_at,
                                 evaluation=eval_dict,
                                 debug_filename=debug_filename,
+                                source=source,
                             )
                             articles.append(article)
                             date_articles += 1
@@ -330,6 +335,7 @@ class ReportStage(ProcessingStage):
                 author = "unknown"
                 created_at = datetime.now(UTC).replace(tzinfo=None)  # fallback
                 post_id = None
+                source = "bluesky"
 
                 if found_in_posts:
                     post_id = found_in_posts[0]
@@ -359,6 +365,9 @@ class ReportStage(ProcessingStage):
                                 post_md = MarkdownFile.load(post_file)
                                 author = post_md.get_frontmatter_value(
                                     "author", "unknown"
+                                )
+                                source = post_md.get_frontmatter_value(
+                                    "source", "bluesky"
                                 )
                                 created_at_str = post_md.get_frontmatter_value(
                                     "created_at"
@@ -423,6 +432,7 @@ class ReportStage(ProcessingStage):
                     created_at=created_at,
                     evaluation=eval_dict,
                     debug_filename=debug_filename,
+                    source=source,
                 )
 
                 articles.append(article)
