@@ -73,6 +73,33 @@ class TestBlueskyPost:
         assert post.engagement_metrics.likes == 10
         assert post.tags == []  # No hashtags in this content
 
+    def test_source_defaults_to_bluesky(self):
+        """Test that source defaults to 'bluesky' for backward compatibility."""
+        now = datetime.now(UTC).replace(tzinfo=None)
+        post = BlueskyPost(
+            id="123456",
+            author="user.bsky.social",
+            content="Check out this MCP tool",
+            created_at=now,
+            engagement_metrics=EngagementMetrics(likes=0, reposts=0, replies=0),
+        )
+
+        assert post.source == "bluesky"
+
+    def test_source_can_be_overridden(self):
+        """Test that source can be explicitly set to a different value."""
+        now = datetime.now(UTC).replace(tzinfo=None)
+        post = BlueskyPost(
+            id="hn_123",
+            author="pg",
+            content="Some HN story title",
+            created_at=now,
+            engagement_metrics=EngagementMetrics(likes=0, reposts=0, replies=0),
+            source="hackernews",
+        )
+
+        assert post.source == "hackernews"
+
     def test_empty_content_rejected(self):
         """Test that empty content is rejected."""
         now = datetime.now(UTC).replace(tzinfo=None)

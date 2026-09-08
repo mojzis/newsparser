@@ -2,7 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import Awaitable, Iterator
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
@@ -34,9 +34,15 @@ class Stage(ABC):
         """Find input files to process for the given date."""
 
     @abstractmethod
-    def process_item(self, input_path: Path, target_date: date) -> Path | None:
+    def process_item(
+        self, input_path: Path, target_date: date
+    ) -> Path | None | Awaitable[Path | None]:
         """
         Process a single item.
+
+        Subclasses may override this synchronously (returning ``Path | None``)
+        or asynchronously (returning an ``Awaitable``). The return type is a
+        union of both so covariant overrides of either kind type-check.
 
         Args:
             input_path: Path to input file
@@ -83,7 +89,8 @@ class Stage(ABC):
                     continue
 
                 output_path = self.process_item(input_path, target_date)
-                if output_path:
+                # run() only drives sync stages; async stages use their own runner
+                if isinstance(output_path, Path):
                     processed += 1
                     logger.debug(f"Processed {input_path.name} -> {output_path.name}")
                 else:

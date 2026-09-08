@@ -7,6 +7,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from src.config.config_manager import UIConfig
 from src.models.report import (
     ArchiveLink,
     DaySection,
@@ -26,13 +27,24 @@ from src.stages.markdown import MarkdownFile
 logger = logging.getLogger(__name__)
 
 
+def _is_relevant(evaluation: dict) -> bool:
+    """Read relevance from an evaluation dict, falling back to the old field name."""
+    return bool(evaluation.get("is_relevant", evaluation.get("is_mcp_related", False)))
+
+
 class ReportStage(ProcessingStage):
     """Generates daily reports from evaluated content."""
 
     def __init__(
-        self, template_dir: Path | None = None, base_path: Path = Path("stages")
+        self,
+        template_dir: Path | None = None,
+        base_path: Path = Path("stages"),
+        output_base: Path = Path("output"),
+        ui: UIConfig | None = None,
     ) -> None:
         super().__init__("report", "evaluate", base_path)
+        self.output_base = output_base
+        self.ui = ui or UIConfig()
 
         # Set up templates
         if template_dir is None:
@@ -62,7 +74,7 @@ class ReportStage(ProcessingStage):
         # Search for the fetch file across multiple days (content might be fetched on different dates)
         for days_back in range(10):  # Search up to 10 days back
             search_date = target_date - timedelta(days=days_back)
-            fetch_dir = Path("stages/fetch") / search_date.strftime("%Y-%m-%d")
+            fetch_dir = self.base_path / "fetch" / search_date.strftime("%Y-%m-%d")
 
             if not fetch_dir.exists():
                 continue
@@ -145,8 +157,8 @@ class ReportStage(ProcessingStage):
                         md_file = MarkdownFile.load(input_path)
                         evaluation = md_file.get_frontmatter_value("evaluation", {})
 
-                        # Only include MCP-related articles above threshold
-                        if not evaluation.get("is_mcp_related", False):
+                        # Only include relevant articles above threshold
+                        if not _is_relevant(evaluation):
                             continue
 
                         relevance_score = evaluation.get("relevance_score", 0.0)
@@ -170,6 +182,7 @@ class ReportStage(ProcessingStage):
                         author = "unknown"
                         created_at = datetime.now(UTC).replace(tzinfo=None)  # fallback
                         post_id = None
+                        source = "bluesky"
 
                         if found_in_posts:
                             post_id = found_in_posts[0]
@@ -190,9 +203,11 @@ class ReportStage(ProcessingStage):
                                     search_date = reference_date - timedelta(
                                         days=search_days_back
                                     )
-                                    collect_dir = Path(
-                                        "stages/collect"
-                                    ) / search_date.strftime("%Y-%m-%d")
+                                    collect_dir = (
+                                        self.base_path
+                                        / "collect"
+                                        / search_date.strftime("%Y-%m-%d")
+                                    )
                                     post_file = (
                                         collect_dir / f"post_{actual_post_id}.md"
                                     )
@@ -201,6 +216,9 @@ class ReportStage(ProcessingStage):
                                         post_md = MarkdownFile.load(post_file)
                                         author = post_md.get_frontmatter_value(
                                             "author", "unknown"
+                                        )
+                                        source = post_md.get_frontmatter_value(
+                                            "source", "bluesky"
                                         )
                                         created_at_str = post_md.get_frontmatter_value(
                                             "created_at"
@@ -262,6 +280,7 @@ class ReportStage(ProcessingStage):
                                 created_at=created_at,
                                 evaluation=eval_dict,
                                 debug_filename=debug_filename,
+                                source=source,
                             )
                             articles.append(article)
                             date_articles += 1
@@ -300,8 +319,8 @@ class ReportStage(ProcessingStage):
                 md_file = MarkdownFile.load(input_path)
                 evaluation = md_file.get_frontmatter_value("evaluation", {})
 
-                # Only include MCP-related articles above threshold
-                if not evaluation.get("is_mcp_related", False):
+                # Only include relevant articles above threshold
+                if not _is_relevant(evaluation):
                     continue
 
                 relevance_score = evaluation.get("relevance_score", 0.0)
@@ -316,6 +335,7 @@ class ReportStage(ProcessingStage):
                 author = "unknown"
                 created_at = datetime.now(UTC).replace(tzinfo=None)  # fallback
                 post_id = None
+                source = "bluesky"
 
                 if found_in_posts:
                     post_id = found_in_posts[0]
@@ -334,8 +354,10 @@ class ReportStage(ProcessingStage):
 
                         for search_days_back in range(10):  # Search up to 10 days back
                             search_date = target_date - timedelta(days=search_days_back)
-                            collect_dir = Path("stages/collect") / search_date.strftime(
-                                "%Y-%m-%d"
+                            collect_dir = (
+                                self.base_path
+                                / "collect"
+                                / search_date.strftime("%Y-%m-%d")
                             )
                             post_file = collect_dir / f"post_{actual_post_id}.md"
 
@@ -343,6 +365,9 @@ class ReportStage(ProcessingStage):
                                 post_md = MarkdownFile.load(post_file)
                                 author = post_md.get_frontmatter_value(
                                     "author", "unknown"
+                                )
+                                source = post_md.get_frontmatter_value(
+                                    "source", "bluesky"
                                 )
                                 created_at_str = post_md.get_frontmatter_value(
                                     "created_at"
@@ -407,6 +432,7 @@ class ReportStage(ProcessingStage):
                     created_at=created_at,
                     evaluation=eval_dict,
                     debug_filename=debug_filename,
+                    source=source,
                 )
 
                 articles.append(article)
@@ -437,7 +463,7 @@ class ReportStage(ProcessingStage):
     def get_report_output_path(self, target_date: date) -> Path:
         """Get output path for the daily report."""
         # Reports go to output/reports/ directory with simple date format
-        reports_dir = Path("output") / "reports" / target_date.strftime("%Y-%m-%d")
+        reports_dir = self.output_base / "reports" / target_date.strftime("%Y-%m-%d")
         reports_dir.mkdir(parents=True, exist_ok=True)
         return reports_dir / "report.html"
 
@@ -514,7 +540,7 @@ class ReportStage(ProcessingStage):
             metadata = {
                 "date": output_date.isoformat(),
                 "days_scanned": days_back,
-                "mcp_related_articles": 0,
+                "relevant_articles": 0,
                 "report_generated_at": datetime.now(UTC)
                 .replace(tzinfo=None)
                 .isoformat()
@@ -543,7 +569,11 @@ class ReportStage(ProcessingStage):
         report_day = ReportDay.create(output_date, articles)
 
         # Generate HTML report using ReportGenerator for consistency
-        generator = ReportGenerator()
+        generator = ReportGenerator(
+            output_dir=self.output_base,
+            site_title=self.ui.site_title,
+            site_tagline=self.ui.site_tagline,
+        )
         html_content = None
         homepage_content = None
 
@@ -631,7 +661,7 @@ class ReportStage(ProcessingStage):
         metadata = {
             "date": output_date.isoformat(),
             "days_scanned": days_back,
-            "mcp_related_articles": len(articles),
+            "relevant_articles": len(articles),
             "report_generated_at": datetime.now(UTC).replace(tzinfo=None).isoformat()
             + "Z",
             "stage": "reported",
@@ -779,7 +809,11 @@ class ReportStage(ProcessingStage):
                 )
 
                 # Generate homepage
-                generator = ReportGenerator()
+                generator = ReportGenerator(
+                    output_dir=self.output_base,
+                    site_title=self.ui.site_title,
+                    site_tagline=self.ui.site_tagline,
+                )
                 homepage_path = generator.generate_homepage(homepage_data)
                 logger.info(
                     f"✅ Updated homepage with {reports_generated} regenerated reports: {homepage_path}"

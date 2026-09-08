@@ -5,6 +5,12 @@ from functools import cache
 from src.config.settings import get_settings
 
 
+class _NspStreamHandler(logging.StreamHandler):
+    """StreamHandler tagged so setup_logging can recognize its own handler."""
+
+    _nsp_handler = True
+
+
 @cache
 def get_logger(name: str, level: str | None = None) -> logging.Logger:
     """
@@ -37,8 +43,7 @@ def get_logger(name: str, level: str | None = None) -> logging.Logger:
     # handlers don't fool the idempotency check.
     own_handlers = [h for h in logger.handlers if getattr(h, "_nsp_handler", False)]
     if not own_handlers:
-        handler = logging.StreamHandler(sys.stdout)
-        handler._nsp_handler = True
+        handler = _NspStreamHandler(sys.stdout)
         handler.setFormatter(
             logging.Formatter(
                 fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s",

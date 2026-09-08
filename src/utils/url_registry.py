@@ -34,17 +34,24 @@ class URLRegistry:
                     "last_updated",
                     "evaluated",
                     "evaluated_at",
-                    "is_mcp_related",
+                    "is_relevant",
                     "relevance_score",
                 ]
             )
         else:
             self.df = df
+            # Backward compat: old parquet may have is_mcp_related but not is_relevant
+            if (
+                "is_mcp_related" in self.df.columns
+                and "is_relevant" not in self.df.columns
+            ):
+                self.df["is_relevant"] = self.df["is_mcp_related"]
+
             # Add new columns if missing (for backward compatibility)
             for col in [
                 "evaluated",
                 "evaluated_at",
-                "is_mcp_related",
+                "is_relevant",
                 "relevance_score",
             ]:
                 if col not in self.df.columns:
@@ -71,7 +78,7 @@ class URLRegistry:
             return False
         # Add new entry - use original URL for storage
         new_entry = URLEntry(
-            url=url,
+            url=HttpUrl(str(url)),
             first_seen=now,
             first_post_id=post_id,
             first_post_author=author,
@@ -107,7 +114,7 @@ class URLRegistry:
         return False
 
     def mark_evaluated(
-        self, url: str | HttpUrl, is_mcp_related: bool, relevance_score: float
+        self, url: str | HttpUrl, is_relevant: bool, relevance_score: float
     ) -> None:
         """Mark URL as evaluated with results."""
         url_str = normalize_url(url)
@@ -117,7 +124,7 @@ class URLRegistry:
             idx = self.df[self.df["url"] == url_str].index[0]
             self.df.at[idx, "evaluated"] = True
             self.df.at[idx, "evaluated_at"] = now
-            self.df.at[idx, "is_mcp_related"] = is_mcp_related
+            self.df.at[idx, "is_relevant"] = is_relevant
             self.df.at[idx, "relevance_score"] = relevance_score
             self.df.at[idx, "last_updated"] = now
 
@@ -129,7 +136,7 @@ class URLRegistry:
                 "total_occurrences": 0,
                 "unique_domains": 0,
                 "evaluated_urls": 0,
-                "mcp_related_urls": 0,
+                "relevant_urls": 0,
                 "avg_relevance_score": 0.0,
             }
 
@@ -138,7 +145,7 @@ class URLRegistry:
 
         # Calculate evaluation stats
         evaluated = self.df["evaluated"].sum()
-        mcp_related = self.df[self.df["is_mcp_related"] == True].shape[0]  # noqa: E712  NaN-safe pandas mask
+        relevant = self.df[self.df["is_relevant"] == True].shape[0]  # noqa: E712  NaN-safe pandas mask
         avg_relevance = self.df[self.df["evaluated"] == True]["relevance_score"].mean()  # noqa: E712  NaN-safe pandas mask
 
         return {
@@ -146,7 +153,7 @@ class URLRegistry:
             "total_occurrences": self.df["times_seen"].sum(),
             "unique_domains": domains.nunique(),
             "evaluated_urls": int(evaluated),
-            "mcp_related_urls": int(mcp_related),
+            "relevant_urls": int(relevant),
             "avg_relevance_score": float(avg_relevance)
             if not pd.isna(avg_relevance)
             else 0.0,

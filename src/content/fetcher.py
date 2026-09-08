@@ -105,19 +105,15 @@ class ArticleFetcher:
         url_str = str(url)
 
         if not self._is_valid_url(url_str):
-            # For invalid URLs, create a dummy valid URL for the error object
-            try:
-                from pydantic import HttpUrl
-
-                error_url = HttpUrl("https://invalid.url")
-            except Exception:
-                error_url = "https://invalid.url"
-
+            # For invalid URLs, use a dummy valid URL for the error object
             return ContentError(
-                url=error_url,
+                url=HttpUrl("https://invalid.url"),
                 error_type="validation",
                 error_message=f"Invalid or unsafe URL: {url_str}",
             )
+
+        # Normalize to HttpUrl so downstream model construction is well-typed
+        url = HttpUrl(url_str)
 
         for attempt in range(self.max_retries + 1):
             try:
@@ -277,10 +273,10 @@ class ArticleFetcher:
         # Handle any exceptions that weren't caught
         processed_results = []
         for i, result in enumerate(results):
-            if isinstance(result, Exception):
+            if isinstance(result, BaseException):
                 processed_results.append(
                     ContentError(
-                        url=urls[i],
+                        url=HttpUrl(str(urls[i])),
                         error_type="exception",
                         error_message=f"Exception during fetch: {result}",
                     )

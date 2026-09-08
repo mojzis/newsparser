@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="header">MCP Monitor</div>
+<div class="header">{{ site_title | default('MCP Monitor') }}</div>
 <div class="tagline">
-    Daily digest of Model Context Protocol discussions from Bluesky
+    {{ site_tagline | default('Daily digest of Model Context Protocol mentions') }}
 </div>
 
 {% if day_sections %}
@@ -16,9 +16,10 @@
     </div>
     <div class="perex">{{ article.perex }}</div>
     <div class="meta">
-        via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
+        via <a href="{{ article.bluesky_url }}">{{ article.author }}</a>
         at {{ article.timestamp }}
-        • {{ article.domain }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
+        • {{ article.domain }}
+        • {{ article.source_label }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
     </div>
 </div>
 {% endfor %}
@@ -34,9 +35,10 @@
     </div>
     <div class="perex">{{ article.perex }}</div>
     <div class="meta">
-        via <a href="{{ article.bluesky_url }}">{{ article.author }}</a> 
+        via <a href="{{ article.bluesky_url }}">{{ article.author }}</a>
         at {{ article.timestamp }}
-        • {{ article.domain }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
+        • {{ article.domain }}
+        • {{ article.source_label }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
     </div>
 </div>
 {% endfor %}

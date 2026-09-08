@@ -22,7 +22,11 @@ class ReportGenerator:
     """Generates HTML reports from collected data."""
 
     def __init__(
-        self, template_dir: Path | None = None, output_dir: Path | None = None
+        self,
+        template_dir: Path | None = None,
+        output_dir: Path | None = None,
+        site_title: str = "MCP Monitor",
+        site_tagline: str = "Daily digest of Model Context Protocol mentions",
     ) -> None:
         """
         Initialize report generator.
@@ -30,6 +34,8 @@ class ReportGenerator:
         Args:
             template_dir: Directory containing Jinja2 templates
             output_dir: Directory for generated reports
+            site_title: Site title used in report/homepage branding
+            site_tagline: Site tagline used in report/homepage branding
         """
         if template_dir is None:
             template_dir = Path(__file__).parent.parent / "templates"
@@ -38,6 +44,8 @@ class ReportGenerator:
 
         self.template_dir = template_dir
         self.output_dir = output_dir
+        self.site_title = site_title
+        self.site_tagline = site_tagline
 
         # Set up Jinja2 environment
         self.env = Environment(
@@ -49,6 +57,10 @@ class ReportGenerator:
         self.env.filters["content_icon"] = get_content_type_icon
         self.env.filters["content_icon_tooltip"] = get_content_type_with_tooltip
         self.env.filters["language_flag"] = get_language_flag
+
+    def _base_context(self) -> dict:
+        """Render context shared by every template, carrying site branding."""
+        return {"site_title": self.site_title, "site_tagline": self.site_tagline}
 
     def generate_daily_report(self, report_day: ReportDay) -> Path:
         """
@@ -67,6 +79,7 @@ class ReportGenerator:
         # Render template
         template = self.env.get_template("daily.html")
         html_content = template.render(
+            **self._base_context(),
             date_formatted=report_day.date_formatted,
             articles=report_day.articles,
             active_menu="home",
@@ -95,6 +108,7 @@ class ReportGenerator:
         # Render template
         template = self.env.get_template("homepage.html")
         html_content = template.render(
+            **self._base_context(),
             today=homepage_data.today,
             today_articles=homepage_data.today_articles,
             day_sections=homepage_data.day_sections,
@@ -121,7 +135,7 @@ class ReportGenerator:
             Rendered HTML as string
         """
         template = self.env.get_template(f"{template_name}.html")
-        return template.render(**context)
+        return template.render(**self._base_context(), **context)
 
     def generate_sitemap(
         self,

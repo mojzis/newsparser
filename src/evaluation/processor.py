@@ -111,7 +111,7 @@ class EvaluationProcessor:
                     # Add to registry and mark as evaluated
                     registry.add_url(url, post_id, author)
                     registry.mark_evaluated(
-                        url, evaluation.is_mcp_related, evaluation.relevance_score
+                        url, evaluation.is_relevant, evaluation.relevance_score
                     )
 
                 except Exception:

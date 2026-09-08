@@ -1,0 +1,36 @@
+[tool.poe.tasks.fix]
+sequence = [
+    { cmd = "ruff format --quiet ." },
+    { cmd = "ruff check --fix --quiet ." },
+]
+help = "Auto-fix: format and lint"
+
+[tool.poe.tasks.lint]
+cmd = "ruff check ."
+help = "Run linter (no fix)"
+
+[tool.poe.tasks.typecheck]
+cmd = "ty check src/"
+help = "Run type checker"
+
+[tool.poe.tasks.test]
+cmd = "pytest -q --tb=short"
+help = "Run tests"
+
+[tool.poe.tasks._check-parallel]
+shell = """
+  ruff check . & p1=$!
+  ty check src/ & p2=$!
+  rc=0
+  wait $p1 || rc=1
+  wait $p2 || rc=1
+  exit $rc
+"""
+interpreter = "bash"
+
+[tool.poe.tasks.check]
+sequence = [
+    { ref = "_check-parallel" },
+    { ref = "test" },
+]
+help = "Run all checks (parallel where possible)"

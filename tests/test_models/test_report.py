@@ -40,6 +40,30 @@ class TestReportArticle:
         assert article.timestamp == "3:45 PM"
         assert article.relevance_score == 0.85
         assert article.domain == "example.com"
+        assert article.source == "bluesky"
+        assert article.source_label == "Bluesky"
+
+    def test_create_from_hackernews_post(self):
+        """HN posts should get an HN permalink and label instead of a bsky.app URL."""
+        evaluation = {
+            "url": "https://example.com/article",
+            "title": "Test Article",
+            "perex": "A witty summary",
+            "relevance_score": 0.85,
+            "domain": "example.com",
+        }
+
+        article = ReportArticle.from_post_and_evaluation(
+            post_id="hn_12345",
+            author="pg",
+            created_at=datetime(2024, 12, 6, 15, 45),
+            evaluation=evaluation,
+            source="hackernews",
+        )
+
+        assert str(article.bluesky_url) == "https://news.ycombinator.com/item?id=12345"
+        assert article.source == "hackernews"
+        assert article.source_label == "Hacker News"
 
     def test_fallback_to_summary_when_no_perex(self):
         """Test falling back to summary when perex is not available."""

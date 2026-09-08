@@ -13,6 +13,8 @@ from src.bluesky.url_utils import (
 from src.config.searches import SearchConfig, SearchDefinition
 from src.config.settings import Settings
 from src.models.post import BlueskyPost
+from src.sources.base import Source
+from src.sources.registry import SOURCE_FACTORIES
 from src.stages.base import InputStage
 from src.stages.markdown import MarkdownFile
 from src.utils.url_expansion import URLExpander
@@ -36,6 +38,7 @@ class CollectStage(InputStage):
         export_parquet: bool = True,
         expand_references: bool = True,
         max_reference_depth: int = 2,
+        sources: list[str] | None = None,
     ) -> None:
         super().__init__("collect", base_path)
         self.settings = settings
@@ -52,59 +55,86 @@ class CollectStage(InputStage):
         self.expand_references = expand_references
         self.max_reference_depth = max_reference_depth
         self.processed_post_uris = set()  # Track processed posts to avoid duplication
+        self.source_names = sources or ["bluesky"]
+        # bluesky_client is passed to every source factory; only BlueskySource
+        # uses it, so search and thread/reference expansion reuse a single
+        # authenticated session instead of logging in twice.
         self.bluesky_client = BlueskyClient(settings)
+        self.sources: dict[str, Source] = self._build_sources(self.source_names)
+
+    def _build_sources(self, names: list[str]) -> dict[str, Source]:
+        """Build a name->Source mapping for the configured source names."""
+        sources: dict[str, Source] = {}
+        for name in names:
+            factory = SOURCE_FACTORIES.get(name)
+            if factory is None:
+                raise ValueError(f"Unknown source: {name}")
+            sources[name] = factory(self.settings, self.bluesky_client)
+        return sources
 
     async def collect_posts(self, target_date: date) -> list[BlueskyPost]:
-        """Collect posts from Bluesky matching search criteria."""
+        """Collect posts from all configured sources matching search criteria."""
         collection_mode = "threads" if self.collect_threads else "posts"
         logger.info(
-            f"Collecting {collection_mode} using '{self.search_definition.name}' search"
+            f"Collecting {collection_mode} using '{self.search_definition.name}' "
+            f"search from sources: {', '.join(self.source_names)}"
         )
 
-        if not self.settings.has_bluesky_credentials:
+        if "bluesky" in self.sources and not self.settings.has_bluesky_credentials:
             logger.error("Bluesky credentials not configured")
             return []
 
         try:
-            async with self.bluesky_client as client:
-                # First, get initial search results
-                search_posts = await client.get_posts_by_definition(
-                    search_definition=self.search_definition, max_posts=self.max_posts
-                )
-
-                if not search_posts:
-                    logger.info("No posts found from search")
-                    return []
-
-                # If thread collection is enabled, fetch complete threads
-                if self.collect_threads:
-                    logger.info(
-                        f"Fetching complete threads for {len(search_posts)} search results"
-                    )
-                    posts = await client.get_threads_for_posts(
-                        search_posts,
-                        depth=self.max_thread_depth,
-                        parent_height=self.max_parent_height,
-                    )
-                else:
-                    posts = search_posts
-
-                # Expand shortened URLs if enabled
-                if self.expand_urls and posts:
-                    posts = await self._expand_post_urls(posts)
-
-                # Expand Bluesky post references if enabled
-                if self.expand_references and posts:
-                    posts = await self._expand_post_references(posts, depth=0)
-
-                logger.info(
-                    f"Collected {len(posts)} total posts ({len(search_posts)} from search)"
-                )
-                return posts
+            if "bluesky" in self.sources:
+                async with self.bluesky_client:
+                    return await self._collect_from_sources()
+            return await self._collect_from_sources()
 
         except Exception:
             logger.exception("Failed to collect posts")
             return []
+
+    async def _collect_from_sources(self) -> list[BlueskyPost]:
+        """Search every configured source, then apply Bluesky-only post-processing."""
+        search_posts: list[BlueskyPost] = []
+        for source in self.sources.values():
+            search_posts.extend(
+                await source.search(self.search_definition, self.max_posts)
+            )
+
+        if not search_posts:
+            logger.info("No posts found from search")
+            return []
+
+        bluesky_posts = [p for p in search_posts if p.source == "bluesky"]
+        other_posts = [p for p in search_posts if p.source != "bluesky"]
+
+        # Thread collection, URL expansion, and reference expansion are
+        # Bluesky-specific and must not run on posts from other sources.
+        if bluesky_posts:
+            if self.collect_threads:
+                logger.info(
+                    f"Fetching complete threads for {len(bluesky_posts)} Bluesky search results"
+                )
+                bluesky_posts = await self.bluesky_client.get_threads_for_posts(
+                    bluesky_posts,
+                    depth=self.max_thread_depth,
+                    parent_height=self.max_parent_height,
+                )
+
+            if self.expand_urls:
+                bluesky_posts = await self._expand_post_urls(bluesky_posts)
+
+            if self.expand_references:
+                bluesky_posts = await self._expand_post_references(
+                    bluesky_posts, depth=0
+                )
+
+        posts = bluesky_posts + other_posts
+        logger.info(
+            f"Collected {len(posts)} total posts ({len(search_posts)} from search)"
+        )
+        return posts
 
     async def _expand_post_urls(self, posts: list[BlueskyPost]) -> list[BlueskyPost]:
         """Expand shortened URLs in collected posts."""
@@ -278,6 +308,7 @@ class CollectStage(InputStage):
             },
             "links": [str(link) for link in post.links],
             "tags": post.tags,
+            "source": post.source,
             "stage": "collected",
             "collected_at": datetime.now(UTC).replace(tzinfo=None).isoformat() + "Z",
         }

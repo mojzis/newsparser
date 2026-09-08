@@ -14,12 +14,13 @@ class ReportArticle(BaseModel):
     title: str = Field(..., description="Article title")
     perex: str = Field(..., description="Witty summary for display")
 
-    # Bluesky post info
+    # Source post info
     post_id: str = Field(..., description="Post ID")
-    bluesky_url: HttpUrl = Field(..., description="Link to original Bluesky post")
-    author: str = Field(..., description="Bluesky author handle")
+    bluesky_url: HttpUrl = Field(..., description="Link to original source post")
+    author: str = Field(..., description="Source author handle")
     timestamp: str = Field(..., description="Formatted timestamp")
     created_at: datetime = Field(..., description="Raw creation datetime")
+    source: str = Field("bluesky", description="Source the post came from")
 
     # Metadata
     relevance_score: float = Field(..., ge=0.0, le=1.0, description="Relevance score")
@@ -32,6 +33,13 @@ class ReportArticle(BaseModel):
         None, description="Source evaluation filename for debugging"
     )
 
+    @property
+    def source_label(self) -> str:
+        """Human-readable label for the source, for display in templates."""
+        return {"bluesky": "Bluesky", "hackernews": "Hacker News"}.get(
+            self.source, self.source
+        )
+
     @classmethod
     def from_post_and_evaluation(
         cls,
@@ -40,6 +48,7 @@ class ReportArticle(BaseModel):
         created_at: datetime,
         evaluation: dict,
         debug_filename: str | None = None,
+        source: str = "bluesky",
     ) -> "ReportArticle":
         """Create ReportArticle from post data and evaluation."""
         # Extract post ID from AT protocol URI if necessary
@@ -49,8 +58,12 @@ class ReportArticle(BaseModel):
         else:
             actual_post_id = post_id
 
-        # Format Bluesky URL
-        bluesky_url = f"https://bsky.app/profile/{author}/post/{actual_post_id}"
+        # Format the source permalink
+        if source == "hackernews":
+            object_id = actual_post_id.removeprefix("hn_")
+            source_url = f"https://news.ycombinator.com/item?id={object_id}"
+        else:
+            source_url = f"https://bsky.app/profile/{author}/post/{actual_post_id}"
 
         # Format timestamp (e.g., "3:45 PM")
         timestamp = created_at.strftime("%-I:%M %p")
@@ -63,7 +76,7 @@ class ReportArticle(BaseModel):
             title=evaluation.get("title", "Untitled"),
             perex=perex,
             post_id=actual_post_id,
-            bluesky_url=bluesky_url,
+            bluesky_url=HttpUrl(source_url),
             author=author,
             timestamp=timestamp,
             created_at=created_at,
@@ -72,6 +85,7 @@ class ReportArticle(BaseModel):
             content_type=evaluation.get("content_type", "article"),
             language=evaluation.get("language", "en"),
             debug_filename=debug_filename,
+            source=source,
         )
 
 

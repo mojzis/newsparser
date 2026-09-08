@@ -17,7 +17,7 @@ class TestURLRegistry:
         assert "url" in registry.df.columns
         assert "first_seen" in registry.df.columns
         assert "evaluated" in registry.df.columns
-        assert "is_mcp_related" in registry.df.columns
+        assert "is_relevant" in registry.df.columns
 
     def test_add_new_url(self):
         """Test adding a new URL to registry."""
@@ -94,7 +94,7 @@ class TestURLRegistry:
         assert stats["total_occurrences"] == 4  # 3 unique + 1 duplicate
         assert stats["unique_domains"] == 2  # example.com and other.com
         assert stats["evaluated_urls"] == 2
-        assert stats["mcp_related_urls"] == 1
+        assert stats["relevant_urls"] == 1
         assert 0.5 <= stats["avg_relevance_score"] <= 0.6  # (0.9 + 0.2) / 2
 
     def test_parquet_save_load(self):
@@ -156,7 +156,7 @@ class TestURLRegistry:
         # Check data was updated
         row = registry.df[registry.df["url"] == "https://example.com/article"].iloc[0]
         assert row["evaluated"] is True
-        assert row["is_mcp_related"] is True
+        assert row["is_relevant"] is True
         assert row["relevance_score"] == 0.85
         assert row["evaluated_at"] is not None
 

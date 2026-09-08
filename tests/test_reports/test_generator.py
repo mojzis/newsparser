@@ -71,6 +71,35 @@ class TestReportGenerator:
         assert "Test Article 1" in content
         assert "A witty summary of the first article" in content
         assert "user1.bsky.social" in content
+        assert "Bluesky" in content
+
+    def test_generate_daily_report_shows_hackernews_badge(self, generator):
+        """HN-sourced articles should render an HN source badge."""
+        report_day = ReportDay.create(
+            report_date=date(2024, 12, 6),
+            articles=[
+                ReportArticle(
+                    url="https://example.com/article3",
+                    title="Test Article 3",
+                    perex="A summary",
+                    bluesky_url="https://news.ycombinator.com/item?id=12345",
+                    author="pg",
+                    timestamp="1:00 PM",
+                    relevance_score=0.9,
+                    domain="example.com",
+                    content_type="article",
+                    language="en",
+                    post_id="hn_12345",
+                    created_at=datetime(2024, 12, 6, 13, 0),
+                    source="hackernews",
+                )
+            ],
+        )
+
+        report_path = generator.generate_daily_report(report_day)
+        content = report_path.read_text()
+
+        assert "Hacker News" in content
 
     def test_generate_homepage(self, generator, sample_articles):
         """Test generating homepage."""
@@ -114,3 +143,40 @@ class TestReportGenerator:
         content = report_path.read_text()
 
         assert "No MCP-related resources found" in content
+
+    def test_generate_daily_report_custom_branding(self, sample_articles):
+        """Custom site_title/site_tagline should replace the default MCP branding."""
+        report_day = ReportDay.create(
+            report_date=date(2024, 12, 6), articles=sample_articles
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            generator = ReportGenerator(
+                output_dir=Path(temp_dir),
+                site_title="DuckDB News",
+                site_tagline="Daily digest of DuckDB mentions",
+            )
+            report_path = generator.generate_daily_report(report_day)
+            content = report_path.read_text()
+
+            assert "DuckDB News" in content
+            assert "MCP Monitor" not in content
+
+    def test_generate_homepage_custom_branding(self, sample_articles):
+        """Custom site_title/site_tagline should replace the default MCP branding."""
+        homepage_data = HomepageData.create(
+            today_articles=sample_articles, archive_dates=[]
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            generator = ReportGenerator(
+                output_dir=Path(temp_dir),
+                site_title="DuckDB News",
+                site_tagline="Daily digest of DuckDB mentions",
+            )
+            homepage_path = generator.generate_homepage(homepage_data)
+            content = homepage_path.read_text()
+
+            assert "DuckDB News" in content
+            assert "Daily digest of DuckDB mentions" in content
+            assert "MCP Monitor" not in content

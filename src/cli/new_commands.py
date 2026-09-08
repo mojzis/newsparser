@@ -39,8 +39,14 @@ cli.add_command(config)
     "--date", "target_date", help="Target date (YYYY-MM-DD), defaults to today"
 )
 @click.option("--max-posts", default=100, help="Maximum posts to collect")
-@click.option("--search", default="mcp_tag", help="Search definition to use")
-@click.option("--config", "config_path", help="Path to search configuration YAML file")
+@click.option(
+    "--search",
+    default=None,
+    help="Search definition to use (defaults to the collection's default_search)",
+)
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
 @click.option(
     "--expand-urls/--no-expand-urls",
     default=True,
@@ -80,7 +86,7 @@ def collect(
     target_date,
     max_posts,
     search,
-    config_path,
+    collection_name,
     expand_urls,
     threads,
     max_thread_depth,
@@ -98,7 +104,7 @@ def collect(
         target_date=target_date,
         max_posts=max_posts,
         search=search,
-        config_path=config_path,
+        collection_name=collection_name,
         expand_urls=expand_urls,
         threads=threads,
         max_thread_depth=max_thread_depth,
@@ -120,12 +126,20 @@ def collect(
     default=True,
     help="Export data to Parquet files for analytics (default: True)",
 )
-def fetch(days_back, export_parquet) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def fetch(days_back, export_parquet, collection_name) -> None:
     """Fetch content from URLs found in posts from the last N days."""
     from src.cli.stage_commands import fetch as stage_fetch
 
     ctx = click.Context(stage_fetch)
-    ctx.invoke(stage_fetch, days_back=days_back, export_parquet=export_parquet)
+    ctx.invoke(
+        stage_fetch,
+        days_back=days_back,
+        export_parquet=export_parquet,
+        collection_name=collection_name,
+    )
 
 
 @cli.command()
@@ -144,7 +158,10 @@ def fetch(days_back, export_parquet) -> None:
     default=True,
     help="Export data to Parquet files for analytics (default: True)",
 )
-def evaluate(days_back, regenerate, export_parquet) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def evaluate(days_back, regenerate, export_parquet, collection_name) -> None:
     """Evaluate content from fetched URLs in the last N days."""
     from src.cli.stage_commands import evaluate as stage_evaluate
 
@@ -154,6 +171,7 @@ def evaluate(days_back, regenerate, export_parquet) -> None:
         days_back=days_back,
         regenerate=regenerate,
         export_parquet=export_parquet,
+        collection_name=collection_name,
     )
 
 
@@ -186,7 +204,12 @@ def evaluate(days_back, regenerate, export_parquet) -> None:
     "--sitemap/--no-sitemap", default=True, help="Generate sitemap.xml (default: True)"
 )
 @click.option("--rss/--no-rss", default=True, help="Generate rss.xml (default: True)")
-def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def report(
+    days_back, regenerate, output_date, bulk, debug, sitemap, rss, collection_name
+) -> None:
     """Generate report from evaluated content in the last N days."""
     from src.cli.stage_commands import report as stage_report
 
@@ -200,6 +223,7 @@ def report(days_back, regenerate, output_date, bulk, debug, sitemap, rss) -> Non
         debug=debug,
         sitemap=sitemap,
         rss=rss,
+        collection_name=collection_name,
     )
 
 
@@ -219,8 +243,14 @@ def publish() -> None:
     help="Date for logging only (YYYY-MM-DD). Posts organized by publication date.",
 )
 @click.option("--max-posts", default=100, help="Maximum posts to collect")
-@click.option("--search", default="mcp_tag", help="Search definition to use")
-@click.option("--config", "config_path", help="Path to search configuration YAML file")
+@click.option(
+    "--search",
+    default=None,
+    help="Search definition to use (defaults to the collection's default_search)",
+)
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
 @click.option(
     "--expand-urls/--no-expand-urls",
     default=True,
@@ -284,7 +314,7 @@ def run_all(
     target_date,
     max_posts,
     search,
-    config_path,
+    collection_name,
     expand_urls,
     threads,
     max_thread_depth,
@@ -308,7 +338,7 @@ def run_all(
         target_date=target_date,
         max_posts=max_posts,
         search=search,
-        config_path=config_path,
+        collection_name=collection_name,
         expand_urls=expand_urls,
         threads=threads,
         max_thread_depth=max_thread_depth,
@@ -331,12 +361,17 @@ def run_all(
     "target_date",
     help="Date to check status for (YYYY-MM-DD), defaults to today",
 )
-def status(target_date) -> None:
+@click.option(
+    "--collection", "collection_name", default="mcp", help="Collection to operate on"
+)
+def status(target_date, collection_name) -> None:
     """Show status of all stages for a date."""
     from src.cli.stage_commands import status as stage_status
 
     ctx = click.Context(stage_status)
-    ctx.invoke(stage_status, target_date=target_date)
+    ctx.invoke(
+        stage_status, target_date=target_date, collection_name=collection_name
+    )
 
 
 @cli.command()

@@ -39,6 +39,7 @@ dev = [
     "ruff>=0.8.0",
     "ty",
     "marimo>=0.10.0",
+    "poethepoet>=0.47.1",
 ]
 
 [build-system]
@@ -198,3 +199,7 @@ line-ending = "auto"
 
 [tool.ty]
 # ty configuration for type checking (part of ruff ecosystem)
+
+[tool.poe]
+verbosity = -1
+include = "poe_tasks.toml"

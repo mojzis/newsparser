@@ -3,8 +3,10 @@
 import json
 
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 from pydantic import HttpUrl
 
+from src.config.collection import CollectionConfig
 from src.config.config_manager import get_config_manager
 from src.config.settings import Settings
 from src.content.models import ExtractedContent
@@ -17,15 +19,33 @@ logger = get_logger(__name__)
 class AnthropicEvaluator:
     """Evaluates articles using Anthropic API."""
 
-    def __init__(self, settings: Settings) -> None:
-        """Initialize evaluator with API settings."""
+    def __init__(
+        self, settings: Settings, collection: CollectionConfig | None = None
+    ) -> None:
+        """Initialize evaluator with API settings.
+
+        Args:
+            settings: API settings.
+            collection: If given, resolve topic/prompt/model from the collection's
+                own config instead of today's global defaults.
+        """
         self.settings = settings
         self.client = Anthropic(api_key=settings.anthropic_api_key)
         self.config_manager = get_config_manager()
 
-        # Load model and prompt configurations
-        self.model_config = self.config_manager.get_model_config()
-        self.prompt_config = self.config_manager.get_prompt_config()
+        # Load model, prompt and topic configurations
+        if collection is not None:
+            self.topic = collection.topic
+            self.model_config = self.config_manager.get_model_config(
+                collection.evaluation.model_config_name
+            )
+            self.prompt_config = self.config_manager.get_prompt_config(
+                collection.evaluation.prompt_config
+            )
+        else:
+            self.model_config = self.config_manager.get_model_config()
+            self.prompt_config = self.config_manager.get_prompt_config()
+            self.topic = self.config_manager.get_topic_config()
 
     def evaluate_article(
         self, content: ExtractedContent, url: str | HttpUrl
@@ -77,12 +97,15 @@ class AnthropicEvaluator:
             )
 
             # Parse response
-            result = self._parse_response(response.content[0].text)
+            block = response.content[0]
+            if not isinstance(block, TextBlock):
+                raise TypeError(f"Unexpected response block type: {type(block)}")
+            result = self._parse_response(block.text)
 
             # Create evaluation with configuration metadata
             return ArticleEvaluation(
-                url=str(url),
-                is_mcp_related=result["is_mcp_related"],
+                url=HttpUrl(str(url)),
+                is_relevant=result["is_relevant"],
                 relevance_score=result["relevance_score"],
                 summary=result["summary"],
                 perex=result["perex"],
@@ -108,8 +131,8 @@ class AnthropicEvaluator:
 
             # Return evaluation with error
             return ArticleEvaluation(
-                url=str(url),
-                is_mcp_related=False,
+                url=HttpUrl(str(url)),
+                is_relevant=False,
                 relevance_score=0.0,
                 summary="Evaluation failed",
                 perex="Evaluation failed",
@@ -152,7 +175,11 @@ class AnthropicEvaluator:
 
         # Format the template with variables
         return template.format(
-            title_part=title_part, hints_part=hints_part, content=content
+            title_part=title_part,
+            hints_part=hints_part,
+            content=content,
+            topic_name=self.topic.name,
+            topic_description=self.topic.description,
         )
 
     def _parse_response(self, response_text: str) -> dict:
@@ -166,7 +193,12 @@ class AnthropicEvaluator:
 
             # Validate required fields
             return {
-                "is_mcp_related": bool(data.get("is_mcp_related", False)),
+                # Fallback to the old key in case the model still emits the
+                # legacy "is_mcp_related" field (e.g. an in-flight deploy or a
+                # model that hasn't picked up the renamed prompt field yet).
+                "is_relevant": bool(
+                    data.get("is_relevant", data.get("is_mcp_related", False))
+                ),
                 "relevance_score": float(data.get("relevance_score", 0.0)),
                 "summary": str(data.get("summary", ""))[:500],
                 "perex": str(data.get("perex", ""))[:200],
@@ -181,7 +213,7 @@ class AnthropicEvaluator:
 
             # Return default values
             return {
-                "is_mcp_related": False,
+                "is_relevant": False,
                 "relevance_score": 0.0,
                 "summary": "Failed to parse response",
                 "perex": "Failed to parse response",

@@ -4,6 +4,7 @@ import logging
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from src.config.collection import CollectionConfig
 from src.config.settings import Settings
 from src.content.models import ExtractedContent
 from src.evaluation.anthropic_client import AnthropicEvaluator
@@ -21,11 +22,12 @@ class EvaluateStage(ProcessingStage):
         settings: Settings,
         base_path: Path = Path("stages"),
         export_parquet: bool = True,
+        collection: CollectionConfig | None = None,
     ) -> None:
         super().__init__("evaluate", "fetch", base_path)
         self.settings = settings
         self.export_parquet = export_parquet
-        self.evaluator = AnthropicEvaluator(settings)
+        self.evaluator = AnthropicEvaluator(settings, collection=collection)
 
     def should_process_item(self, input_path: Path, target_date: date) -> bool:
         """Check if item should be processed - only successful fetches."""
@@ -64,12 +66,6 @@ class EvaluateStage(ProcessingStage):
             content_markdown=content_markdown,
             word_count=frontmatter.get("word_count", 0),
             domain=frontmatter.get("domain", ""),
-            published_date=datetime.fromisoformat(
-                frontmatter["published_date"].rstrip("Z")
-            )
-            if frontmatter.get("published_date")
-            else None,
-            extract_timestamp=datetime.now(UTC).replace(tzinfo=None),
         )
 
     async def process_item(self, input_path: Path, target_date: date) -> Path | None:
@@ -98,7 +94,7 @@ class EvaluateStage(ProcessingStage):
 
             # Create minimal evaluation file with only essential data
             evaluation_data = {
-                "is_mcp_related": evaluation.is_mcp_related,
+                "is_relevant": evaluation.is_relevant,
                 "relevance_score": evaluation.relevance_score,
                 "summary": evaluation.summary,
                 "perex": evaluation.perex,
@@ -124,10 +120,10 @@ class EvaluateStage(ProcessingStage):
             # Create minimal content (just reference to fetch stage)
             evaluation_content = f"""# Evaluation Results
 
-This content was evaluated for MCP relevance.
+This content was evaluated for relevance.
 
 **Relevance Score:** {evaluation.relevance_score}
-**MCP Related:** {"Yes" if evaluation.is_mcp_related else "No"}
+**Relevant:** {"Yes" if evaluation.is_relevant else "No"}
 **Content Type:** {evaluation.content_type}
 **Language:** {evaluation.language}
 
@@ -197,7 +193,7 @@ This content was evaluated for MCP relevance.
         skipped = 0
         failed = 0
         new_evaluations = 0
-        mcp_related = 0
+        relevant = 0
         total_relevance_score = 0.0
         evaluations_by_date = {}
 
@@ -246,7 +242,7 @@ This content was evaluated for MCP relevance.
 
                             # Add evaluation to frontmatter
                             evaluation_data = {
-                                "is_mcp_related": evaluation.is_mcp_related,
+                                "is_relevant": evaluation.is_relevant,
                                 "relevance_score": evaluation.relevance_score,
                                 "summary": evaluation.summary,
                                 "perex": evaluation.perex,
@@ -279,9 +275,9 @@ This content was evaluated for MCP relevance.
                             new_evaluations += 1
                             processed += 1
 
-                            # Track MCP-related content
-                            if evaluation.is_mcp_related:
-                                mcp_related += 1
+                            # Track relevant content
+                            if evaluation.is_relevant:
+                                relevant += 1
 
                             total_relevance_score += evaluation.relevance_score
 
@@ -319,7 +315,7 @@ This content was evaluated for MCP relevance.
             "total": processed + skipped + failed,
             "new_evaluations": new_evaluations,
             "previously_evaluated": len(evaluated_urls) - new_evaluations,
-            "mcp_related": mcp_related,
+            "relevant": relevant,
             "avg_relevance_score": round(avg_relevance, 3),
             "evaluations_by_date": evaluations_by_date,
         }
