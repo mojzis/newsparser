@@ -35,14 +35,9 @@ class FetchStage(ProcessingStage):
         """Async context manager exit."""
         await self.fetcher.close()
 
-    def get_url_hash(self, url: str) -> str:
-        """Generate a hash-based ID for a URL."""
-        return generate_file_id(url, length=8)
-
     def get_url_filename(self, url: str) -> str:
         """Generate filename for a URL."""
-        url_hash = self.get_url_hash(url)
-        return f"url_{url_hash}.md"
+        return f"url_{generate_file_id(url)}.md"
 
     def get_output_path_for_url(self, target_date: date, url: str) -> Path:
         """Generate output path for a specific URL."""

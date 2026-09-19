@@ -91,12 +91,12 @@ def create_markdown_file(frontmatter: dict[str, Any], content: str) -> MarkdownF
     return MarkdownFile(frontmatter, content)
 
 
-def generate_file_id(base_string: str, length: int = 8) -> str:
-    """Generate a short hash-based ID from a string."""
+def generate_file_id(base_string: str) -> str:
+    """Generate a short (8 hex chars) hash-based ID from a string."""
     import hashlib
 
     hash_obj = hashlib.sha256(base_string.encode("utf-8"))
-    return hash_obj.hexdigest()[:length]
+    return hash_obj.hexdigest()[:8]
 
 
 def safe_filename(name: str, max_length: int = 50) -> str:
