@@ -334,7 +334,7 @@ class ContentExtractor:
         return "article"
 
     def extract_content(
-        self, article_content: ArticleContent, debug: bool = False
+        self, article_content: ArticleContent
     ) -> ExtractedContent | ContentError:
         """
         Extract content from ArticleContent and convert to Markdown.
@@ -352,67 +352,20 @@ class ContentExtractor:
 
             logger.debug(f"Extracting content from {url_str}")
 
-            if debug:
-                # Analyze HTML structure for debugging
-                soup = BeautifulSoup(article_content.html, "html.parser")
-
-                # Count different elements
-                debug_info = {
-                    "total_html_length": len(article_content.html),
-                    "title_tags": len(soup.find_all("title")),
-                    "h1_tags": len(soup.find_all("h1")),
-                    "p_tags": len(soup.find_all("p")),
-                    "div_tags": len(soup.find_all("div")),
-                    "article_tags": len(soup.find_all("article")),
-                    "main_tags": len(soup.find_all("main")),
-                    "content_classes": len(
-                        soup.find_all(
-                            class_=re.compile(r"content|article|post", re.IGNORECASE)
-                        )
-                    ),
-                }
-
-                logger.info(f"HTML structure analysis: {debug_info}")
-
             # Use readability to extract main content
             doc = Document(article_content.html)
             title = doc.title()
             content_html = doc.summary()
 
-            if debug:
-                logger.info(f"Readability extracted title: '{title}'")
-                logger.info(
-                    f"Readability content length: {len(content_html) if content_html else 0}"
-                )
-                if content_html:
-                    # Show first 500 chars of extracted HTML
-                    preview = (
-                        content_html[:500] + "..."
-                        if len(content_html) > 500
-                        else content_html
-                    )
-                    logger.info(f"Readability HTML preview: {preview!r}")
-
             if not content_html or len(content_html.strip()) < 50:
-                error_details = "Readability failed to extract meaningful content"
-                if debug:
-                    error_details += (
-                        f" (extracted {len(content_html) if content_html else 0} chars)"
-                    )
                 return ContentError(
                     url=article_content.url,
                     error_type="extraction",
-                    error_message=error_details,
+                    error_message="Readability failed to extract meaningful content",
                 )
 
             # Don't clean readability output - it's already cleaned
             # Just fix the nested body tags issue
-            if debug:
-                logger.info(f"Pre-conversion HTML length: {len(content_html)}")
-                # Check for nested body tags which can confuse html2text
-                if content_html.count("<body") > 1:
-                    logger.warning("Multiple body tags detected - fixing structure")
-
             # Convert to Markdown
             try:
                 # Fix the nested body structure that readability creates
@@ -423,27 +376,12 @@ class ContentExtractor:
                 fixed_html = re.sub(r"<body[^>]*>", "<div>", fixed_html)
                 fixed_html = re.sub(r"</body>", "</div>", fixed_html)
 
-                if debug:
-                    logger.info(f"Fixed HTML preview: {fixed_html[:200]}...")
-
                 markdown_content = self.html2text.handle(fixed_html).strip()
             except Exception:
                 logger.exception("HTML2Text conversion failed")
                 # Fallback: extract text directly from BeautifulSoup
                 soup = BeautifulSoup(content_html, "html.parser")
                 markdown_content = soup.get_text(separator="\n\n").strip()
-
-            if debug:
-                logger.info(
-                    f"HTML2Text conversion result length: {len(markdown_content)}"
-                )
-                if markdown_content:
-                    preview = (
-                        markdown_content[:200] + "..."
-                        if len(markdown_content) > 200
-                        else markdown_content
-                    )
-                    logger.info(f"Markdown preview: {preview!r}")
 
             # Additional cleaning of Markdown
             # Remove excessive newlines
@@ -454,18 +392,12 @@ class ContentExtractor:
             cleaned_lines = [line.rstrip() for line in lines]
             markdown_content = "\n".join(cleaned_lines)
 
-            if debug:
-                logger.info(f"Final cleaned markdown length: {len(markdown_content)}")
-
             # Check content length
             if len(markdown_content) < self.min_content_length:
-                error_details = f"Content too short: {len(markdown_content)} characters (minimum: {self.min_content_length})"
-                if debug and markdown_content:
-                    error_details += f"\nActual content: {markdown_content[:100]!r}"
                 return ContentError(
                     url=article_content.url,
                     error_type="extraction",
-                    error_message=error_details,
+                    error_message=f"Content too short: {len(markdown_content)} characters (minimum: {self.min_content_length})",
                 )
 
             if len(markdown_content) > self.max_content_length:
