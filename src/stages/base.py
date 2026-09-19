@@ -113,15 +113,6 @@ class Stage(ABC):
         return result
 
 
-class InputStage(Stage):
-    """Base class for stages that don't depend on previous stages."""
-
-    def get_inputs(self, target_date: date) -> Iterator[Path]:
-        """Input stages generate their own inputs."""
-        # This will be overridden by specific input stages
-        return iter([])
-
-
 class ProcessingStage(Stage):
     """Base class for stages that process outputs from previous stages."""
 

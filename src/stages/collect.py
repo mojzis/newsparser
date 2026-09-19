@@ -15,14 +15,14 @@ from src.config.settings import Settings
 from src.models.post import BlueskyPost
 from src.sources.base import Source
 from src.sources.registry import SOURCE_FACTORIES
-from src.stages.base import InputStage
+from src.stages.base import Stage
 from src.stages.markdown import MarkdownFile
 from src.utils.url_expansion import URLExpander
 
 logger = logging.getLogger(__name__)
 
 
-class CollectStage(InputStage):
+class CollectStage(Stage):
     """Collects posts from Bluesky and stores as individual markdown files."""
 
     def __init__(
