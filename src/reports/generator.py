@@ -137,17 +137,12 @@ class ReportGenerator:
         template = self.env.get_template(f"{template_name}.html")
         return template.render(**self._base_context(), **context)
 
-    def generate_sitemap(
-        self,
-        base_url: str = "https://example.com",
-        report_dates: list[date] | None = None,
-    ) -> Path:
+    def generate_sitemap(self, base_url: str = "https://example.com") -> Path:
         """
         Generate sitemap.xml file for all reports.
 
         Args:
             base_url: Base URL for the website
-            report_dates: List of dates with reports (if not provided, scans output/reports/)
 
         Returns:
             Path to generated sitemap.xml
@@ -166,18 +161,17 @@ class ReportGenerator:
             datetime.now(UTC).replace(tzinfo=None).strftime("%Y-%m-%d")
         )
 
-        # Scan for report dates if not provided
-        if report_dates is None:
-            report_dates = []
-            reports_dir = self.output_dir / "reports"
-            if reports_dir.exists():
-                for date_dir in sorted(reports_dir.iterdir(), reverse=True):
-                    if date_dir.is_dir() and (date_dir / "report.html").exists():
-                        try:
-                            report_date = date.fromisoformat(date_dir.name)
-                            report_dates.append(report_date)
-                        except ValueError:
-                            continue
+        # Scan output/reports/ for report dates
+        report_dates = []
+        reports_dir = self.output_dir / "reports"
+        if reports_dir.exists():
+            for date_dir in sorted(reports_dir.iterdir(), reverse=True):
+                if date_dir.is_dir() and (date_dir / "report.html").exists():
+                    try:
+                        report_date = date.fromisoformat(date_dir.name)
+                        report_dates.append(report_date)
+                    except ValueError:
+                        continue
 
         # Add report pages
         for report_date in sorted(report_dates, reverse=True):
