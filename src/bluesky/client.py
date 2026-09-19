@@ -237,24 +237,6 @@ class BlueskyClient:
             )
             return [], None
 
-    async def search_mcp_mentions(
-        self, limit: int = 25, cursor: str | None = None
-    ) -> tuple[list[BlueskyPost], str | None]:
-        """
-        Search for posts mentioning "mcp" or related terms.
-
-        Note: This method is deprecated. Use search_by_definition instead.
-
-        Args:
-            limit: Maximum number of posts to return
-            cursor: Pagination cursor for next batch
-
-        Returns:
-            Tuple of (posts list, next_cursor)
-        """
-        # Search for "mcp" keyword - kept for backward compatibility
-        return await self.search_posts("mcp", limit=limit, cursor=cursor)
-
     async def get_posts_by_definition(
         self, search_definition: SearchDefinition, max_posts: int = 100
     ) -> list[BlueskyPost]:
@@ -311,8 +293,8 @@ class BlueskyClient:
 
         while len(all_posts) < max_posts:
             batch_size = min(25, max_posts - len(all_posts))
-            posts, next_cursor = await self.search_mcp_mentions(
-                limit=batch_size, cursor=cursor
+            posts, next_cursor = await self.search_posts(
+                "mcp", limit=batch_size, cursor=cursor
             )
 
             if not posts:

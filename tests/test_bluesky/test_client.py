@@ -288,24 +288,6 @@ class TestBlueskyClientSearch:
         assert isinstance(posts[0], BlueskyPost)
 
     @pytest.mark.asyncio
-    async def test_search_mcp_mentions(self, bluesky_client, mock_post_data):
-        """Test MCP-specific search."""
-        bluesky_client.client = AsyncMock()
-        bluesky_client._session_active = True
-
-        mock_response = Mock()
-        mock_response.posts = [mock_post_data]
-        mock_response.cursor = None
-        bluesky_client.client.app.bsky.feed.search_posts.return_value = mock_response
-
-        posts, _cursor = await bluesky_client.search_mcp_mentions(limit=5)
-
-        assert len(posts) == 1
-        bluesky_client.client.app.bsky.feed.search_posts.assert_called_once_with(
-            params={"q": "mcp", "limit": 5, "sort": "latest"}
-        )
-
-    @pytest.mark.asyncio
     async def test_get_recent_mcp_posts_pagination(
         self, bluesky_client, mock_post_data
     ):
@@ -350,7 +332,9 @@ class TestBlueskyClientSearch:
 
         assert len(posts) == 1
         # Should only make one call since we reached max_posts
-        assert bluesky_client.client.app.bsky.feed.search_posts.call_count == 1
+        bluesky_client.client.app.bsky.feed.search_posts.assert_called_once_with(
+            params={"q": "mcp", "limit": 1, "sort": "latest"}
+        )
 
     @pytest.mark.asyncio
     async def test_get_recent_mcp_posts_no_results(self, bluesky_client):
