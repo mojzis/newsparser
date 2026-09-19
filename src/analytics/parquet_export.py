@@ -19,7 +19,6 @@ async def export_stage_to_parquet[T: AnalyticsBase](
     target_date: date,
     export_enabled: bool = True,
     days_back: int = 7,
-    upload_to_r2: bool = True,
     settings: Optional["Settings"] = None,
 ) -> None:
     """
@@ -31,7 +30,6 @@ async def export_stage_to_parquet[T: AnalyticsBase](
         target_date: Date when the export is run (used for output filename)
         export_enabled: Whether to actually perform the export
         days_back: Number of days of history to include (default: 7)
-        upload_to_r2: Whether to upload the file to R2 storage (default: True)
         settings: Settings object for R2 credentials (optional, will load if not provided)
     """
     if not export_enabled:
@@ -62,11 +60,9 @@ async def export_stage_to_parquet[T: AnalyticsBase](
             f"Successfully exported {len(df)} records from last {days_back} days to {output_file}"
         )
 
-        # Upload to R2 if enabled
-        if upload_to_r2:
-            await upload_parquet_to_r2(
-                output_file, stage_name, target_date, days_back, settings
-            )
+        await upload_parquet_to_r2(
+            output_file, stage_name, target_date, days_back, settings
+        )
 
     except Exception:
         logger.exception(f"Failed to export {stage_name} stage to Parquet")
