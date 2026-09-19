@@ -80,7 +80,8 @@ class BlueskyClient:
         if not self._session_active or not self.client:
             raise RuntimeError("Client not authenticated. Call authenticate() first.")
 
-    def _convert_post_to_model(self, post_data: Any) -> BlueskyPost:
+    @staticmethod
+    def _convert_post_to_model(post_data: Any) -> BlueskyPost:
         """
         Convert atproto post data to our BlueskyPost model.
 

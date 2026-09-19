@@ -7,6 +7,7 @@ from typing import Any
 from atproto import AsyncClient, models
 from atproto.exceptions import AtProtocolError
 
+from src.bluesky.client import BlueskyClient
 from src.models.post import BlueskyPost
 from src.utils.logging import get_logger
 
@@ -136,9 +137,7 @@ class ThreadCollector:
                 # Extract post data
                 if hasattr(current_view, "post"):
                     post_data = current_view.post
-                    post = self._convert_thread_post_to_model(
-                        post_data, parent_uri, depth
-                    )
+                    post = BlueskyClient._convert_post_to_model(post_data)
 
                     # Set root URI (first post we encounter is the root)
                     if root_uri is None:
@@ -161,32 +160,6 @@ class ThreadCollector:
                 continue
 
         return posts
-
-    def _convert_thread_post_to_model(
-        self, post_data: Any, parent_uri: str | None, depth: int
-    ) -> BlueskyPost:
-        """
-        Convert atproto post data to BlueskyPost model with thread context.
-
-        Args:
-            post_data: Raw post data from atproto
-            parent_uri: URI of parent post (if any)
-            depth: Thread depth level
-
-        Returns:
-            BlueskyPost instance
-        """
-        # Use similar logic to the main client's conversion
-        # but include thread-specific context
-
-        from src.bluesky.client import BlueskyClient
-
-        # Create a temporary client instance to use its conversion method
-        # This is not ideal but reuses existing logic
-        temp_client = BlueskyClient.__new__(BlueskyClient)
-
-        # Convert using existing logic
-        return temp_client._convert_post_to_model(post_data)
 
     def _find_thread_root_uri(self, posts: list[BlueskyPost]) -> str | None:
         """
