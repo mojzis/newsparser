@@ -1,7 +1,6 @@
 """Report stage - generates daily reports from evaluated content."""
 
 import logging
-from collections.abc import Iterator
 from datetime import UTC, date, datetime
 from pathlib import Path
 
@@ -62,10 +61,6 @@ class ReportStage(ProcessingStage):
         self.env.filters["content_icon"] = get_content_type_icon
         self.env.filters["content_icon_tooltip"] = get_content_type_with_tooltip
         self.env.filters["language_flag"] = get_language_flag
-
-    def get_inputs(self, target_date: date) -> Iterator[Path]:
-        """Get all evaluated files for the date."""
-        return super().get_inputs(target_date)
 
     def _get_fetch_data(self, url: str, target_date: date) -> dict:
         """Get content metadata from fetch stage for a given URL."""
