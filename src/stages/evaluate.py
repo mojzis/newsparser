@@ -255,7 +255,7 @@ This content was evaluated for relevance.
                             }
 
                             # Update frontmatter with evaluation
-                            md_file.update_frontmatter(
+                            md_file.frontmatter.update(
                                 {"evaluation": evaluation_data, "stage": "evaluated"}
                             )
 

@@ -40,10 +40,6 @@ class MarkdownFile:
         )
         return f"---\n{yaml_str}---\n\n{self.content}"
 
-    def update_frontmatter(self, updates: dict[str, Any]) -> None:
-        """Update frontmatter with new values."""
-        self.frontmatter.update(updates)
-
     def get_frontmatter_value(self, key: str, default: Any = None) -> Any:
         """Get a value from frontmatter."""
         return self.frontmatter.get(key, default)
