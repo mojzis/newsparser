@@ -70,3 +70,28 @@
 ```json
 {"verified": true, "evidence": "1) `uv run poe check`: ruff+ty 'All checks passed!', pytest '378 passed, 1 warning in 15.21s'. 2) HackerNewsSource, CollectionConfig.sources validator, CollectStage dispatch/expansion-isolation/credential-gating all confirmed as in the original phase 2 check. 3) Additional verification: test_hackernews_only_skips_bluesky_source confirmed present (renamed via b66d9da), no leftover old name via grep. git show --stat on all phase-2 commits touches only in-scope files.", "deviations": [], "issues": []}
 ```
+
+## Phase 3 — dev
+- 2026-07-06T11:40:00+02:00
+```json
+{"commit_shas": ["ee0c665"], "summary": "Added a source field/permalink logic to ReportArticle and wired source lookup + a source badge through the report stage and daily/homepage templates.", "deviations": [], "unresolved_issues": ["python-review flagged (should-fix) that bluesky_url now holds a non-Bluesky permalink for HN articles; per the brief this rename is explicitly deferred to Phase D, so left as-is.", "python-review flagged (should-fix) that the source lookup/assignment is duplicated across the two near-identical post-lookup blocks in src/stages/report.py; this mirrors pre-existing duplication and the brief's Mode note says review nits belong to the review step, so no extraction was done."]}
+```
+
+## Phase 3 — check
+- 2026-07-06T11:55:00+02:00
+```json
+{"verified": true, "evidence": "1) `uv run poe check`: ruff+ty 'All checks passed!', pytest '381 passed, 1 warning in 14.18s'. 2) ReportArticle has source field + source_label property (bluesky->Bluesky, hackernews->Hacker News); from_post_and_evaluation builds HN permalink from actual_post_id.removeprefix('hn_') when source=='hackernews', else bsky.app URL. 3) Both post-lookup blocks in report.py pull source via get_frontmatter_value('source','bluesky') and pass it through. 4) Offline Jinja render confirms daily.html/homepage.html show source_label badge for both Bluesky and HN articles, mixed correctly. 5) git show --stat on HEAD (ee0c665) and sibling phase-3 commits touch only in-scope files.", "deviations": [], "issues": []}
+```
+
+## Phase 3 — review
+- 2026-07-06T12:05:00+02:00
+```json
+{"findings": [], "dropped": ["python-review should-fix: bluesky_url field now holds HN permalinks and the name is misleading — brief explicitly designates keeping the bluesky_url field name as a deliberate documented deferral to Phase D; not actionable this run.", "python-review suggestion: introduce a StrEnum/constants for the bluesky/hackernews source strings — speculative abstraction MVP guardrails defer; not actionable.", "python-review suggestion: extract the near-duplicated post-lookup block in src/stages/report.py into a shared helper — pre-existing duplication not introduced by this phase, both blocks updated consistently.", "Template autoescape / source_label returning raw self.source for unknown sources — source value originates from config/frontmatter, not arbitrary user input; not a real issue."], "deviations": []}
+```
+
+## Summary
+- 2026-07-06T12:10:00+02:00 · cml run complete
+- phases: 3
+- commits: 05db927, 3152f55, 52b2027, b66d9da, ee0c665
+- all checks verified: yes
+- unresolved: 2 (deferred, logged as unresolved_issues on phase 3 dev: bluesky_url field misnomer for HN permalinks, and duplicated post-lookup blocks in report.py — both explicitly deferred to Phase D per brief scope)

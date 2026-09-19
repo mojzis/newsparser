@@ -15,6 +15,8 @@ When working on this project, please maintain a neutral, professional tone:
 
 When you finish a coding task in this repo, run the `python-review` skill over the changed Python before reporting done.
 
+Exception: if you are a subagent inside an orchestrated workflow (cf/cml — e.g. a dev, check, or fix agent), do NOT run the review skill. Those workflows have a dedicated review step; running it in other steps duplicates the review and slows the run.
+
 ## MVP Development Principles
 
 **IMPORTANT: This project follows MVP/startup methodology. Keep everything super simple:**
