@@ -1,11 +1,18 @@
 """New streamlined CLI commands focused on stage-based architecture."""
 
+import asyncio
+import webbrowser
+from datetime import UTC, datetime
+from pathlib import Path
+
 import click
 from rich.console import Console
 
 from src.cli.config_commands import config
 from src.cli.stage_commands import stages
 from src.config.config_manager import get_config_manager
+from src.sources.registry import KNOWN_SOURCES
+from src.term_tester import HN_PAGE_CAP, BlueskyLoginError, render_html, run_terms
 
 console = Console()
 
@@ -369,9 +376,7 @@ def status(target_date, collection_name) -> None:
     from src.cli.stage_commands import status as stage_status
 
     ctx = click.Context(stage_status)
-    ctx.invoke(
-        stage_status, target_date=target_date, collection_name=collection_name
-    )
+    ctx.invoke(stage_status, target_date=target_date, collection_name=collection_name)
 
 
 @cli.command()
@@ -385,6 +390,63 @@ def present(port, host) -> None:
 
     ctx = click.Context(stage_present)
     ctx.invoke(stage_present, port=port, host=host)
+
+
+@cli.command("try-terms")
+@click.argument("terms", nargs=-1, required=True)
+@click.option(
+    "--source",
+    "sources",
+    multiple=True,
+    type=click.Choice(sorted(KNOWN_SOURCES)),
+    default=sorted(KNOWN_SOURCES),
+    help="Source to search (repeatable, default: both)",
+)
+@click.option(
+    "--max-posts",
+    default=300,
+    type=click.IntRange(1, HN_PAGE_CAP),
+    help="Posts to fetch per term and source",
+)
+@click.option(
+    "--out",
+    "out_path",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="HTML file to write (default: term_tests/<timestamp>.html)",
+)
+@click.option("--open/--no-open", "open_browser", default=True, help="Open the page")
+def try_terms(terms, sources, max_posts, out_path, open_browser) -> None:
+    """Try search terms before adding them to a collection.
+
+    Example: nsp try-terms '"agent experience"' llms.txt "#mcp" --max-posts 500
+    """
+    from src.config.settings import get_settings  # lazy: keep CLI startup fast
+
+    try:
+        results = asyncio.run(
+            run_terms(list(terms), list(sources), max_posts, get_settings())
+        )
+    except BlueskyLoginError as e:
+        console.print(f"[red]{e}[/red]")
+        raise click.Abort() from e
+
+    for r in results:
+        cap = " (capped)" if r.hit_cap else ""
+        rate = (
+            f", {r.posts_per_day}/day, {r.last_30_days} in the last 30 days"
+            if r.posts_per_day is not None
+            else ""
+        )
+        console.print(f"{r.term} on {r.source}: {r.count} posts{cap}{rate}")
+
+    if out_path is None:
+        out_path = Path("term_tests") / f"{datetime.now(UTC):%Y%m%d-%H%M%S}.html"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(render_html(results, list(terms)), encoding="utf-8")
+    console.print(f"Wrote {out_path}")
+    if open_browser:
+        webbrowser.open(out_path.resolve().as_uri())
 
 
 if __name__ == "__main__":

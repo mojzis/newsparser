@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Search term test</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { margin-bottom: .2rem; }
+  .muted { color: #777; font-size: .9rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0 2rem; }
+  th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid #eee; vertical-align: top; }
+  th { background: #f6f6f6; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .cap { color: #b45309; font-weight: 600; }
+  section.term { border-top: 2px solid #ddd; padding-top: 1rem; margin-top: 2rem; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .chip { display: inline-block; background: #eef2ff; border-radius: 1rem; padding: .1rem .6rem; margin: .15rem; font-size: .85rem; }
+  .post { border-left: 3px solid #ddd; padding: .3rem .7rem; margin: .6rem 0; }
+  .post .meta { font-size: .8rem; color: #777; }
+  .scroll { overflow-x: auto; }
+  pre { background: #f6f6f6; padding: 1rem; overflow-x: auto; }
+  @media (max-width: 700px) { .cols { grid-template-columns: 1fr; } table { font-size: .85rem; } }
+</style>
+</head>
+<body>
+<h1>Search term test</h1>
+<p class="muted">Generated {{ generated_at }}. <span class="cap">Capped</span> means the source returned as many posts as asked for, so the rate is measured over the posts returned. A count of 0 can also mean the search failed: check the command output.</p>
+
+<h2>Overview</h2>
+<div class="scroll">
+<table>
+  <tr><th>Term</th><th>Source</th><th>Posts</th><th>Per day</th><th>Last 30 days</th><th>Oldest</th><th>Newest</th></tr>
+  {% for r in results %}
+  <tr>
+    <td><a href="#r{{ loop.index }}">{{ r.term }}</a></td>
+    <td>{{ r.source }}</td>
+    <td class="num">{{ r.count }}{% if r.hit_cap %} <span class="cap">capped</span>{% endif %}</td>
+    <td class="num">{{ r.posts_per_day if r.posts_per_day is not none else "–" }}</td>
+    <td class="num">{{ r.last_30_days }}</td>
+    <td>{{ r.oldest.strftime("%Y-%m-%d") if r.oldest else "–" }}</td>
+    <td>{{ r.newest.strftime("%Y-%m-%d") if r.newest else "–" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+
+{% for r in results %}
+<section class="term" id="r{{ loop.index }}">
+  <h2>{{ r.term }} <span class="muted">on {{ r.source }}, {{ r.count }} posts</span></h2>
+  {% if r.count == 0 %}
+  <p class="muted">Nothing found.</p>
+  {% else %}
+  <div class="cols">
+    <div>
+      <h3>Related hashtags</h3>
+      {% for tag, n in r.top_hashtags %}<span class="chip">#{{ tag }} · {{ n }}</span>{% else %}<p class="muted">None.</p>{% endfor %}
+    </div>
+    <div>
+      <h3>Linked domains</h3>
+      {% for domain, n in r.top_domains %}<span class="chip">{{ domain }} · {{ n }}</span>{% else %}<p class="muted">None.</p>{% endfor %}
+    </div>
+  </div>
+  <h3>Top posts</h3>
+  {% for p in r.samples %}
+  <div class="post">
+    <div>{{ p.content }}</div>
+    <div class="meta">
+      {% if post_url(p) %}<a href="{{ post_url(p) }}">{{ p.author }}</a>{% else %}{{ p.author }}{% endif %} · {{ p.created_at.strftime("%Y-%m-%d") }}
+      · {{ p.engagement_metrics.likes }} likes · {{ p.engagement_metrics.replies }} replies
+      {% for link in p.links[:2] %} · <a href="{{ link }}">{{ link|string|truncate(60) }}</a>{% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</section>
+{% endfor %}
+
+<section class="term">
+  <h2>Collection snippet</h2>
+  <p class="muted">Paste the terms you keep into a collection file under <code>config/collections/</code>.</p>
+  <pre>{{ yaml_snippet }}</pre>
+</section>
+</body>
+</html>
