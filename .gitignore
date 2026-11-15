@@ -130,3 +130,6 @@ output/
 
 # Local Netlify folder
 .netlify
+
+# Search term tester output
+/term_tests/

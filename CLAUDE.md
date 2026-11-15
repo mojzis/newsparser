@@ -167,6 +167,15 @@ uv run nsp stages list-files collect --limit 10    # List files in stage
 uv run nsp stages clean fetch --date 2024-01-15    # Clean stage data
 ```
 
+#### Trying search terms
+```bash
+# Search each term on Bluesky and Hacker News, write term_tests/<timestamp>.html and open it.
+# Shows volume, related hashtags, linked domains, top posts and a collection snippet.
+# Bluesky needs BLUESKY_HANDLE/BLUESKY_APP_PASSWORD in .env and blocks cloud IPs: run locally.
+uv run nsp try-terms '"agent experience"' llms.txt "#mcp" --max-posts 500
+uv run nsp try-terms "agent-friendly" --source hackernews
+```
+
 #### Legacy Commands (Backward Compatibility)
 ```bash
 # Access legacy functionality via 'onsp' command
