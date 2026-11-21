@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/newsparser/rss.xml">
+    <title>MCP Monitor - November 14, 2026</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: white;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
+        
+        a { 
+            color: #0066cc; 
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .main-content a:visited { 
+            color: #0066cc; 
+        }
+        a:hover {
+            color: #0052a3;
+            text-decoration: underline;
+        }
+        .header { 
+            font-size: 28px; 
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        .tagline {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 15px;
+        }
+        .article { 
+            margin-bottom: 36px; 
+            padding-bottom: 36px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .article:last-child {
+            border-bottom: none;
+        }
+        .article-title {
+            font-size: 17px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .article-title a {
+            font-weight: 500;
+        }
+        .perex { 
+            margin: 10px 0 12px 0;
+            color: #444;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .meta { 
+            color: #888; 
+            font-size: 13px; 
+            line-height: 1.4;
+        }
+        .meta a {
+            color: #888;
+            font-weight: 500;
+        }
+        .meta a:hover {
+            color: #0066cc;
+        }
+        .archive { 
+            margin-top: 60px; 
+            padding-top: 36px; 
+            border-top: 2px solid #f0f0f0;
+        }
+        .archive h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            letter-spacing: -0.2px;
+        }
+        .archive-link {
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .nav-link {
+            margin-top: 40px;
+            padding-top: 24px;
+            /* border-top: 1px solid #e0e0e0; */
+            color: #666;
+            font-size: 14px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 48px 0 24px 0;
+            color: #1a1a1a;
+            letter-spacing: -0.3px;
+        }
+        /* First h2 should have less top margin */
+        h2:first-of-type {
+            margin-top: 0;
+        }
+        .no-articles {
+            color: #666;
+            font-style: italic;
+            margin: 24px 0;
+            font-size: 15px;
+        }
+        code {
+            background: #f8f8f8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        .content-type-badge {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 6px;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+        .content-type-badge:hover {
+            opacity: 1;
+        }
+        .content-icon {
+            vertical-align: middle;
+            color: #666;
+        }
+        
+        /* Navigation styles */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem 0;
+            margin-bottom: 0;
+        }
+        
+        .nav-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand a {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+        }
+        
+        .nav-item {
+            margin: 0;
+        }
+        
+        .nav-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .nav-link:hover {
+            background-color: #34495e;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 600px) {
+            body {
+                margin: 20px auto;
+                padding: 0 16px;
+            }
+            .navbar {
+                margin-bottom: 20px;
+            }
+            .nav-container {
+                padding: 0 16px;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .nav-menu {
+                gap: 1rem;
+            }
+            .nav-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 14px;
+            }
+            .header {
+                font-size: 24px;
+            }
+            .article {
+                margin-bottom: 28px;
+                padding-bottom: 28px;
+            }
+            h2 {
+                font-size: 18px;
+                margin: 36px 0 20px 0;
+            }
+        }
+        
+        /* Mermaid diagram styling */
+        .mermaid {
+            text-align: center;
+            margin: 30px 0;
+            background: #fafafa;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* ---- Refresh: type, cards, chips, dark mode ---- */
+        :root {
+            --bg: #f6f7f9; --card: #fff; --text: #1f2933; --muted: #6b7785;
+            --border: #e4e7eb; --accent: #2563eb; --nav: #111827; --chip: #eef2f7;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f1419; --card: #182028; --text: #e6e9ee; --muted: #8b97a5;
+                --border: #26313c; --accent: #6ea8fe; --nav: #0a0e12; --chip: #232d38;
+            }
+            code { background: var(--chip); color: var(--muted); }
+        }
+        body { background: var(--bg); color: var(--text); font-size: 16px; }
+        a, .main-content a:visited { color: var(--accent); }
+        a:hover { color: var(--accent); text-decoration: underline; }
+        .navbar { background: var(--nav); }
+        .nav-link { color: #aab4c0; }
+        .nav-link:hover { background: rgba(255,255,255,.08); }
+        .nav-link.active { background: var(--accent); color: #fff; }
+        .header { font-size: 32px; font-weight: 700; letter-spacing: -0.8px; margin-top: 12px; }
+        .header a { color: var(--text); }
+        .tagline { color: var(--muted); margin-bottom: 32px; }
+        h2 {
+            color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .08em; margin: 40px 0 14px 0;
+        }
+        .article {
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 18px 20px; margin-bottom: 14px;
+        }
+        .article:last-child { border-bottom: 1px solid var(--border); }
+        .article-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .article-title a { font-weight: 600; }
+        .perex { color: var(--text); opacity: .85; margin: 6px 0 12px 0; }
+        .meta { color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+        .meta a, .meta a:hover { color: var(--muted); }
+        .chip {
+            background: var(--chip); border-radius: 999px; padding: 1px 9px;
+            font-size: 12px; font-weight: 600; color: var(--muted);
+        }
+        .chip-hackernews { background: #ff660022; color: #e25500; }
+        .chip-bluesky { background: #1185fe22; color: #1185fe; }
+        .chip-score { font-weight: 500; }
+        .archive { border-top: 1px solid var(--border); }
+        .archive-link { padding: 2px 0; }
+        .no-articles { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; }
+        .nav-link { margin-top: 0; padding-top: .5rem; }
+        .main-content > .nav-link { margin-top: 32px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#2c3e50',
+                lineColor: '#34495e',
+                secondaryColor: '#ecf0f1',
+                tertiaryColor: '#f8f9fa'
+            }
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/newsparser/index.html">MCP Monitor</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/newsparser/index.html" class="nav-link active">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/newsparser/query/duckdb.html" class="nav-link">Query</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/newsparser/content_stats.html" class="nav-link">Stats</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/newsparser/about.html" class="nav-link">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="main-content">
+        
+<div class="header">
+    <a href="/newsparser/">MCP Monitor</a> - November 14, 2026
+</div>
+
+
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://github.com/modelcontextprotocol/ext-skills">GitHub - modelcontextprotocol/ext-skills: MCP Extension for Skills discovery and distribution through MCP primitives. Maintained by the Skills Over MCP Working Group. · GitHub</a>
+    </div>
+    <div class="perex">Skills get their own MCP extension now, complete with a decision log, schemas, and a working group that argues about wire types so you don&#39;t have to.</div>
+    <div class="meta">
+        <span class="chip chip-bluesky">Bluesky</span>
+        <span class="chip chip-score" title="Relevance score">97% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://bsky.app/profile/qdrddr.bsky.social/post/3n2bkbjokgk2l">qdrddr.bsky.social</a></span>
+        <span>12:55 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://brethof.ai/awesome/mcp-servers/">awesome-mcp-servers - MCP servers, labelled and checked</a>
+    </div>
+    <div class="perex">A well-sorted shelf of MCP servers, each tagged with who runs it, whether it writes or only reads, and how much it&#39;ll cost you.</div>
+    <div class="meta">
+        <span class="chip chip-bluesky">Bluesky</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>brethof.ai</span>
+        <span>via <a href="https://bsky.app/profile/brethof.ai/post/3n2bnvpqvsl2z">brethof.ai</a></span>
+        <span>2:00 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://github.com/yasindce1998/redhands">GitHub - yasindce1998/RedHands: RedHands is an MCP (Model Context Protocol) server that exposes offensive security tools to AI agents. · GitHub</a>
+    </div>
+    <div class="perex">An MCP server that hands your AI agent a full pentesting toolkit, with guardrails it promises to respect, mostly. Authorized targets only, please.</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50500291">yasindce1998</a></span>
+        <span>8:05 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://github.com/Swedishwizards/Mac-health-mcp">GitHub - Swedishwizards/Mac-health-mcp: Asks your Mac what&#39;s wrong and tells you in plain English. Local, read-only MCP server for macOS: ask Claude &#34;Why is my Mac slow?&#34; · GitHub</a>
+    </div>
+    <div class="perex">Ask your Mac why it&#39;s sluggish and, through a small MCP server, Claude will finally give you a ranked list of suspects instead of a shrug.</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50496084">Swedishwizards</a></span>
+        <span>11:18 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://dirtystatic.com/articles/give-a-local-model-real-tools-ollama-mcp/">Give a Local Model Real Tools: Ollama Plus MCP | Dirty Static</a>
+    </div>
+    <div class="perex">Ollama handles the model, not the tools. This guide fills the gap with an MCP client, so a local model can finally touch real files without a cloud account.</div>
+    <div class="meta">
+        <span class="chip chip-bluesky">Bluesky</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>dirtystatic.com</span>
+        <span>via <a href="https://bsky.app/profile/dirty-static.bsky.social/post/3n2akp4vdae2x">dirty-static.bsky.social</a></span>
+        <span>3:30 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="blog post">✍️</span> <a href="https://sayjot.xyz/blog/claude-code-mcp-notes">Let Claude Code read your notes with MCP</a>
+    </div>
+    <div class="perex">Your notes finally have a seat at the table. Claude Code can now rummage through your Mac captures, though it&#39;s barred from deleting anything, which is probably wise.</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>sayjot.xyz</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50492526">mohakbajaj</a></span>
+        <span>1:20 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://github.com/marcmayol/omoikane">GitHub - marcmayol/omoikane: Eternal memory, alive and lightning fast, for AI coding agents. One Rust binary, one SQLite file, automatic recall. Stable since 1.0. · GitHub</a>
+    </div>
+    <div class="perex">Agents forget everything when a session ends, so this one keeps a small SQLite file of memories and quietly hands the right ones back, mostly without being asked.</div>
+    <div class="meta">
+        <span class="chip chip-bluesky">Bluesky</span>
+        <span class="chip chip-score" title="Relevance score">80% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://bsky.app/profile/srmarcmayol.bsky.social/post/3n2b5wmin6s22">srmarcmayol.bsky.social</a></span>
+        <span>9:14 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="blog post">✍️</span> <a href="https://www.linkedin.com/posts/alessiopomaro_adobe-mcp-ai-ugcPost-7527265285154959360-ETDX/?utm_source=share&amp;utm_medium=member_android&amp;rcm=ACoAAABzaEsBMtErOJEBxBXA3VGqIEj31F3ShJU">#adobe #mcp #ai #firefly #ai #genai #generativeai #intelligenzaartificiale #llm | Alessio Pomaro</a> 🇮🇹
+    </div>
+    <div class="perex">Adobe has finally figured out that nobody wants to hunt for menus anymore, so it is letting chatbots do the clicking. The designer&#39;s job now is judging whether the result looks right.</div>
+    <div class="meta">
+        <span class="chip chip-bluesky">Bluesky</span>
+        <span class="chip chip-score" title="Relevance score">70% relevant</span>
+        <span>www.linkedin.com</span>
+        <span>via <a href="https://bsky.app/profile/alessiopomaro.it/post/3n2ax5qr3tc2s">alessiopomaro.it</a></span>
+        <span>7:13 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://lockergnome.com/api-man-5mb-native-macos-ios-postman-alternative/">API Man is a 5 MB native Mac and iOS Postman-like client in Objective-C, with an MCP server that never shows AI agents your Keychain secrets | LockerGnome</a>
+    </div>
+    <div class="perex">Sending a GET request turns out not to need half a gigabyte of disk. This native Mac and iOS client lets AI agents tidy up your requests while keeping the keys locked away.</div>
+    <div class="meta">
+        <span class="chip chip-bluesky">Bluesky</span>
+        <span class="chip chip-score" title="Relevance score">60% relevant</span>
+        <span>lockergnome.com</span>
+        <span>via <a href="https://bsky.app/profile/chrispirillo.mastodon.social.ap.brid.gy/post/3n2buojgikup2">chrispirillo.mastodon.social.ap.brid.gy</a></span>
+        <span>4:00 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://github.com/memrohq/memro">GitHub - memrohq/memro: One long-term memory for every AI coding tool: Claude Code, Cursor, Codex, Copilot. MCP server, SDKs, hosted or self-hosted. · GitHub</a>
+    </div>
+    <div class="perex">Teach one coding agent a rule and the rest of your AI tools pick it up, which is either a productivity miracle or a fresh way to spread your bad habits across the whole toolchain.</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">60% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50492093">subalyo</a></span>
+        <span>12:20 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://stampdrill.com/">Stampdrill, API client and API testing for Mac, terminal and CI</a>
+    </div>
+    <div class="perex">Postman, but the requests live in plain text files you can review in a pull request, and it can even poke at the MCP servers your AI assistant talks to.</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">50% relevant</span>
+        <span>stampdrill.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50495048">sia_xi</a></span>
+        <span>8:05 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://browserr.dev/">Browserr - browser engine for AI agents</a>
+    </div>
+    <div class="perex">Browsers were built for people with patience. This one is built for agents that have none, and it still politely asks a human to take the wheel when things get messy.</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">35% relevant</span>
+        <span>browserr.dev</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50493464">Omodaka9375</a></span>
+        <span>3:22 AM</span>
+    </div>
+</article>
+    
+
+
+<div class="nav-link">
+    <a href="/newsparser/">← Back to latest</a>
+</div>
+
+    </div>
+</body>
+</html>
