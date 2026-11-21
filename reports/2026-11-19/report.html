@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/newsparser/rss.xml">
+    <title>MCP Monitor - November 19, 2026</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: white;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
+        
+        a { 
+            color: #0066cc; 
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        .main-content a:visited { 
+            color: #0066cc; 
+        }
+        a:hover {
+            color: #0052a3;
+            text-decoration: underline;
+        }
+        .header { 
+            font-size: 28px; 
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        .tagline {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 15px;
+        }
+        .article { 
+            margin-bottom: 36px; 
+            padding-bottom: 36px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .article:last-child {
+            border-bottom: none;
+        }
+        .article-title {
+            font-size: 17px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .article-title a {
+            font-weight: 500;
+        }
+        .perex { 
+            margin: 10px 0 12px 0;
+            color: #444;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .meta { 
+            color: #888; 
+            font-size: 13px; 
+            line-height: 1.4;
+        }
+        .meta a {
+            color: #888;
+            font-weight: 500;
+        }
+        .meta a:hover {
+            color: #0066cc;
+        }
+        .archive { 
+            margin-top: 60px; 
+            padding-top: 36px; 
+            border-top: 2px solid #f0f0f0;
+        }
+        .archive h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            letter-spacing: -0.2px;
+        }
+        .archive-link {
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+        .nav-link {
+            margin-top: 40px;
+            padding-top: 24px;
+            /* border-top: 1px solid #e0e0e0; */
+            color: #666;
+            font-size: 14px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 48px 0 24px 0;
+            color: #1a1a1a;
+            letter-spacing: -0.3px;
+        }
+        /* First h2 should have less top margin */
+        h2:first-of-type {
+            margin-top: 0;
+        }
+        .no-articles {
+            color: #666;
+            font-style: italic;
+            margin: 24px 0;
+            font-size: 15px;
+        }
+        code {
+            background: #f8f8f8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        .content-type-badge {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 6px;
+            opacity: 0.8;
+            transition: opacity 0.2s ease;
+        }
+        .content-type-badge:hover {
+            opacity: 1;
+        }
+        .content-icon {
+            vertical-align: middle;
+            color: #666;
+        }
+        
+        /* Navigation styles */
+        .navbar {
+            background-color: #2c3e50;
+            padding: 1rem 0;
+            margin-bottom: 0;
+        }
+        
+        .nav-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand a {
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 2rem;
+        }
+        
+        .nav-item {
+            margin: 0;
+        }
+        
+        .nav-link {
+            color: #bdc3c7;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+            font-size: 15px;
+        }
+        
+        .nav-link:hover {
+            background-color: #34495e;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-link.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 600px) {
+            body {
+                margin: 20px auto;
+                padding: 0 16px;
+            }
+            .navbar {
+                margin-bottom: 20px;
+            }
+            .nav-container {
+                padding: 0 16px;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .nav-menu {
+                gap: 1rem;
+            }
+            .nav-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 14px;
+            }
+            .header {
+                font-size: 24px;
+            }
+            .article {
+                margin-bottom: 28px;
+                padding-bottom: 28px;
+            }
+            h2 {
+                font-size: 18px;
+                margin: 36px 0 20px 0;
+            }
+        }
+        
+        /* Mermaid diagram styling */
+        .mermaid {
+            text-align: center;
+            margin: 30px 0;
+            background: #fafafa;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        /* ---- Refresh: type, cards, chips, dark mode ---- */
+        :root {
+            --bg: #f6f7f9; --card: #fff; --text: #1f2933; --muted: #6b7785;
+            --border: #e4e7eb; --accent: #2563eb; --nav: #111827; --chip: #eef2f7;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f1419; --card: #182028; --text: #e6e9ee; --muted: #8b97a5;
+                --border: #26313c; --accent: #6ea8fe; --nav: #0a0e12; --chip: #232d38;
+            }
+            code { background: var(--chip); color: var(--muted); }
+        }
+        body { background: var(--bg); color: var(--text); font-size: 16px; }
+        a, .main-content a:visited { color: var(--accent); }
+        a:hover { color: var(--accent); text-decoration: underline; }
+        .navbar { background: var(--nav); }
+        .nav-link { color: #aab4c0; }
+        .nav-link:hover { background: rgba(255,255,255,.08); }
+        .nav-link.active { background: var(--accent); color: #fff; }
+        .header { font-size: 32px; font-weight: 700; letter-spacing: -0.8px; margin-top: 12px; }
+        .header a { color: var(--text); }
+        .tagline { color: var(--muted); margin-bottom: 32px; }
+        h2 {
+            color: var(--muted); font-size: 13px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: .08em; margin: 40px 0 14px 0;
+        }
+        .article {
+            background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+            padding: 18px 20px; margin-bottom: 14px;
+        }
+        .article:last-child { border-bottom: 1px solid var(--border); }
+        .article-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .article-title a { font-weight: 600; }
+        .perex { color: var(--text); opacity: .85; margin: 6px 0 12px 0; }
+        .meta { color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+        .meta a, .meta a:hover { color: var(--muted); }
+        .chip {
+            background: var(--chip); border-radius: 999px; padding: 1px 9px;
+            font-size: 12px; font-weight: 600; color: var(--muted);
+        }
+        .chip-hackernews { background: #ff660022; color: #e25500; }
+        .chip-bluesky { background: #1185fe22; color: #1185fe; }
+        .chip-score { font-weight: 500; }
+        .archive { border-top: 1px solid var(--border); }
+        .archive-link { padding: 2px 0; }
+        .no-articles { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; }
+        .nav-link { margin-top: 0; padding-top: .5rem; }
+        .main-content > .nav-link { margin-top: 32px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            themeVariables: {
+                primaryColor: '#3498db',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#2c3e50',
+                lineColor: '#34495e',
+                secondaryColor: '#ecf0f1',
+                tertiaryColor: '#f8f9fa'
+            }
+        });
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/newsparser/index.html">MCP Monitor</a>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/newsparser/index.html" class="nav-link active">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/newsparser/query/duckdb.html" class="nav-link">Query</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/newsparser/content_stats.html" class="nav-link">Stats</a>
+                </li>
+                <li class="nav-item">
+                    <a href="/newsparser/about.html" class="nav-link">About</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+    <div class="main-content">
+        
+<div class="header">
+    <a href="/newsparser/">MCP Monitor</a> - November 19, 2026
+</div>
+
+
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/yepinggu66/mcp-sentry">GitHub - yepinggu66/mcp-sentry: Zero-Overhead Circuit Breaker &amp; Whitebox Security Proxy for Model Context Protocol (MCP) in Claude &amp; Cursor · GitHub</a>
+    </div>
+    <div class="perex">Security proxy that sits between your AI and MCP servers, catching poisoned tools and exfil attempts before they happen—all in 0.031ms</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50564180">pingguye</a></span>
+        <span>6:36 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/immutlex-dev/minymaton">GitHub - immutlex-dev/minymaton: A durable, event-driven MCP message bus for AI agents, with bundled SQLite storage. · GitHub</a>
+    </div>
+    <div class="perex">A message bus that lets your AI agents stop playing telephone and actually coordinate work across machines</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50563540">scritty-dev</a></span>
+        <span>5:59 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/vmikhailov/cypher-mcp">GitHub - vmikhailov/cypher-mcp: Zero-CGO Model Context Protocol (MCP) server for embedded SQLite knowledge graphs with sub-millisecond OpenCypher queries. · GitHub</a>
+    </div>
+    <div class="perex">Lightweight MCP server turns SQLite into a graph database for AI agents—no Docker, no Neo4j, just pure Go and Cypher queries that run in under 0.5ms</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50562818">vmikhailov</a></span>
+        <span>5:07 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="blog post">✍️</span> <a href="https://www.kondz.io/blog/why-mcp-has-no-openapi-json/">Why MCP has no openapi.json | kondz.io</a>
+    </div>
+    <div class="perex">Why MCP ditched the OpenAPI playbook: tools are living, breathing conversation partners, not frozen API contracts</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>www.kondz.io</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50561114">ktalik</a></span>
+        <span>3:09 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/JoeyZzZzZz/treasure-map">GitHub - JoeyZzZzZz/treasure-map: A firmware map for your AI agent, served over MCP. Maps the risky-looking calls across a whole firmware and diffs two versions around them. · GitHub</a>
+    </div>
+    <div class="perex">Firmware auditing meets AI agents: Treasure Map serves security analysis facts over MCP, letting language models hunt vulnerabilities without touching decompilers</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50559538">JoeyZzZzZz</a></span>
+        <span>1:00 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/pandadad0214/panda-federation-tools">GitHub - pandadad0214/panda-federation-tools: Give Claude, Cursor or any MCP client 40 public-data tools on Apify: research, public funding, leads, web security. · GitHub</a>
+    </div>
+    <div class="perex">40 public-data tools wrapped as MCP servers—research papers, federal grants, B2B leads, security audits—all priced per result and runnable on your own Apify account</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">95% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50555500">pandadad0214</a></span>
+        <span>2:57 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="blog post">✍️</span> <a href="https://taskthread.denegra.ai/">Taskthread - One Task Board for You and Your AI Assistants</a>
+    </div>
+    <div class="perex">One task board where Claude, ChatGPT and Cursor actually work together without stepping on each other&#39;s toes</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>taskthread.denegra.ai</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50566204">denegra</a></span>
+        <span>8:52 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/lintsure/lintsure">GitHub - lintsure/lintsure: Keep your AI coding agents on track and in context. Open-source checker for code written by Claude Code, Cursor, Codex and Gemini CLI: 89 rules for security and privacy problems, mapped to OWASP, the EU AI Act and GDPR. CLI, MCP server and GitHub Action. Runs locally, sends nothing. · GitHub</a>
+    </div>
+    <div class="perex">Security linter for AI coding agents that speaks MCP, catches secrets and sketchy patterns before they ship</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50564417">DrMax</a></span>
+        <span>6:50 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/j4crev/unsworn">GitHub - j4crev/unsworn: An API router with allegiance to no language · GitHub</a>
+    </div>
+    <div class="perex">Multi-language API router that speaks MCP natively, turning your endpoints into AI-agent-friendly tools with zero boilerplate</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50564052">j4w8n</a></span>
+        <span>6:29 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/dayfile/dayfile">GitHub - dayfile/dayfile: One log for your scripts, apps and agents. · GitHub</a>
+    </div>
+    <div class="perex">Personal event log meets AI assistants—dayfile lets Claude manage your logs through MCP with five simple tools and zero friction</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50561824">gilad</a></span>
+        <span>4:00 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/srinivasalokeshraju/Jewellery_value">GitHub - srinivasalokeshraju/Jewellery_value · GitHub</a>
+    </div>
+    <div class="perex">Gold chain worth? Ask Claude via MCP server that fetches live rates, does the math, and names its sources—no hallucinations included</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50560234">lokessri</a></span>
+        <span>2:02 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://iceshore.ai/en/index.html">IceShore - Align how people and AI understand your systems</a>
+    </div>
+    <div class="perex">IceShore speaks MCP fluently, letting your AI understand system architecture without shipping code to the cloud</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>iceshore.ai</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50559736">ShintaroHara</a></span>
+        <span>1:19 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://contentin.io/linkedin-mcp-server/setup/">LinkedIn MCP Server Setup for Claude and Cursor | ContentIn</a>
+    </div>
+    <div class="perex">ContentIn&#39;s MCP server troubleshooting: fix auth hiccups, API key gremlins, and LinkedIn publishing quirks across Claude, Cursor, and VS Code</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>contentin.io</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50559517">derkinzi</a></span>
+        <span>12:57 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="article">📄</span> <a href="https://github.com/astyboyy-ship-it/bloom-exchange">GitHub - astyboyy-ship-it/bloom-exchange: Open-core universal clearing protocol for the agentic economy. Double-blind sandboxes, deterministic guardrails, and offline-verifiable Ed25519 receipts for A2A, MCP, and x402. · GitHub</a>
+    </div>
+    <div class="perex">AI agents haggling in sealed envelopes: Bloom Exchange adds MCP tools for blind negotiations with cryptographic receipts and prompt-injection firewalls</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50557621">BloomExchangeAi</a></span>
+        <span>8:49 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://suno.com/mcp">MCP | Suno</a>
+    </div>
+    <div class="perex">Suno joins the MCP ecosystem, letting your AI chat generate music without leaving the conversation</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">85% relevant</span>
+        <span>suno.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50556990">ersinesen</a></span>
+        <span>7:21 AM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/dynobox/dynobox">GitHub - dynobox/dynobox: Cross-harness testing framework for agent skills and workflows · GitHub</a>
+    </div>
+    <div class="perex">Test your AI agents like unit tests—capture tool calls, mock MCP endpoints, and measure flaky behavior across Claude, Codex, and five other harnesses</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">72% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50565029">bhkdotdev</a></span>
+        <span>7:30 PM</span>
+    </div>
+</article>
+    
+    <article class="article">
+    <div class="article-title">
+        <span title="product update">🚀</span> <a href="https://github.com/leetheguy/purple_flow">GitHub - leetheguy/purple_flow · GitHub</a>
+    </div>
+    <div class="perex">Elixir workflow engine that supports MCP but prefers lazy-loaded skills for sharper AI agents</div>
+    <div class="meta">
+        <span class="chip chip-hackernews">Hacker News</span>
+        <span class="chip chip-score" title="Relevance score">65% relevant</span>
+        <span>github.com</span>
+        <span>via <a href="https://news.ycombinator.com/item?id=50560170">leetheguy</a></span>
+        <span>1:57 PM</span>
+    </div>
+</article>
+    
+
+
+<div class="nav-link">
+    <a href="/newsparser/">← Back to latest</a>
+</div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+<rss xmlns:ns0="http://www.w3.org/2005/Atom" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+  <channel>
+    <title>MCP Monitor Daily Report</title>
+    <link>https://mojzis.github.io/newsparser</link>
+    <description>Daily monitoring of Model Context Protocol mentions</description>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Nov 2026 21:17:23 +0000</lastBuildDate>
+    <ns0:link href="https://mojzis.github.io/newsparser/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>SQLite databases for your agents · databasedmcp</title>
+      <link>https://databasedmcp.com/</link>
+      <description>Give your AI agents persistent memory through MCP-connected SQLite databases—no schema design required, just tell them what matters</description>
+      <pubDate>Sat, 21 Nov 2026 21:04:46 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50593621</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Pandex: Europe's law, in one API.</title>
+      <link>https://www.pandex.io/</link>
+      <description>European law meets API: Pandex lets you query legislation and court rulings straight from the source, no legal jargon required</description>
+      <pubDate>Sat, 21 Nov 2026 20:47:41 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50593481</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - spooky6G/bobalice_books: Global fully open-source bookkeeping ledger for real businesses · GitHub</title>
+      <link>https://github.com/spooky6G/bobalice_books</link>
+      <description>Self-hosted bookkeeping that lives in your files, chains entries cryptographically, and optionally anchors to blockchain—no vendor lock-in required</description>
+      <pubDate>Sat, 21 Nov 2026 13:52:43 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50589229</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>GitHub - mrzdevcore/intent-graph: ig: a system map of your codebase - analyser + AI reading + a walkable canvas · GitHub</title>
+      <link>https://github.com/mrzdevcore/intent-graph</link>
+      <description>Codebase cartography meets AI: ig maps your code as a walkable canvas and lets Claude navigate it through MCP</description>
+      <pubDate>Sat, 21 Nov 2026 12:13:34 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50588411</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>YouTube Transcript API: 5,000 Transcripts for $5, JSON or Text</title>
+      <link>https://getyoutubetext.com/youtube-transcript-api</link>
+      <description>YouTube transcript API that doubles as an MCP server—give your AI a YouTube tool that actually works from the cloud</description>
+      <pubDate>Sat, 21 Nov 2026 10:59:17 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50587982</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - Jnooo-cloud/fokus: Local website blocker and screen time tracker for macOS. No browser extension, no account, no cloud. Built-in MCP server so Claude can read your usage data. · GitHub</title>
+      <link>https://github.com/Jnooo-cloud/fokus</link>
+      <description>Local Mac app blocks distracting sites and tracks screen time, then lets Claude read your data via MCP to coach you on focus habits</description>
+      <pubDate>Sat, 21 Nov 2026 09:15:04 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50587446</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>SKV Network - A social network for AI agents</title>
+      <link>https://skv.network/</link>
+      <description>SKV Network wraps MCP into a social protocol for AI agents—add a key, name your agent, load the constitution, and watch it remember things between chats</description>
+      <pubDate>Fri, 20 Nov 2026 17:10:31 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50578151</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Formbook MCP</title>
+      <link>https://mcp.formbook.io/</link>
+      <description>Horse racing data meets AI agents: Formbook's MCP server lets your Claude or Cursor instance query decades of racing results, sectionals and predictions without signing up</description>
+      <pubDate>Fri, 20 Nov 2026 15:28:25 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50576110</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>llms.txt and MCP didn't move the needle for us. Here's what did. :: Backpack for Laravel</title>
+      <link>https://backpackforlaravel.com/articles/opinions/llms-txt-and-mcp-didn-t-move-the-needle-for-us-here-s-what-did</link>
+      <description>We built an MCP server for docs. It didn't help. Here's what actually made AI agents 10x better at writing code</description>
+      <pubDate>Fri, 20 Nov 2026 14:00:23 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50574772</guid>
+      <category>blog post</category>
+    </item>
+    <item>
+      <title>GitHub - PHONGUIT22/nostrpulse-full: Production MCP Server for AI Agents: Chaumian eCash (Cashu NutZaps / NIP-61), Lightning NWC, Web-of-Trust Sybil Resistance &amp; SQLite Budget Guardrails. Edge-ready with zero-dep CBOR. · GitHub</title>
+      <link>https://github.com/PHONGUIT22/nostrpulse-full</link>
+      <description>Stripe for AI agents: MCP server bridging Claude/Cursor to decentralized payments, trust scoring, and machine-to-machine settlement without API keys or custodial accounts</description>
+      <pubDate>Fri, 20 Nov 2026 10:01:27 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50572502</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - snowyLumiere/mcp-crashtest: Multi-step stateful contract fuzzer &amp; deadlock tester for MCP servers with POSIX inode-preserving rollback. · GitHub</title>
+      <link>https://github.com/SnowyLumiere/mcp-crashtest</link>
+      <description>Fuzzer that catches what unit tests miss: multi-step MCP agent failures, masked errors, and cross-tool contract breaks through state-aware random walks</description>
+      <pubDate>Fri, 20 Nov 2026 07:55:20 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50571498</guid>
+      <category>product update</category>
+    </item>
+  </channel>
+</rss>

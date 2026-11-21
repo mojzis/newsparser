@@ -1,0 +1,113 @@
+{
+  "name": "Fetch Stage",
+  "description": "Results from fetching and extracting content from URLs",
+  "filePattern": "parquet/fetch/by-run-date/{YYYY-MM-DD}_last_7_days.parquet",
+  "overview": "Web scraping results for URLs found in posts, including extracted content and metadata or error information",
+  "columns": [
+    {
+      "name": "url",
+      "type": "string",
+      "category": "core",
+      "description": "The URL that was fetched"
+    },
+    {
+      "name": "fetched_at",
+      "type": "datetime",
+      "category": "core",
+      "description": "When fetch was performed (UTC)"
+    },
+    {
+      "name": "fetch_status",
+      "type": "string",
+      "category": "core",
+      "values": ["success", "error"],
+      "description": "Fetch operation status"
+    },
+    {
+      "name": "stage",
+      "type": "string",
+      "category": "core",
+      "description": "Processing stage (always 'fetched')"
+    },
+    {
+      "name": "word_count",
+      "type": "integer",
+      "category": "content",
+      "nullable": true,
+      "description": "Words in extracted content"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "category": "content",
+      "nullable": true,
+      "description": "Article title"
+    },
+    {
+      "name": "author",
+      "type": "string",
+      "category": "content",
+      "nullable": true,
+      "description": "Article author"
+    },
+    {
+      "name": "domain",
+      "type": "string",
+      "category": "content",
+      "description": "Domain name (e.g., example.com)"
+    },
+    {
+      "name": "medium",
+      "type": "string",
+      "category": "content",
+      "nullable": true,
+      "description": "Publication medium"
+    },
+    {
+      "name": "language",
+      "type": "string",
+      "category": "content",
+      "nullable": true,
+      "description": "Detected language"
+    },
+    {
+      "name": "extraction_timestamp",
+      "type": "datetime",
+      "category": "content",
+      "nullable": true,
+      "description": "When extraction completed"
+    },
+    {
+      "name": "error_type",
+      "type": "string",
+      "category": "error",
+      "nullable": true,
+      "description": "Type of error encountered"
+    },
+    {
+      "name": "error_message",
+      "type": "string",
+      "category": "error",
+      "nullable": true,
+      "description": "Detailed error message"
+    },
+    {
+      "name": "found_in_posts",
+      "type": "array<string>",
+      "category": "relationship",
+      "description": "Post IDs containing this URL"
+    },
+    {
+      "name": "found_in_posts_count",
+      "type": "integer",
+      "category": "relationship",
+      "description": "Number of posts with this URL"
+    }
+  ],
+  "categories": {
+    "core": "Essential fetch information",
+    "content": "Extracted content metadata",
+    "error": "Error information for failed fetches",
+    "relationship": "Post relationship data"
+  }
+}

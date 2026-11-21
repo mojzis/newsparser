@@ -1,0 +1,53 @@
+{
+  "project": "Bluesky MCP Monitor",
+  "description": "Parquet file schemas for the stage-based data pipeline",
+  "version": "1.0",
+  "lastUpdated": "2024-12-25",
+  "overview": {
+    "pipeline": "collect → fetch → evaluate",
+    "storagePattern": "7-day rolling window files organized by run date",
+    "dataFlow": "Posts are collected, URLs are extracted and fetched, then content is evaluated"
+  },
+  "stages": {
+    "collect": {
+      "name": "Collect Stage",
+      "purpose": "Gather Bluesky posts matching search criteria",
+      "inputs": "Bluesky API search results",
+      "outputs": "Posts with metadata and engagement metrics",
+      "schemaFile": "collect.json"
+    },
+    "fetch": {
+      "name": "Fetch Stage", 
+      "purpose": "Extract content from URLs found in posts",
+      "inputs": "URLs from collected posts",
+      "outputs": "Fetched content or error information",
+      "schemaFile": "fetch.json"
+    },
+    "evaluate": {
+      "name": "Evaluate Stage",
+      "purpose": "AI analysis of fetched content",
+      "inputs": "Successfully fetched articles",
+      "outputs": "Relevance scores, summaries, and classification",
+      "schemaFile": "evaluate.json"
+    }
+  },
+  "commonPatterns": {
+    "fileNaming": "{stage}/by-run-date/{YYYY-MM-DD}_last_7_days.parquet",
+    "compression": "snappy",
+    "timeZone": "UTC",
+    "dateFormat": "ISO 8601"
+  },
+  "dataTypes": {
+    "string": "UTF-8 encoded text",
+    "integer": "64-bit signed integer",
+    "float": "64-bit floating point",
+    "boolean": "True/False",
+    "datetime": "Microsecond precision, UTC timezone",
+    "array": "Native Parquet list type"
+  },
+  "usage": {
+    "python": "pd.read_parquet('path/to/file.parquet')",
+    "javascript": "Use parquetjs or arrow libraries",
+    "sql": "Most SQL engines support Parquet natively"
+  }
+}
