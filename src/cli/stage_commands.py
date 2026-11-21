@@ -128,12 +128,19 @@ def collect(
 
         settings = get_settings()
 
-        if "bluesky" in collection.sources and not settings.has_bluesky_credentials:
-            console.print("❌ Bluesky credentials not configured", style="red")
+        sources = list(collection.sources)
+        if "bluesky" in sources and not settings.has_bluesky_credentials:
+            if sources == ["bluesky"]:
+                console.print("❌ Bluesky credentials not configured", style="red")
+                console.print(
+                    "Set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables"
+                )
+                sys.exit(1)
             console.print(
-                "Set BLUESKY_HANDLE and BLUESKY_APP_PASSWORD environment variables"
+                "⚠️  Bluesky credentials missing; skipping bluesky source",
+                style="yellow",
             )
-            sys.exit(1)
+            sources.remove("bluesky")
 
         search_definition = collection.searches.get_search(search_key)
 
@@ -162,7 +169,7 @@ def collect(
             expand_references=expand_references,
             max_reference_depth=max_reference_depth,
             base_path=collection.stages_base,
-            sources=collection.sources,
+            sources=sources,
         )
 
         result = asyncio.run(collect_stage.run_collection(parsed_date))

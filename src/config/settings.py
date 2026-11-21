@@ -8,10 +8,12 @@ class Settings(BaseSettings):
     )
 
     # Cloudflare R2 Configuration
-    r2_access_key_id: str = Field(..., description="R2 access key ID")
-    r2_secret_access_key: str = Field(..., description="R2 secret access key")
-    r2_bucket_name: str = Field(..., description="R2 bucket name")
-    r2_endpoint_url: str = Field(..., description="R2 endpoint URL")
+    r2_access_key_id: str | None = Field(default=None, description="R2 access key ID")
+    r2_secret_access_key: str | None = Field(
+        default=None, description="R2 secret access key"
+    )
+    r2_bucket_name: str | None = Field(default=None, description="R2 bucket name")
+    r2_endpoint_url: str | None = Field(default=None, description="R2 endpoint URL")
 
     # Application Settings
     log_level: str = Field(default="INFO", description="Logging level")

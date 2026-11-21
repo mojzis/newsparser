@@ -16,6 +16,10 @@ evaluation:
 
 default_search: mcp_tag
 
+sources:
+  - bluesky
+  - hackernews
+
 searches:
   searches:
     mcp_mentions:

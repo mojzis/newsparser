@@ -11,6 +11,7 @@ class TestSettings:
     def test_settings_with_all_required_fields(self):
         """Test settings creation with all required fields."""
         settings = Settings(
+            _env_file=None,
             r2_access_key_id="test_key",
             r2_secret_access_key="test_secret",
             r2_bucket_name="test-bucket",
@@ -29,16 +30,18 @@ class TestSettings:
         assert settings.bluesky_app_password is None
         assert settings.anthropic_api_key is None
 
-    def test_settings_missing_required_fields(self):
-        """Test that missing required fields raise ValidationError."""
-        with pytest.raises(ValidationError) as exc_info:
-            Settings()
+    def test_r2_is_optional(self, monkeypatch):
+        """R2 is optional; without it has_r2_credentials is False."""
+        for k in (
+            "R2_ACCESS_KEY_ID",
+            "R2_SECRET_ACCESS_KEY",
+            "R2_BUCKET_NAME",
+            "R2_ENDPOINT_URL",
+        ):
+            monkeypatch.delenv(k, raising=False)
+        settings = Settings(_env_file=None)
 
-        error_msg = str(exc_info.value)
-        assert "r2_access_key_id" in error_msg
-        assert "r2_secret_access_key" in error_msg
-        assert "r2_bucket_name" in error_msg
-        assert "r2_endpoint_url" in error_msg
+        assert settings.has_r2_credentials is False
 
     def test_settings_with_optional_fields(self):
         """Test settings with optional fields set."""

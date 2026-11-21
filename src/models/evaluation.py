@@ -11,7 +11,9 @@ class ArticleEvaluation(AnalyticsBase):
     """Evaluation result for an article from Anthropic API."""
 
     url: HttpUrl = Field(..., description="Article URL")
-    is_relevant: bool = Field(..., description="Whether article is relevant to the topic")
+    is_relevant: bool = Field(
+        ..., description="Whether article is relevant to the topic"
+    )
     relevance_score: float = Field(
         ..., ge=0.0, le=1.0, description="Relevance score (0-1)"
     )

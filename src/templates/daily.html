@@ -7,18 +7,7 @@
 
 {% if articles %}
     {% for article in articles %}
-    <div class="article">
-        <div class="article-title">
-            {{ article.content_type | content_icon_tooltip | safe }} <a href="{{ article.url }}">{{ article.title }}</a>{% if article.language | language_flag %} {{ article.language | language_flag }}{% endif %}
-        </div>
-        <div class="perex">{{ article.perex }}</div>
-        <div class="meta">
-            via <a href="{{ article.bluesky_url }}">{{ article.author }}</a>
-            at {{ article.timestamp }}
-            • {{ article.domain }}
-            • {{ article.source_label }}{% if article.debug_filename %} • <code>{{ article.debug_filename }}</code>{% endif %}
-        </div>
-    </div>
+    {% include "_article.html" %}
     {% endfor %}
 {% else %}
     <div class="no-articles">

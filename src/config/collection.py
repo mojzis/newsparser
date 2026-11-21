@@ -71,6 +71,8 @@ def load_collection(name: str, config_dir: str | Path = "config") -> CollectionC
         data = yaml.safe_load(f)
 
     if not isinstance(data, dict):
-        raise TypeError(f"Collection configuration must be a YAML object: {config_path}")
+        raise TypeError(
+            f"Collection configuration must be a YAML object: {config_path}"
+        )
 
     return CollectionConfig.model_validate(data)

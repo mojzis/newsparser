@@ -29,7 +29,7 @@ class HackerNewsSource:
         self, search_definition: SearchDefinition, max_posts: int
     ) -> list[BlueskyPost]:
         """Search Hacker News for stories matching the search definition."""
-        query = " ".join(search_definition.include_terms)
+        query = " ".join(t.lstrip("#") for t in search_definition.include_terms)
 
         try:
             async with httpx.AsyncClient() as client:

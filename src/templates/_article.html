@@ -1,0 +1,14 @@
+<article class="article">
+    <div class="article-title">
+        {{ article.content_type | content_icon_tooltip | safe }} <a href="{{ article.url }}">{{ article.title }}</a>{% if article.language | language_flag %} {{ article.language | language_flag }}{% endif %}
+    </div>
+    <div class="perex">{{ article.perex }}</div>
+    <div class="meta">
+        <span class="chip chip-{{ article.source }}">{{ article.source_label }}</span>
+        <span class="chip chip-score" title="Relevance score">{{ (article.relevance_score * 100) | round | int }}% relevant</span>
+        <span>{{ article.domain }}</span>
+        <span>via <a href="{{ article.bluesky_url }}">{{ article.author }}</a></span>
+        <span>{{ article.timestamp }}</span>{% if article.debug_filename %}
+        <code>{{ article.debug_filename }}</code>{% endif %}
+    </div>
+</article>

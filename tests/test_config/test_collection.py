@@ -114,10 +114,10 @@ class TestSources:
                 _minimal_collection_kwargs(sources=["not-a-real-source"])
             )
 
-    def test_mcp_defaults_to_bluesky_only(self):
+    def test_mcp_uses_bluesky_and_hackernews(self):
         collection = load_collection("mcp")
 
-        assert collection.sources == ["bluesky"]
+        assert collection.sources == ["bluesky", "hackernews"]
 
     def test_duckdb_uses_bluesky_and_hackernews(self):
         collection = load_collection("duckdb")

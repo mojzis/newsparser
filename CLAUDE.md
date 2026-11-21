@@ -265,3 +265,11 @@ stages/
 - Mocked external services (R2, Bluesky, Anthropic) for testing
 - Integration tests using moto for AWS/S3 mocking
 
+
+## Daily schedule
+
+`scripts/daily.sh` runs `nsp run-all` for the `mcp` collection and pushes the site to the `gh-pages` branch
+(https://mojzis.github.io/newsparser/). Triggered 05:15 local by the systemd user timer `newsparser-daily.timer`
+(units in `~/.config/systemd/user/`, tracked by chezmoi). Secrets live in the gitignored `.env`
+(`ANTHROPIC_API_KEY`; add `BLUESKY_HANDLE`/`BLUESKY_APP_PASSWORD` to enable the Bluesky source, it is skipped
+with a warning while they are missing). R2 is optional and unused. Logs: `journalctl --user -u newsparser-daily`.

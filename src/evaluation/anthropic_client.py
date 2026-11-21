@@ -187,6 +187,10 @@ class AnthropicEvaluator:
         try:
             # Extract JSON from response
             response_text = response_text.strip()
+            if response_text.startswith("```"):
+                response_text = (
+                    response_text.split("\n", 1)[-1].removesuffix("```").strip()
+                )
 
             # Try to parse as JSON
             data = json.loads(response_text)

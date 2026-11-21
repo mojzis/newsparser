@@ -133,3 +133,4 @@ output/
 
 # Search term tester output
 /term_tests/
+notebooks/__marimo__/

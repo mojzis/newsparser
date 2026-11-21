@@ -32,6 +32,11 @@ class R2Client:
             s3={"addressing_style": "path"},
         )
 
+        if not settings.has_r2_credentials:
+            logger.info("R2 not configured; storage calls will fail")
+            self.s3_client = None
+            return
+
         self.s3_client = boto3.client(
             "s3",
             endpoint_url=settings.r2_endpoint_url,
