@@ -44,3 +44,75 @@ class TestAnthropicEvaluatorCollectionWiring:
 
         assert evaluator.topic.name == "DuckDB"
         assert evaluator.topic == collection.topic
+
+
+def _content():
+    from datetime import datetime
+
+    from src.content.models import ExtractedContent
+
+    return ExtractedContent(
+        url="https://example.com/a",
+        title="An MCP server",
+        content_markdown="Building an MCP server.",
+        word_count=4,
+        language="en",
+        content_type="tutorial",
+        domain="example.com",
+        extraction_timestamp=datetime(2026, 11, 21),
+    )
+
+
+def _response(blocks, stop_reason="end_turn"):
+    from unittest.mock import MagicMock
+
+    return MagicMock(content=blocks, stop_reason=stop_reason)
+
+
+class TestAnthropicEvaluatorResponseParsing:
+    def test_parses_text_after_thinking_block(self, mocker):
+        from anthropic.types import TextBlock, ThinkingBlock
+
+        evaluator = AnthropicEvaluator(_settings())
+        payload = (
+            '{"is_relevant": true, "relevance_score": 0.9, "summary": "A tutorial on MCP.", '
+            '"perex": "Build an MCP server.", "key_topics": ["mcp"], "content_type": "tutorial", '
+            '"language": "en"}'
+        )
+        create = mocker.patch.object(
+            evaluator.client.messages,
+            "create",
+            return_value=_response(
+                [
+                    ThinkingBlock(type="thinking", thinking="", signature="x"),
+                    TextBlock(type="text", text=payload),
+                ]
+            ),
+        )
+
+        result = evaluator.evaluate_article(_content(), "https://example.com/a")
+
+        assert result.error is None
+        assert result.is_relevant is True
+        assert result.relevance_score == 0.9
+        kwargs = create.call_args.kwargs
+        assert kwargs["thinking"] == evaluator.model_config.config["thinking"]
+        assert "temperature" not in kwargs
+
+    def test_no_text_block_records_error_with_model(self, mocker):
+        from anthropic.types import ThinkingBlock
+
+        evaluator = AnthropicEvaluator(_settings())
+        mocker.patch.object(
+            evaluator.client.messages,
+            "create",
+            return_value=_response(
+                [ThinkingBlock(type="thinking", thinking="", signature="x")],
+                stop_reason="refusal",
+            ),
+        )
+
+        result = evaluator.evaluate_article(_content(), "https://example.com/a")
+
+        assert "stop_reason=refusal" in result.error
+        assert result.model_id == evaluator.model_config.model_id

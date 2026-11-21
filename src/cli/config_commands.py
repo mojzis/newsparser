@@ -77,7 +77,9 @@ def show(branch: str) -> None:
             model_tree.add(f"Name: {model.name}")
             model_tree.add(f"Provider: {model.provider}")
             model_tree.add(f"Model ID: {model.model_id}")
-            model_tree.add(f"Temperature: {model.config.get('temperature', 'N/A')}")
+            model_tree.add(
+                f"Thinking: {model.config.get('thinking', {}).get('type', 'default')}"
+            )
             model_tree.add(f"Max Tokens: {model.config.get('max_tokens', 'N/A')}")
 
         # Prompts config

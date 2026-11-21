@@ -102,7 +102,7 @@ class EvaluateStage(ProcessingStage):
                 "content_type": evaluation.content_type,
                 "language": evaluation.language,
                 "evaluated_at": evaluation.evaluated_at.isoformat() + "Z",
-                "evaluator": "claude-haiku-4-5",  # Model used for evaluation
+                "evaluator": evaluation.model_id,
             }
 
             # Get essential reference data from original file
@@ -251,7 +251,7 @@ This content was evaluated for relevance.
                                 "language": evaluation.language,
                                 "evaluated_at": evaluation.evaluated_at.isoformat()
                                 + "Z",
-                                "evaluator": "claude-haiku-4-5",  # Model used for evaluation
+                                "evaluator": evaluation.model_id,
                             }
 
                             # Update frontmatter with evaluation

@@ -6,30 +6,32 @@ metadata:
 models:
   mcp_evaluator_v1:
     name: "MCP Evaluator (Haiku)"
-    version: "1.0"
+    version: "2.0"
     provider: "anthropic"
-    model_id: "claude-haiku-4-5"
-    config:
-      temperature: 0
+    model_id: "claude-haiku-5-5"
+    config:  # passed to messages.create as-is
       max_tokens: 500
+      thinking:
+        type: "disabled"
     content_limits:
       max_words: 5000
       max_chars: 30000
     cost_per_token:
-      input: 0.001
-      output: 0.005
+      input: 0.0001
+      output: 0.0005
   
   mcp_evaluator_sonnet:
     name: "MCP Evaluator (Sonnet)"
-    version: "1.0"
+    version: "2.0"
     provider: "anthropic"
-    model_id: "claude-sonnet-5"
-    config:
-      temperature: 0
+    model_id: "claude-sonnet-5-5"
+    config:  # passed to messages.create as-is
       max_tokens: 500
+      thinking:
+        type: "between_tools"  # Sonnet 5.5 rejects "disabled"
     content_limits:
       max_words: 8000
       max_chars: 50000
     cost_per_token:
-      input: 0.003
-      output: 0.015
+      input: 0.002
+      output: 0.010

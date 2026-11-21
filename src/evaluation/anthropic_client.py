@@ -2,7 +2,12 @@
 
 import json
 
-from anthropic import Anthropic
+from anthropic import (
+    Anthropic,
+    AuthenticationError,
+    BadRequestError,
+    NotFoundError,
+)
 from anthropic.types import TextBlock
 from pydantic import HttpUrl
 
@@ -91,16 +96,19 @@ class AnthropicEvaluator:
             # Call Anthropic API using model configuration
             response = self.client.messages.create(
                 model=self.model_config.model_id,
-                max_tokens=self.model_config.config["max_tokens"],
-                temperature=self.model_config.config["temperature"],
                 messages=[{"role": "user", "content": prompt}],
+                **self.model_config.config,
             )
 
-            # Parse response
-            block = response.content[0]
-            if not isinstance(block, TextBlock):
-                raise TypeError(f"Unexpected response block type: {type(block)}")
-            result = self._parse_response(block.text)
+            # Parse response (newer models may prepend thinking blocks)
+            text = next(
+                (b.text for b in response.content if isinstance(b, TextBlock)), None
+            )
+            if text is None:
+                raise ValueError(
+                    f"No text in response (stop_reason={response.stop_reason})"
+                )
+            result = self._parse_response(text)
 
             # Create evaluation with configuration metadata
             return ArticleEvaluation(
@@ -126,6 +134,9 @@ class AnthropicEvaluator:
                 config_branch=self.config_manager.branch,
             )
 
+        except (BadRequestError, AuthenticationError, NotFoundError):
+            # Bad model config or credentials: fail the run, not each article
+            raise
         except Exception as e:
             logger.exception("Failed to evaluate article")
 
@@ -143,11 +154,11 @@ class AnthropicEvaluator:
                 evaluated_at=content.extraction_timestamp,
                 word_count=len(content.content_markdown.split()),
                 error=str(e),
-                prompt_version="unknown",
-                prompt_name="unknown",
-                model_id="unknown",
-                model_version="unknown",
-                config_branch="unknown",
+                prompt_version=self.prompt_config.version,
+                prompt_name=self.prompt_config.name,
+                model_id=self.model_config.model_id,
+                model_version=self.model_config.version,
+                config_branch=self.config_manager.branch,
             )
 
     def _create_evaluation_prompt(
