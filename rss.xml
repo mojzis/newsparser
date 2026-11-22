@@ -5,8 +5,16 @@
     <link>https://mojzis.github.io/newsparser</link>
     <description>Daily monitoring of Model Context Protocol mentions</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 21 Nov 2026 21:47:56 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 22 Nov 2026 04:16:00 +0000</lastBuildDate>
     <ns0:link href="https://mojzis.github.io/newsparser/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Shipping one MCP server into two very different rulebooks - PaPoo</title>
+      <link>https://papoo.work/doc/df770baccab91895</link>
+      <description>Turns out the secret sauce behind impressive AI agents is less wizardry and more plumbing, the boring kind that finds the right runbook before anyone panics.</description>
+      <pubDate>Sun, 22 Nov 2026 02:54:52 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2umgyvaim25</guid>
+      <category>blog post</category>
+    </item>
     <item>
       <title>SQLite databases for your agents · databasedmcp</title>
       <link>https://databasedmcp.com/</link>
