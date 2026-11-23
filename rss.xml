@@ -5,8 +5,96 @@
     <link>https://mojzis.github.io/newsparser</link>
     <description>Daily monitoring of Model Context Protocol mentions</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 22 Nov 2026 04:16:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 23 Nov 2026 04:16:42 +0000</lastBuildDate>
     <ns0:link href="https://mojzis.github.io/newsparser/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>GitHub - invertedmushroom/codified-context-harness: 3-tier Codified Context meta-harness for Claude Code, Codex, Copilot, Antigravity, DSH &amp; ZCode: hook routing, MCP cold memory, and static/Pareto evals. · GitHub</title>
+      <link>https://github.com/invertedmushroom/codified-context-harness</link>
+      <description>Turns out your coding agent needs a filing cabinet, a bouncer, and a report card, and this repo hands you all three, MCP servers included.</description>
+      <pubDate>Mon, 23 Nov 2026 02:54:23 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2x4v2u4ls2p</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>GitHub - cpldxx/the-sovereign: A research lab that never stops: give it a topic, it researches every night, keeps each fact with its source in a knowledge graph, and proves what it learned on an exam. Self-hosted, on local models or Claude. · GitHub</title>
+      <link>https://github.com/cpldxx/the-sovereign</link>
+      <description>A lab that studies a topic while you sleep, grades itself on a quiz it wrote from sources it was never allowed to read, and keeps its homework tidy in a graph.</description>
+      <pubDate>Mon, 23 Nov 2026 02:33:15 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50606825</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>MCP server authentication: is your remote MCP server public? Test tools/list with curl · Abbi Labs</title>
+      <link>https://abbilabs.xyz/guides/mcp-server-authentication-public-tools</link>
+      <description>Your MCP server is probably open to the internet, and /mcp is the first URL anyone will guess. A two-minute curl test will tell you whether strangers can see your tools.</description>
+      <pubDate>Mon, 23 Nov 2026 01:45:09 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2wyzc2ga72f</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>Best PDF and documents MCP servers (November 2026) · tested every night</title>
+      <link>https://boternity.com/mcp-index/best/pdf</link>
+      <description>A leaderboard for PDF servers that asks models to read, parse and create documents, scored every night by someone who clearly enjoys spreadsheets more than sleep.</description>
+      <pubDate>Sun, 22 Nov 2026 15:55:05 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2vy26ez5n2i</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>GitHub - soodhere/saktum-check: Test your MCP server in one command: OWASP MCP Top 10, OAuth sign-in, conformance, agent experience and context cost. Grade, fixes, signed result. · GitHub</title>
+      <link>https://github.com/soodhere/saktum-check</link>
+      <description>Your MCP server walks into a grader, and the grader has opinions about its AWS keys and stack traces. Helpfully, it also suggests fixes.</description>
+      <pubDate>Sun, 22 Nov 2026 15:30:27 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50600568</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>GitHub - relaticle/relaticle: Open-source CRM your AI agents can read and update: companies, people, opportunities, tasks and notes. REST API, self-hosted or cloud. · GitHub</title>
+      <link>https://github.com/relaticle/relaticle</link>
+      <description>Your sales pipeline now has an MCP server, so your AI assistant can finally update the CRM without you lifting a finger. Assuming you still have a list of companies to sell to.</description>
+      <pubDate>Sun, 22 Nov 2026 14:59:49 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50600315</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>GitHub - chempane/chempane: chempane (formerly chemdraw-mcp): chemistry panel for Claude Desktop (MCP server). Ask for a molecule, get a drawing you can turn, click and export. Structures, 3D models, mechanisms and Anki cards drawn locally with RDKit, plus spectra and lab plots; proteins from the PDB or AlphaFold. Unofficial, not affiliated with Revvity. · GitHub</title>
+      <link>https://github.com/jurimaxam-dotcom/chemdraw-mcp</link>
+      <description>Ask Claude for caffeine and get a rotatable 3D molecule instead of a wall of text. Chemistry homework just got a lot more pleasant.</description>
+      <pubDate>Sun, 22 Nov 2026 14:19:21 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2vsoxfuhs2m</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>GitHub - thoufeeque22/zeroburn: Zero-waste hybrid AI coding-agent orchestrator: cut Claude/Gemini quota burn by 80% with 0-token static checks, local Ollama diff review, code-graph pre-fetching &amp; 1-line test receipts. · GitHub</title>
+      <link>https://github.com/thoufeeque22/zeroburn</link>
+      <description>Someone decided Claude's quota was too precious to waste on line counts, so the checks now run in Python and a local model gets the diff review. Your rate limit will thank you.</description>
+      <pubDate>Sun, 22 Nov 2026 14:01:03 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50599799</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>BOTERNITY log, 2026-11-21</title>
+      <link>https://boternity.com/journal/2026-11-21</link>
+      <description>A developer log of one busy day, where a server grew from a handful of endpoints to 29 tools and learned to speak Streamable HTTP without asking for a login. The registry listing is the grown-up touch</description>
+      <pubDate>Sun, 22 Nov 2026 12:45:01 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2vngbwpid2f</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - stn1slv/teamscache: CLI and read-only MCP server for the local Microsoft Teams v2 message cache. No Graph API, no network. · GitHub</title>
+      <link>https://github.com/stn1slv/teamscache</link>
+      <description>Teams keeps your recent chats on disk whether your tenant admin likes it or not. This tool reads them and hands them to your AI assistant, no OAuth dance required.</description>
+      <pubDate>Sun, 22 Nov 2026 09:29:24 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50597797</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>43 MCP servers on one laptop. 9 are in no settings file. · RegulAI</title>
+      <link>https://regulai-security.com/research/43-mcp-servers-on-one-laptop</link>
+      <description>Your laptop has forty-three MCP servers and a settings file that admits to thirty-four. The other nine are hiding in plugins, extensions and places nobody thought to check.</description>
+      <pubDate>Sun, 22 Nov 2026 08:13:03 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50597380</guid>
+      <category>article</category>
+    </item>
     <item>
       <title>Shipping one MCP server into two very different rulebooks - PaPoo</title>
       <link>https://papoo.work/doc/df770baccab91895</link>
@@ -14,94 +102,6 @@
       <pubDate>Sun, 22 Nov 2026 02:54:52 +0000</pubDate>
       <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2umgyvaim25</guid>
       <category>blog post</category>
-    </item>
-    <item>
-      <title>SQLite databases for your agents · databasedmcp</title>
-      <link>https://databasedmcp.com/</link>
-      <description>Give your AI agents persistent memory through MCP-connected SQLite databases—no schema design required, just tell them what matters</description>
-      <pubDate>Sat, 21 Nov 2026 21:04:46 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50593621</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Pandex: Europe's law, in one API.</title>
-      <link>https://www.pandex.io/</link>
-      <description>European law meets API: Pandex lets you query legislation and court rulings straight from the source, no legal jargon required</description>
-      <pubDate>Sat, 21 Nov 2026 20:47:41 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50593481</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>GitHub - DagF1nn/bindy: Skjermhjelper for Windows som svarer med Claude og peker på det du skal trykke på · GitHub</title>
-      <link>https://github.com/DagF1nn/bindy</link>
-      <description>Windows paperclip meets Claude: ask questions about your screen, get guided through tasks one click at a time, now with MCP support for Claude Code</description>
-      <pubDate>Sat, 21 Nov 2026 20:30:22 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2twxhxyll2f</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Skillshop</title>
-      <link>https://skillshop.duckdns.org/</link>
-      <description>MCP server packed with AI playbooks—from grant writing to home server management. Connect to Claude or your favorite MCP app and let your AI handle the heavy lifting</description>
-      <pubDate>Sat, 21 Nov 2026 17:00:31 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2tlaapw6w22</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>LuisCore Developer Console</title>
-      <link>https://luiscore.com/developers#signup</link>
-      <description>Decentralized inference platform with REST APIs, agent registry, and explicit MCP session tracking for multi-step AI workflows</description>
-      <pubDate>Sat, 21 Nov 2026 15:30:05 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2tg6jgwm223</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>AgentStack Badge &amp; Live Widget Studio - Social Proof for Builders</title>
-      <link>https://agents.techuis.nl/badges</link>
-      <description>Social proof widgets for AI builders—track upvotes for your MCP servers and agent tools on GitHub and landing pages</description>
-      <pubDate>Sat, 21 Nov 2026 14:00:02 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2tb5j7qv52k</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>GitHub - spooky6G/bobalice_books: Global fully open-source bookkeeping ledger for real businesses · GitHub</title>
-      <link>https://github.com/spooky6G/bobalice_books</link>
-      <description>Self-hosted bookkeeping that lives in your files, chains entries cryptographically, and optionally anchors to blockchain—no vendor lock-in required</description>
-      <pubDate>Sat, 21 Nov 2026 13:52:43 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50589229</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>GitHub - mrzdevcore/intent-graph: ig: a system map of your codebase - analyser + AI reading + a walkable canvas · GitHub</title>
-      <link>https://github.com/mrzdevcore/intent-graph</link>
-      <description>Codebase cartography meets AI: ig maps your code as a walkable canvas and lets Claude navigate it through MCP</description>
-      <pubDate>Sat, 21 Nov 2026 12:13:34 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50588411</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>YouTube Transcript API: 5,000 Transcripts for $5, JSON or Text</title>
-      <link>https://getyoutubetext.com/youtube-transcript-api</link>
-      <description>YouTube transcript API that doubles as an MCP server—give your AI a YouTube tool that actually works from the cloud</description>
-      <pubDate>Sat, 21 Nov 2026 10:59:17 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50587982</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>GitHub - Jnooo-cloud/fokus: Local website blocker and screen time tracker for macOS. No browser extension, no account, no cloud. Built-in MCP server so Claude can read your usage data. · GitHub</title>
-      <link>https://github.com/Jnooo-cloud/fokus</link>
-      <description>Local Mac app blocks distracting sites and tracks screen time, then lets Claude read your data via MCP to coach you on focus habits</description>
-      <pubDate>Sat, 21 Nov 2026 09:15:04 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50587446</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>GitHub - modelcontextprotocol/ext-events: Incubation space for the MCP Triggers &amp; Events Working Group · GitHub</title>
-      <link>https://github.com/modelcontextprotocol/ext-events</link>
-      <description>MCP's Events WG is building webhooks for servers to push updates instead of clients constantly asking 'are we there yet?'</description>
-      <pubDate>Sat, 21 Nov 2026 06:02:42 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2sghyoov52s</guid>
-      <category>product update</category>
     </item>
   </channel>
 </rss>
