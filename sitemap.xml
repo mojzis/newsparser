@@ -4,7 +4,13 @@
     <loc>https://mojzis.github.io/newsparser/index.html</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <lastmod>2026-11-24</lastmod>
+    <lastmod>2026-11-25</lastmod>
+  </url>
+  <url>
+    <loc>https://mojzis.github.io/newsparser/reports/2026-11-25/report.html</loc>
+    <lastmod>2026-11-25</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mojzis.github.io/newsparser/reports/2026-11-24/report.html</loc>
