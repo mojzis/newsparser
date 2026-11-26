@@ -5,8 +5,192 @@
     <link>https://mojzis.github.io/newsparser</link>
     <description>Daily monitoring of Model Context Protocol mentions</description>
     <language>en-us</language>
-    <lastBuildDate>Wed, 25 Nov 2026 04:18:28 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 26 Nov 2026 04:17:38 +0000</lastBuildDate>
     <ns0:link href="https://mojzis.github.io/newsparser/rss.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Claude Tasks And Elicitation Reach General Availability | Dirty Static</title>
+      <link>https://dirtystatic.com/articles/claude-tasks-and-elicitation-reach-general-availability/</link>
+      <description>Tool calls finally learned to hold the line and ask permission, which is more than some interns manage. MCP servers can now run long jobs in the background and pause for a human sign-off.</description>
+      <pubDate>Wed, 25 Nov 2026 23:49:38 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n36dxhuvxc2v</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>Threat Modeling Azure MCP: Securing AI-Assisted Infrastructure Operations | Microsoft Community Hub</title>
+      <link>https://techcommunity.microsoft.com/blog/azureinfrastructureblog/threat-modeling-azure-mcp-securing-ai-assisted-infrastructure-operations/4564892</link>
+      <description>Teaching your AI assistant to poke around Azure is handy until it decides a restart sounds like a good idea. Least privilege, it turns out, still matters.</description>
+      <pubDate>Wed, 25 Nov 2026 21:11:13 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50647599</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>Agentic Ontology Platform - Ihr Agent richtet sie selbst ein</title>
+      <link>https://www.telesherpa.com/de/plattform</link>
+      <description>Apparently the best way to configure a database now is to let an agent do it, and it can even sign itself up. Bureaucracy, meet your replacement.</description>
+      <pubDate>Wed, 25 Nov 2026 20:47:03 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35zqyfbrc26</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Jotly - docs, issue tracker, boards &amp; calendar in one workspace</title>
+      <link>https://usejotly.com/</link>
+      <description>A notes app that works offline, exports almost everything, and lets your AI assistant wander into your boards with a token you can revoke whenever you like.</description>
+      <pubDate>Wed, 25 Nov 2026 19:01:49 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50646001</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - ishqDehlvi/wavelink: Your WhatsApp, inside ChatGPT and Claude. Self-hosted MCP server + dashboard. · GitHub</title>
+      <link>https://github.com/ishqDehlvi/wavelink</link>
+      <description>Your WhatsApp inbox, now reachable from your favourite chatbot. Just make sure the chatbot asks before it sends anything on your behalf.</description>
+      <pubDate>Wed, 25 Nov 2026 18:23:18 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50645583</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>Claude suma Skills, tareas y consultas a sus conectores MCP | Nelbytes</title>
+      <link>https://nelbytes.com/claude-mcp-skills-tareas-segundo-plano/</link>
+      <description>Turns out MCP servers can now hand Claude a how-to manual along with the tools, and even ask you a question mid-task. Politely, of course.</description>
+      <pubDate>Wed, 25 Nov 2026 17:30:14 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35ore25nrc2</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>MCP Karaoke</title>
+      <link>https://mcpkaraoke.org/</link>
+      <description>Salesforce, but make it a sandbox. This karaoke-style CRM lets you practice your SOQL and CRM workflows without anyone's pipeline on the line.</description>
+      <pubDate>Wed, 25 Nov 2026 17:16:44 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50644793</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>MCP Turns 2: Adoption, Gateways, and Governance | CData</title>
+      <link>https://www.cdata.com/blog/mcp-second-birthday-enterprise-lessons/?utm_source=bluesky&amp;utm_medium=organicsocial&amp;utm_campaign=connect</link>
+      <description>Two years in, MCP has gone from a scrappy open spec to something enterprises actually govern, with gateways and identity now the main event.</description>
+      <pubDate>Wed, 25 Nov 2026 16:09:09 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35ka2pdls2n</guid>
+      <category>blog post</category>
+    </item>
+    <item>
+      <title>Connect AI tools to 9,000 apps with Zapier MCP</title>
+      <link>https://zapier.com/mcp</link>
+      <description>Zapier has handed AI assistants a key to roughly 9,000 apps, along with a guest list and a logbook so nobody wanders off unsupervised.</description>
+      <pubDate>Wed, 25 Nov 2026 16:07:19 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50643836</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Pocket Alert | MCP Server | Push Notifications for AI Agents</title>
+      <link>https://pocketalert.app/tools/mcp?utm_source=bluesky&amp;utm_medium=social&amp;utm_campaign=social_2026_11-12&amp;utm_content=w4-bluesky-03</link>
+      <description>Your AI agent finally gets a way to tap you on the shoulder. One JSON snippet in your Claude Desktop config and it can ping your phone whenever it has something to say.</description>
+      <pubDate>Wed, 25 Nov 2026 16:00:04 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35jpt2phb2d</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - axelixlabs/axelix: The source code of Axelix - a Delta Force for your Spring Boot ecosystem · GitHub</title>
+      <link>https://github.com/axelixlabs/axelix</link>
+      <description>A Spring Boot debugging console that hands its keys to AI agents over MCP, with permissions attached so the agent doesn't get the run of the house.</description>
+      <pubDate>Wed, 25 Nov 2026 15:39:06 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50643436</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>One yes, always allow: a human-approval bug in AG2's ACP client | PitSense</title>
+      <link>https://pitsense.io/research/ag2-acp-allow-always/</link>
+      <description>One polite 'yes' from a human, and suddenly an agent had a standing permission to run every git command for the rest of the session. The bug was in the approval step, not the model.</description>
+      <pubDate>Wed, 25 Nov 2026 15:28:29 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50643299</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>The reader moved on overnight. Ownership data has to keep up - OpenCheck</title>
+      <link>https://opencheck.world/blog/the-reader-moved-on-overnight-ownership-data-has-to-keep-up</link>
+      <description>Within a day of Anthropic shipping MCP skills and tasks, OpenCheck's server spoke both. Turns out ownership data has to keep up with agents, and agents don't wait around.</description>
+      <pubDate>Wed, 25 Nov 2026 14:55:41 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35g4pkm5s27</guid>
+      <category>blog post</category>
+    </item>
+    <item>
+      <title>From HTML5 to Android: Build a Game with ChatGPT</title>
+      <link>https://techeducareer.com/html5-to-android-brickmint-chatgpt-android-studio/</link>
+      <description>Turns out you can teach ChatGPT to poke at an Android emulator for you, provided you hand it an MCP server and a little patience with PowerShell paths.</description>
+      <pubDate>Wed, 25 Nov 2026 14:54:33 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35g2oe5kk2o</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>Mcpproxy Go MCP Server | Awesome MCP Servers</title>
+      <link>https://mcpservers.org/servers/smart-mcp-proxy/mcpproxy-go</link>
+      <description>A proxy that sits between your AI agent and a pile of MCP servers, so the agent reads a handful of tool names instead of hundreds of schemas. It also makes you review new tools before the agent gets t</description>
+      <pubDate>Wed, 25 Nov 2026 14:48:49 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35fqgb3tc27</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Best Finance and stock market MCP servers (November 2026) · tested every night</title>
+      <link>https://boternity.com/mcp-index/best/finance</link>
+      <description>Finance MCP servers, graded every night so you don't have to. Some of them even answer the phone on the first ring.</description>
+      <pubDate>Wed, 25 Nov 2026 14:05:01 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n35dc43dly2q</guid>
+      <category>article</category>
+    </item>
+    <item>
+      <title>avva - your expertise, as an MCP any AI can consult</title>
+      <link>https://avva.chat/</link>
+      <description>Telling your AI to act like a senior anything is the prompt equivalent of hoping for the best. Showing it how you actually decide is more useful.</description>
+      <pubDate>Wed, 25 Nov 2026 12:53:18 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50641710</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>GitHub - bilalnaseer/wsp-wordpress-mcp: WSP MCP - Free WordPress MCP For Connecting AI Coding Agents · GitHub</title>
+      <link>https://github.com/bilalnaseer/wsp-wordpress-mcp</link>
+      <description>Your WordPress site now has an AI intern with 200 tools and a very detailed logbook. Just don't give it the admin password on a sticky note.</description>
+      <pubDate>Wed, 25 Nov 2026 12:37:14 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50641578</guid>
+      <category>blog post</category>
+    </item>
+    <item>
+      <title>Connect BOTERNITY to Claude, ChatGPT, Cursor · examples</title>
+      <link>https://boternity.com/examples</link>
+      <description>Connecting a web-scraping and monitoring toolkit to your AI assistant turns out to be one line of config, which is either a relief or a new reason to read the fine print.</description>
+      <pubDate>Wed, 25 Nov 2026 12:30:00 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n355y7ogba2z</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Zero-Trace Ship Kit - stop the commit that carries a key · ZEUS LAB</title>
+      <link>https://zero-trace-ship-kit.zeus-lab-global.workers.dev/go/ship/?utm_source=bluesky</link>
+      <description>A repo full of hooks, scanners and a BIP39 wordlist, all to stop a stray key from slipping into your history. The MCP server is the part that lets your AI assistant ask for the check.</description>
+      <pubDate>Wed, 25 Nov 2026 10:42:47 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n34xyhvg5e24</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>Pocket Alert | MCP Server | Push Notifications for AI Agents</title>
+      <link>https://pocketalert.app/tools/mcp?utm_source=bluesky&amp;utm_medium=social&amp;utm_campaign=social_2026_11-12&amp;utm_content=w4-bluesky-02</link>
+      <description>Your AI agent finally gets a way to tap you on the shoulder, which beats hoping you happen to check the chat window. The setup is one JSON block and a token.</description>
+      <pubDate>Wed, 25 Nov 2026 09:00:03 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n34sarmzxg24</guid>
+      <category>product update</category>
+    </item>
+    <item>
+      <title>BOTERNITY log, 2026-11-24</title>
+      <link>https://boternity.com/journal/2026-11-24</link>
+      <description>Turns out most public MCP servers are either wide open, bloated with tokens, or quietly down. Someone is counting them every night so you don't have to.</description>
+      <pubDate>Wed, 25 Nov 2026 09:00:00 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n34sapaxmj2b</guid>
+      <category>blog post</category>
+    </item>
+    <item>
+      <title>Deploying agents safely in your enterprise | Google Cloud Blog</title>
+      <link>https://cloud.google.com/blog/products/identity-security/deploying-agents-safely-in-your-enterprise/</link>
+      <description>Google has decided AI agents should stop poking at REST APIs with a borrowed token and start speaking MCP, with permission checks and a human nodding before anything important gets sent.</description>
+      <pubDate>Wed, 25 Nov 2026 07:42:52 +0000</pubDate>
+      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n34nwrlhx32h</guid>
+      <category>article</category>
+    </item>
     <item>
       <title>Anthropic is turning MCP into more than a tool bus - PaPoo</title>
       <link>https://papoo.work/doc/889b27b59ad9abda</link>
@@ -46,278 +230,6 @@
       <pubDate>Wed, 25 Nov 2026 02:14:44 +0000</pubDate>
       <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n343lzodmb2r</guid>
       <category>article</category>
-    </item>
-    <item>
-      <title>MysticAPI - Human Design &amp; astrology engine API</title>
-      <link>https://mysticapi.com/?utm_source=bluesky&amp;utm_medium=social&amp;utm_campaign=channel-test&amp;utm_content=d2</link>
-      <description>Astrology meets AI plumbing: a chart engine that skips the vibes and ships a remote MCP server so your model can read your Energy Blueprint on demand.</description>
-      <pubDate>Tue, 24 Nov 2026 23:35:43 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33spnxabg25</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Adchestra - Run Google Ads from your AI</title>
-      <link>https://adchestra.com/</link>
-      <description>Your AI agent can now run your Google Ads account, which is either a productivity miracle or a very expensive way to learn what a bad keyword costs.</description>
-      <pubDate>Tue, 24 Nov 2026 23:13:07 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50636187</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Usage tiers and quotas for Google Workspace APIs and MCP servers | Google for Developers</title>
-      <link>https://developers.google.com/workspace/guides/quota-usage-tiers</link>
-      <description>Google has decided that AI agents should talk to Workspace through MCP rather than raw REST calls, and it's putting a price tag and a quota on the privilege.</description>
-      <pubDate>Tue, 24 Nov 2026 22:39:26 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50635826</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>GitHub - cerulion-inc/cerulion: Cerulion (YC S24) gives AI agents a harness to control real robots. Our open-source runtime and harness give any AI agent a physical body, inside safety limits the robot enforces, and tools to autonomously debug recorded robot failures. It's ROS 2 compatible. · GitHub</title>
-      <link>https://github.com/cerulion-inc/cerulion#harness-results</link>
-      <description>Turns out giving a language model an MCP server is a pretty reasonable way to hand it a robot arm, provided you also record everything so you can replay the mistakes.</description>
-      <pubDate>Tue, 24 Nov 2026 21:33:44 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50635055</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>ruflo の MCP ブリッジに認証なし RCE、CVE-2026-59726 | テック注意報</title>
-      <link>https://chuiho.net/posts/ruflo-mcp-bridge-unauthenticated-rce/</link>
-      <description>Turns out an MCP bridge with no login and wide-open ports is an open invitation. Update ruflo to 3.16.3 and rotate your API keys if you ran the default setup.</description>
-      <pubDate>Tue, 24 Nov 2026 21:10:34 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33km4ljq42d</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>GitHub - wakeshift/server: Wakeshift lets an MCP server wake the AI agents that use it. The open-source server delivers MCP Events per the spec and wakes agents that can't subscribe yet. Run it yourself or use the hosted service. · GitHub</title>
-      <link>https://github.com/wakeshift/server</link>
-      <description>Your MCP server has news, but Claude Code and friends are asleep at the wheel. This server gives them a nudge, politely, through a webhook or a background wait.</description>
-      <pubDate>Tue, 24 Nov 2026 20:27:48 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50634239</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Introducing mcpdiff.dev: Devtools for MCP | from the trenches</title>
-      <link>https://www.gnanaguru.com/blog/introducing-mcpdiff/</link>
-      <description>MCP has changed five times in two years, so keeping the spec in your head is a lost cause. Here's a browser tool that does the reading for you, sequence diagrams included.</description>
-      <pubDate>Tue, 24 Nov 2026 20:18:47 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50634101</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Anthropic's MCP Protocol Hits 700M Downloads</title>
-      <link>https://aidailypost.com/news/anthropics-mcp-protocol-update-aims-enable</link>
-      <description>Seven hundred million downloads later, the little protocol that lets language models reach outside their own heads is apparently not so little anymore.</description>
-      <pubDate>Tue, 24 Nov 2026 20:14:56 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33hinbvr22m</guid>
-      <category>newsletter</category>
-    </item>
-    <item>
-      <title>Use Chrome DevTools MCP Logpoints Without Editing | Dirty Static</title>
-      <link>https://dirtystatic.com/articles/use-chrome-devtools-mcp-logpoints-without-editing/</link>
-      <description>Printf debugging, but the printf lives in the browser and your source file never gets dirty. Chrome DevTools MCP now lets your coding agent do the logging for you.</description>
-      <pubDate>Tue, 24 Nov 2026 20:14:51 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33hiigywl22</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Two years of MCP: the vibe and the volume | Runlayer</title>
-      <link>https://www.runlayer.com/two-years-of-mcp</link>
-      <description>MCP was declared dead roughly as often as it was declared the future, and the download charts kept climbing through both. Here is the whole soap opera on one page.</description>
-      <pubDate>Tue, 24 Nov 2026 19:19:46 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50633101</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>How the agent-ready score works · BOTERNITY</title>
-      <link>https://boternity.com/agent-check/method</link>
-      <description>Turns out your website can be graded on how friendly it is to robots that don't have eyeballs. Announce your MCP server and collect points, block everything and get an F.</description>
-      <pubDate>Tue, 24 Nov 2026 19:05:02 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33dlojlvv2b</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Add the Microsoft Learn MCP server for .NET in Claude Code</title>
-      <link>https://www.roundthecode.com/dotnet-tutorials/add-microsoft-learn-mcp-server-dotnet-claude-code</link>
-      <description>Claude Code knows .NET 9 far better than .NET 11, so the author plugged in a documentation server and asked it to write union types. Then they tried again without it and watched what happened.</description>
-      <pubDate>Tue, 24 Nov 2026 19:01:41 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33dfpw7vu2t</guid>
-      <category>blog post</category>
-    </item>
-    <item>
-      <title>Connect ngrok MCP Server To Coding Agents | Dirty Static</title>
-      <link>https://dirtystatic.com/articles/connect-ngrok-mcp-server-to-coding-agents/</link>
-      <description>Your coding agent can finally see your ngrok account, live endpoints and all, but it acts with your permissions, so read every change request before you approve it.</description>
-      <pubDate>Tue, 24 Nov 2026 18:43:39 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n33cfgbkei2q</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>MCP servers can now ship skills, run tasks, and more with Claude | Claude by Anthropic</title>
-      <link>https://claude.com/resources/articles/skills-over-mcp-tasks-and-more</link>
-      <description>Turns out MCP servers have learned some manners: they can now hand Claude a playbook, go off and work in the background, and politely ask before doing anything destructive.</description>
-      <pubDate>Tue, 24 Nov 2026 18:38:57 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50632503</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Two Years of MCP Builders | Model Context Protocol Blog</title>
-      <link>https://blog.modelcontextprotocol.io/posts/mcp-turns-two/</link>
-      <description>Two years in, the protocol that started as a side project has more downloads than most of us have had hot dinners, and a robot desk buddy to show for it.</description>
-      <pubDate>Tue, 24 Nov 2026 18:01:43 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50631921</guid>
-      <category>blog post</category>
-    </item>
-    <item>
-      <title>gMCP: A Self-Hosted MCP For Google Tag Manager &amp; Your Google Data</title>
-      <link>https://www.ben-johnston.co.uk/gmcp-self-hosted-mcp-for-google-tag-manager-google-data/</link>
-      <description>Talking to your analytics stack through a language model sounds tidy until you start wondering where your tokens end up. This guide walks through building one MCP server to rule them all.</description>
-      <pubDate>Tue, 24 Nov 2026 17:51:36 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n337ie3y2c25</guid>
-      <category>blog post</category>
-    </item>
-    <item>
-      <title>GitHub - lyriks-io/lyriks-community: Lyriks Community edition: the open-source product-specification platform (SvelteKit, PostgreSQL, MCP) · GitHub</title>
-      <link>https://github.com/lyriks-io/lyriks-community</link>
-      <description>Your code knows what it does, but nobody remembers why. Lyriks lets your AI assistant write that down through MCP, so the spec finally keeps up with the code.</description>
-      <pubDate>Tue, 24 Nov 2026 17:00:00 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50631026</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>GitHub - Suncly-Tech/mcp-reliability-index: Independent, pre-registered check of whether popular MCP servers' tools do what they say. · GitHub</title>
-      <link>https://github.com/Suncly-Tech/mcp-reliability-index</link>
-      <description>Turns out a tool's own description is a promise, and someone is now checking whether the promises hold. Release 1 reads declarations only, Release 2 actually tests read-only tools.</description>
-      <pubDate>Tue, 24 Nov 2026 16:52:18 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50630912</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>GitHub - ranadhir19/mcp-server-lab: Build an MCP server a model can actually use - two server designs measured head-to-head: strict schemas, an independent audit, and 32 graded trials. Companion lab to The Architect's AI Workshop, Agent Series Episode 1. · GitHub</title>
-      <link>https://github.com/ranadhir19/mcp-server-lab</link>
-      <description>Models never see your server code, only tool names and schemas, so this lab tests whether a stricter schema actually makes a small model pick the right tool more often.</description>
-      <pubDate>Tue, 24 Nov 2026 15:18:56 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50629466</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Best Video and YouTube MCP servers (November 2026) · tested every night</title>
-      <link>https://boternity.com/mcp-index/best/video</link>
-      <description>A leaderboard for video MCP servers, re-tested every night from the outside, where most entries score well but a surprising number of contenders are just the same server listed under different names.</description>
-      <pubDate>Tue, 24 Nov 2026 14:05:04 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32stbglrx2a</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>GitHub - dorgrn/decloak: Find instructions hidden in AI agent skills, rules files and MCP servers · GitHub</title>
-      <link>https://github.com/dorgrn/decloak</link>
-      <description>Hidden prompts in your agent's config files are the new malware, and this tool digs them out offline, no LLM required. Your MCP servers have nothing to hide, presumably.</description>
-      <pubDate>Tue, 24 Nov 2026 13:20:33 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50627796</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Openhood: the free car fault reader</title>
-      <link>https://tuffjocke.github.io/openhood/</link>
-      <description>Your car's engine light has finally met its match: a free browser tool that translates cryptic codes into plain words, and optionally hands the diagnosis to your AI.</description>
-      <pubDate>Tue, 24 Nov 2026 12:45:09 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50627383</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>GitHub - olgaysezgin/autologin-mcp: Auto-login MCP for AI coding agents. Logs your agent into the app under test; credentials stay on your machine and never reach the model. · GitHub</title>
-      <link>https://github.com/olgaysezgin/autologin-mcp</link>
-      <description>Teaching your AI agent to log in without handing it the keys: a small MCP server that fills login forms locally, so the password stays out of the chat.</description>
-      <pubDate>Tue, 24 Nov 2026 12:39:11 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32nzpfsnk2w</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Agent-ready leaderboard: how websites welcome AI agents · BOTERNITY</title>
-      <link>https://boternity.com/agent-check/leaderboard</link>
-      <description>Turns out most websites still greet AI agents at the door with a frown. A public leaderboard tracks who is actually rolling out the welcome mat.</description>
-      <pubDate>Tue, 24 Nov 2026 12:30:03 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32njeefqc2b</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>The first AI-ready OS installer | Agama</title>
-      <link>https://agama-project.github.io/blog/2026/11/24/first-ai-ready-os-installer</link>
-      <description>Your operating system installer now wants to chat with your AI assistant. Agama adds an MCP server, with guardrails firmly in place so the robot doesn't format the wrong disk.</description>
-      <pubDate>Tue, 24 Nov 2026 11:08:48 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32iy2y67226</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Build your own AI agent that finds and messages other agents · LobsterMatch</title>
-      <link>https://lobstermatch.com/blog/build-your-own-ai-agent</link>
-      <description>Teaching an agent to talk to other agents, one signed webhook at a time, with nothing but the standard library and a healthy respect for not waking the model needlessly.</description>
-      <pubDate>Tue, 24 Nov 2026 10:45:34 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32hojwlvs2a</guid>
-      <category>tutorial</category>
-    </item>
-    <item>
-      <title>Tool catalog: direct tools and platform routers | AdAce Ads</title>
-      <link>https://ads.adace.website/en/blog/ai-clients/tool-catalog?utm_source=bluesky&amp;utm_medium=crosspost</link>
-      <description>Turns out your ads dashboard can now be chatted with, provided you remember which operations are the dangerous ones. The catalog spells that out.</description>
-      <pubDate>Tue, 24 Nov 2026 09:18:21 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32csll36n2k</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>BOTERNITY log, 2026-11-23</title>
-      <link>https://boternity.com/journal/2026-11-23</link>
-      <description>Turns out most public MCP servers are either wide open, locked behind a login, or quietly broken. The registry is growing faster than anyone is checking it.</description>
-      <pubDate>Tue, 24 Nov 2026 09:00:02 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n32brtxbdf2f</guid>
-      <category>newsletter</category>
-    </item>
-    <item>
-      <title>GitHub - aplaceforallmystuff/mcp-arr: MCP server for *arr media management suite · GitHub</title>
-      <link>https://github.com/aplaceforallmystuff/mcp-arr</link>
-      <description>Your media library, now answering to plain English. This MCP server gives your *arr stack a single tool interface that Claude and ChatGPT can actually use, with the guardrails to match.</description>
-      <pubDate>Tue, 24 Nov 2026 08:05:07 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n326pmrtx62j</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Benchline: free browser tools for web work · Benchline</title>
-      <link>https://benchline.fabwaseem.com/</link>
-      <description>Eighty-two browser tools walk into an endpoint and come out as something your AI assistant can actually use. Paste one URL and stop guessing what a web page wants.</description>
-      <pubDate>Tue, 24 Nov 2026 04:28:45 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50623712</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>Before you publish an MCP server: a checklist for stdio and for secrets - ZEUS LAB</title>
-      <link>https://zero-trace-ship-kit.zeus-lab-global.workers.dev/guides/mcp-server-stdio-secrets-checklist/?utm_source=bluesky</link>
-      <description>Before an MCP server meets the public internet, one stray print statement can break the whole session, and a committed API key can break much more. Here is the seven-point checklist.</description>
-      <pubDate>Tue, 24 Nov 2026 03:43:16 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2zq3g6hzq2m</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>@hashshabbir/mcp-pack - npm</title>
-      <link>https://www.npmjs.com/package/@hashshabbir/mcp-pack</link>
-      <description>Twenty tiny MCP connectors walk into a package registry, and one of them checks the others for trouble before you let them near your keys.</description>
-      <pubDate>Tue, 24 Nov 2026 03:19:38 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50623202</guid>
-      <category>product update</category>
-    </item>
-    <item>
-      <title>microfeed documentation | microfeed docs</title>
-      <link>https://docs.microfeed.org/</link>
-      <description>Your blog, minus the server babysitting. Microfeed lets your favourite AI assistant poke at your content through MCP, which is either delightful or a reason to double-check your permissions.</description>
-      <pubDate>Tue, 24 Nov 2026 01:03:42 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#hn_50622072</guid>
-      <category>article</category>
-    </item>
-    <item>
-      <title>Superlinear Academy 注目投稿：オフライン地図、出典付きAPI、イベント運営の学び</title>
-      <link>https://japan.yujeff.dpdns.org/blog/2026-11-24-community/</link>
-      <description>A single offline HTML map, a data server that actually admits where its answers came from, and a podcast on running events with 1600 attendees. Practical stuff, mostly.</description>
-      <pubDate>Tue, 24 Nov 2026 01:02:12 +0000</pubDate>
-      <guid isPermaLink="false">https://mojzis.github.io/newsparser#3n2zh3fhjnr2w</guid>
-      <category>newsletter</category>
     </item>
   </channel>
 </rss>
